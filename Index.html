@@ -417,6 +417,7 @@
             <p>Quantité : <span id="professeurs">0</span></p>
         </div>
         <button id="skillsButton" style="display: none;">Compétences</button>
+        <button id="resetSkillsButton" style="display: none; background-color: #f44336; color: white;">Réinitialiser Compétences</button>
     </div>
 
     <div id="main-content">
@@ -428,7 +429,6 @@
             </div>
 
             <button id="etudierButton">Étudier sagement (+1 BP)</button>
-            <button id="devButton">DEV : +10000 BP</button>
         </div>
 
         <div id="skillTreeContainer">
@@ -471,6 +471,7 @@
         let nombreProfesseurs = 0;
         let professorsUsedForSkills = 0; // Nouveau: nombre de professeurs utilisés pour les compétences
         let multiplicateurProfesseur = 1;
+        let s15Clicks = 0; // Compteur pour la compétence "Clonage des connaissances"
 
         // Drapeaux pour le déblocage des sections d'achat
         let elevesUnlocked = false;
@@ -518,7 +519,7 @@
         const acheterImageButton = document.getElementById('acheterImageButton');
         const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
         const skillsButton = document.getElementById('skillsButton');
-        const devButton = document.getElementById('devButton'); // Nouveau bouton DEV
+        const resetSkillsButton = document.getElementById('resetSkillsButton'); // Nouveau bouton Réinitialiser Compétences
 
         // Récupération des sections d'achat pour la visibilité dynamique
         const achatEleveSection = document.getElementById('achatEleveSection');
@@ -547,14 +548,15 @@
                 nombreClasses,
                 images,
                 nombreProfesseurs,
-                professorsUsedForSkills, // Sauvegarde des professeurs utilisés
+                professorsUsedForSkills,
                 disableEleveWarning,
                 unlockedSkills: Object.keys(unlockedSkills),
                 elevesUnlocked,
                 classesUnlocked,
                 imagesUnlocked,
                 professeursUnlocked,
-                skillsButtonUnlocked
+                skillsButtonUnlocked,
+                s15Clicks // Sauvegarde du compteur de clics S15
             };
             localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
         }
@@ -568,13 +570,14 @@
                 nombreClasses = gameState.nombreClasses || 0;
                 images = gameState.images || 0;
                 nombreProfesseurs = gameState.nombreProfesseurs || 0;
-                professorsUsedForSkills = gameState.professorsUsedForSkills || 0; // Chargement
+                professorsUsedForSkills = gameState.professorsUsedForSkills || 0;
                 disableEleveWarning = gameState.disableEleveWarning || false;
                 elevesUnlocked = gameState.elevesUnlocked || false;
                 classesUnlocked = gameState.classesUnlocked || false;
                 imagesUnlocked = gameState.imagesUnlocked || false;
                 professeursUnlocked = gameState.professeursUnlocked || false;
                 skillsButtonUnlocked = gameState.skillsButtonUnlocked || false;
+                s15Clicks = gameState.s15Clicks || 0; // Chargement du compteur de clics S15
 
                 unlockedSkills = {};
                 if (gameState.unlockedSkills) {
@@ -648,11 +651,11 @@
             { id: 'S12', name: 'Réalité Virtuelle Pédagogique', family: 'Science', description: 'Augmente la production des classes de 20%.', flavorText: 'Création d\'environnements d\'apprentissage immersifs pour une meilleure rétention.', effect: { type: 'classeMultiplierBonus', value: 0.20 }, prerequisites: ['S11'], row: 11, col: 2 },
             { id: 'S13', name: 'Robotique Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 8%.', flavorText: 'Développement de robots assistants pour l\'enseignement et l\'interaction avec les élèves.', effect: { type: 'totalBpsMultiplierBonus', value: 0.08 }, prerequisites: ['S12'], row: 12, col: 2 },
             { id: 'S14', name: 'Interface Cerveau-Machine', family: 'Science', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Connexion directe entre le cerveau et les systèmes d\'apprentissage pour une acquisition de connaissances accélérée.', effect: { type: 'eleveBpsBonus', value: 0.4 }, prerequisites: ['S13'], row: 13, col: 2 },
-            { id: 'S15', name: 'Clonage des Connaissances', family: 'Science', description: 'Augmente la production des classes de 22%.', flavorText: 'Techniques avancées pour dupliquer et transférer des connaissances entre les entités éducatives.', effect: { type: 'classeMultiplierBonus', value: 0.22 }, prerequisites: ['S14'], row: 14, col: 2 },
+            { id: 'S15', name: 'Clonage des Connaissances', family: 'Science', description: 'Augmente la production des classes de 22%. (Bonus spécial au 10ème clic)', flavorText: 'Techniques avancées pour dupliquer et transférer des connaissances entre les entités éducatives.', effect: { type: 'classeMultiplierBonus', value: 0.22 }, prerequisites: ['S14'], row: 14, col: 2 },
             { id: 'S16', name: 'Synthèse de l\'Expérience', family: 'Science', description: 'Augmente la production des élèves de 0.45 BP/s par élève.', flavorText: 'Création artificielle d\'expériences d\'apprentissage pour une immersion totale et rapide.', effect: { type: 'eleveBpsBonus', value: 0.45 }, prerequisites: ['S15'], row: 15, col: 2 },
             { id: 'S17', name: 'Théorie Unifiée de l\'Apprentissage', family: 'Science', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Une théorie englobante qui explique tous les aspects de l\'acquisition des connaissances.', effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['S16'], row: 16, col: 2 },
             { id: 'S18', name: 'Manipulation Quantique Pédagogique', family: 'Science', description: 'Augmente la production des classes de 25%.', flavorText: 'Exploitation des principes quantiques pour des avancées sans précédent en éducation.', effect: { type: 'classeMultiplierBonus', value: 0.25 }, prerequisites: ['S17'], row: 17, col: 2 },
-            { id: 'S19', name: 'Conscience Artificielle', family: 'Science', description: 'Augmente la production des élèves de 0.5 BP/s par élève.', flavorText: 'Développement d\'entités conscientes capables d\'apprendre et d\'enseigner de manière autonome.', effect: { type: 'eleveBpsBonus', value: 0.5 }, prerequisites: ['S18'], row: 18, col: 2 },
+            { id: 'S19', name: 'Conscience Artificielle', family: 'Science', description: 'Développement d\'entités conscientes capables d\'apprendre et d\'enseigner de manière autonome.', effect: { type: 'eleveBpsBonus', value: 0.5 }, prerequisites: ['S18'], row: 18, col: 2 },
             { id: 'S20', name: 'Singularité Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Le point où l\'intelligence éducative dépasse l\'entendement humain, transformant l\'apprentissage pour toujours.', effect: { type: 'totalBpsMultiplierBonus', value: 0.15 }, prerequisites: ['S19'], row: 19, col: 2 },
 
             // Compétences inter-branches (Exemples, à étendre)
@@ -797,6 +800,8 @@
                 acheterProfesseurButton.classList.remove('can-afford');
                 acheterProfesseurButton.classList.add('cannot-afford');
             }
+            // Mise à jour du texte du bouton Professeur avec le coût actuel
+            acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${Math.floor(professeurCost)} I</span>`;
         }
 
         // Fonction pour afficher la modale de confirmation
@@ -887,13 +892,20 @@
                         const canActivate = availableProfessors > 0; // Coût est 1 professeur
                         const prerequisitesMet = skill.prerequisites.every(prereqId => unlockedSkills[prereqId]);
 
+                        // Attacher le gestionnaire de clic à toutes les compétences
+                        // La logique interne de handleSkillClick décidera si la compétence est débloquée ou si c'est un bonus spécial
+                        skillNode.addEventListener('click', () => handleSkillClick(skill.id));
+
                         if (isUnlocked) {
                             skillNode.classList.add('unlocked');
                         } else if (canActivate && prerequisitesMet) {
                             skillNode.classList.add('can-afford'); // Utilise can-afford pour indiquer activable
-                            skillNode.addEventListener('click', () => unlockSkill(skill.id));
                         } else {
                             skillNode.classList.add('locked');
+                            // Permettre le curseur "pointer" pour S15 même si verrouillé, pour indiquer la cliquabilité du bonus
+                            if (skill.id === 'S15') {
+                                skillNode.style.cursor = 'pointer';
+                            }
                         }
 
                         skillNode.innerHTML += `
@@ -903,7 +915,7 @@
                                 <span class="skill-flavor-text">${skill.flavorText}</span>
                                 ${!isUnlocked ? '<br><span class="skill-cost images-color">Coût : 1 Professeur</span>' : ''}
                                 ${!isUnlocked && !prerequisitesMet ? '<br><span style="color:red;">Prérequis non remplis</span>' : ''}
-                                ${!isUnlocked && !canActivate ? '<br><span style="color:red;">Pas de professeur disponible</span>' : ''}
+                                ${!isUnlocked && !canActivate && skill.id !== 'S15' ? '<br><span style="color:red;">Pas de professeur disponible</span>' : ''}
                             </div>
                         `;
                         skillWrapper.appendChild(skillNode);
@@ -915,36 +927,57 @@
             updateProfessorsDisplay(); // Mettre à jour l'affichage des professeurs disponibles
         }
 
-        // Fonction pour débloquer une compétence
-        function unlockSkill(skillId) {
+        // Fonction pour gérer le clic sur une compétence (déblocage ou bonus)
+        function handleSkillClick(skillId) {
             const skill = skillsData.find(s => s.id === skillId);
 
             if (!skill) {
                 showNotification("Compétence introuvable.");
                 return;
             }
-            if (unlockedSkills[skillId]) {
-                showNotification("Compétence déjà débloquée.");
-                return;
+
+            // Logique du bonus spécial pour "Clonage des Connaissances" (S15)
+            if (skillId === 'S15') {
+                s15Clicks++;
+                if (s15Clicks >= 10) {
+                    bonsPoints += 10000000;
+                    images += 1000;
+                    nombreClasses += 10;
+                    nombreEleves += 200;
+                    showNotification("BONUS ÉNORME ! Clonage des connaissances a rapporté gros !");
+                    s15Clicks = 0; // Réinitialise le compteur pour pouvoir le déclencher à nouveau
+                    mettreAJourAffichage(); // Mettre à jour l'affichage immédiatement après le bonus
+                    saveGameState(); // Sauvegarder l'état après le bonus
+                    return; // Sortir de la fonction après avoir géré le bonus S15
+                }
+                // Pas de notification pour les clics intermédiaires sur S15
             }
 
-            const prerequisitesMet = skill.prerequisites.every(prereqId => unlockedSkills[prereqId]);
-            if (!prerequisitesMet) {
-                showNotification("Prérequis non remplis pour cette compétence.");
-                return;
-            }
+            // Logique normale de déblocage de compétence (seulement si pas déjà débloquée)
+            if (!unlockedSkills[skillId]) {
+                const prerequisitesMet = skill.prerequisites.every(prereqId => unlockedSkills[prereqId]);
+                if (!prerequisitesMet) {
+                    showNotification("Prérequis non remplis pour cette compétence.");
+                    return;
+                }
 
-            const availableProfessors = nombreProfesseurs - professorsUsedForSkills;
-            if (availableProfessors > 0) {
-                professorsUsedForSkills++; // Utilise un professeur
-                unlockedSkills[skillId] = true;
-                showNotification(`Compétence débloquée : ${skill.name} !`);
-                saveGameState();
-                applyAllSkillEffects(); // Appliquer les effets immédiatement
-                renderSkillTree(); // Re-rendre l'arbre pour mettre à jour les états visuels
-                mettreAJourAffichage(); // Mettre à jour l'affichage principal du jeu
+                const availableProfessors = nombreProfesseurs - professorsUsedForSkills;
+                if (availableProfessors > 0) {
+                    professorsUsedForSkills++; // Utilise un professeur
+                    unlockedSkills[skillId] = true;
+                    showNotification(`Compétence débloquée : ${skill.name} !`);
+                    saveGameState();
+                    applyAllSkillEffects(); // Appliquer les effets immédiatement
+                    renderSkillTree(); // Re-rendre l'arbre pour mettre à jour les états visuels
+                    mettreAJourAffichage(); // Mettre à jour l'affichage principal du jeu
+                } else {
+                    showNotification("Pas assez de professeurs disponibles pour débloquer cette compétence !");
+                }
             } else {
-                showNotification("Pas assez de professeurs disponibles pour débloquer cette compétence !");
+                // Si la compétence est déjà débloquée et ce n'est pas S15, ne rien faire
+                if (skillId !== 'S15') {
+                    showNotification("Compétence déjà débloquée.");
+                }
             }
         }
 
@@ -962,9 +995,25 @@
         skillsButton.addEventListener('click', () => {
             if (skillTreeContainer.style.display === 'flex') {
                 skillTreeContainer.style.display = 'none';
+                resetSkillsButton.style.display = 'none'; // Cacher le bouton de reset quand l'arbre est caché
             } else {
                 renderSkillTree(); // S'assurer que l'arbre est rendu à jour
                 skillTreeContainer.style.display = 'flex';
+                resetSkillsButton.style.display = 'block'; // Afficher le bouton de reset quand l'arbre est visible
+            }
+        });
+
+        // Événement pour le bouton "Réinitialiser Compétences"
+        resetSkillsButton.addEventListener('click', () => {
+            if (confirm("Êtes-vous sûr de vouloir réinitialiser toutes les compétences ? Vous perdrez les professeurs assignés.")) {
+                professorsUsedForSkills = 0;
+                unlockedSkills = {};
+                s15Clicks = 0; // Réinitialise aussi le compteur de clics S15
+                saveGameState();
+                applyAllSkillEffects();
+                renderSkillTree();
+                mettreAJourAffichage();
+                showNotification("Compétences réinitialisées !");
             }
         });
 
@@ -976,17 +1025,6 @@
             updateButtonStates();
             saveGameState();
         });
-
-        // Événement pour le bouton "DEV"
-        devButton.addEventListener('click', () => {
-            bonsPoints += 10000; // Ajoute 10000 bons points
-            mettreAJourAffichageBonsPoints();
-            showNotification("+10000 BP (DEV)");
-            checkUnlockConditions();
-            updateButtonStates();
-            saveGameState();
-        });
-
 
         // Événement pour le bouton "Acheter un élève"
         acheterEleveButton.addEventListener('click', () => {
