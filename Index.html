@@ -486,6 +486,20 @@
         // Compétences débloquées (pour la persistance de l'état)
         let unlockedSkills = {};
 
+        // Bonus de points déjà réclamés
+        let bonusPointsClaimed = {
+            100: false,
+            300: false,
+            750: false,
+            1000: false,
+            2000: false,
+            5000: false,
+            10000: false,
+            20000: false,
+            50000: false,
+            100000: false
+        };
+
         // Effets des compétences (pour être appliqués au chargement)
         let skillEffects = {
             eleveBpsBonus: 0,
@@ -556,7 +570,8 @@
                 imagesUnlocked,
                 professeursUnlocked,
                 skillsButtonUnlocked,
-                s15Clicks // Sauvegarde du compteur de clics S15
+                s15Clicks, // Sauvegarde du compteur de clics S15
+                bonusPointsClaimed: bonusPointsClaimed // Sauvegarde des bonus réclamés
             };
             localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
         }
@@ -584,6 +599,11 @@
                     gameState.unlockedSkills.forEach(skillId => {
                         unlockedSkills[skillId] = true;
                     });
+                }
+
+                // Chargement des bonus réclamés, en fusionnant avec les nouveaux si la sauvegarde est ancienne
+                if (gameState.bonusPointsClaimed) {
+                    Object.assign(bonusPointsClaimed, gameState.bonusPointsClaimed);
                 }
                 
                 applyAllSkillEffects(); // Appliquer les effets des compétences débloquées au chargement
@@ -1175,6 +1195,30 @@
                 skillsButton.style.display = 'block';
                 showNotification("Nouvelle section débloquée : Compétences !");
             }
+
+            // --- Nouveaux bonus de points ---
+            const bonusThresholds = [
+                { threshold: 100, amount: 100 },
+                { threshold: 300, amount: 100 },
+                { threshold: 750, amount: 100 },
+                { threshold: 1000, amount: 200 },
+                { threshold: 2000, amount: 200 },
+                { threshold: 5000, amount: 250 },
+                { threshold: 10000, amount: 300 },
+                { threshold: 20000, amount: 350 },
+                { threshold: 50000, amount: 400 },
+                { threshold: 100000, amount: 500 }
+            ];
+
+            bonusThresholds.forEach(bonus => {
+                if (bonsPoints >= bonus.threshold && !bonusPointsClaimed[bonus.threshold]) {
+                    bonsPoints += bonus.amount;
+                    bonusPointsClaimed[bonus.threshold] = true;
+                    showNotification(`Bonus de ${bonus.amount} BP atteint !`);
+                    mettreAJourAffichageBonsPoints(); // Mettre à jour l'affichage des BP immédiatement
+                    saveGameState(); // Sauvegarder l'état après le bonus
+                }
+            });
         }
 
         // Boucle de production automatique (toutes les secondes)
