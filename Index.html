@@ -210,6 +210,182 @@
             font-size: 0.9em;
             color: #555;
         }
+
+        /* --- Styles de l'arbre de compétences --- */
+        #skillTreeContainer {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 30px;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: none; /* Masqué par défaut */
+            flex-direction: column; /* Utilise flex pour centrer le contenu */
+            align-items: center;
+        }
+
+        #skillTreeContainer h1 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        #skills-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 colonnes pour les 3 branches */
+            gap: 20px; /* Espacement entre les branches */
+            width: 100%;
+            justify-items: center; /* Centrer les branches dans leur colonne */
+        }
+
+        .skill-branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px; /* Espacement entre les compétences dans une branche */
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+            width: 100%; /* Prend la largeur de sa colonne de grille */
+            box-sizing: border-box;
+        }
+
+        .skill-branch h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+
+        .skill-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative; /* Pour les lignes de connexion */
+            padding-bottom: 25px; /* Espace pour la ligne vers le bas */
+        }
+
+        .skill-wrapper:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 25px; /* Longueur de la ligne */
+            background-color: #a0a0a0;
+            bottom: 0; /* Positionne en bas du wrapper */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 0; /* Assure que la ligne est derrière le nœud suivant */
+        }
+
+        .skill-name-display {
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 5px;
+            text-align: center;
+            color: #555;
+        }
+
+        .skill-node {
+            width: 100px; /* Taille de la bulle */
+            height: 100px;
+            border-radius: 50%; /* Forme circulaire */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            border: 3px solid;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease-in-out;
+            padding: 5px;
+            box-sizing: border-box;
+            z-index: 1; /* Assure que le nœud est au-dessus de la ligne */
+        }
+
+        .skill-node:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .skill-node.locked {
+            background-color: #e0e0e0;
+            border-color: #a0a0a0;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .skill-node.unlocked {
+            background-color: #D4EDDA; /* Vert clair */
+            border-color: #28A745; /* Vert foncé */
+            color: #218838;
+        }
+
+        /* Couleurs spécifiques pour les branches */
+        .skill-branch.pedagogie .skill-node.unlocked {
+            background-color: #D4EDDA; border-color: #28A745; color: #218838;
+        }
+        .skill-branch.rationnalisme .skill-node.unlocked {
+            background-color: #CCE5FF; border-color: #007BFF; color: #0056b3;
+        }
+        .skill-branch.science .skill-node.unlocked {
+            background-color: #FFF3CD; border-color: #FFC107; color: #B8860B;
+        }
+
+        /* Tooltip pour les compétences */
+        .skill-node .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 10; /* Assure que le tooltip est au-dessus de tout */
+            bottom: 110%; /* Position au-dessus du nœud */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8em;
+            line-height: 1.4;
+        }
+
+        .skill-node .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #555 transparent transparent transparent;
+        }
+
+        .skill-node:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .skill-cost {
+            font-size: 0.8em;
+            color: #8A2BE2; /* Violet pour le coût en images */
+        }
+        .skill-effect-description {
+            font-size: 0.75em;
+            margin-top: 5px;
+        }
+        .skill-flavor-text {
+            font-size: 0.7em;
+            font-style: italic;
+            color: #ccc;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -243,6 +419,12 @@
             </div>
 
             <button id="etudierButton">Étudier sagement (+1 BP)</button>
+        </div>
+
+        <div id="skillTreeContainer">
+            <h1>Arbre de Compétences</h1>
+            <div id="skills-grid">
+                </div>
         </div>
     </div>
 
@@ -283,13 +465,13 @@
         let classesUnlocked = false;
         let imagesUnlocked = false;
         let professeursUnlocked = false;
-        let skillsButtonUnlocked = false; // Nouveau drapeau pour le bouton Compétences
+        let skillsButtonUnlocked = false; 
 
         // Variables pour le système de confirmation d'achat d'élève
         let disableEleveWarning = false; 
 
         // Compétences débloquées (pour la persistance de l'état)
-        let unlockedSkills = {}; // Objet pour stocker les IDs des compétences débloquées
+        let unlockedSkills = {}; 
 
         // Effets des compétences (pour être appliqués au chargement)
         let skillEffects = {
@@ -299,7 +481,7 @@
             classeCostReduction: 0,
             imageCostReduction: 0,
             professeurCostReduction: 0,
-            totalBpsMultiplierBonus: 0 // Nouveau pour les compétences qui affectent le total BPS
+            totalBpsMultiplierBonus: 0 
         };
 
         // Récupération des éléments HTML
@@ -309,15 +491,15 @@
         const classesBpsPerItemSpan = document.getElementById('classesBpsPerItem'); 
         const nombreElevesSpan = document.getElementById('nombreEleves');
         const nombreClassesSpan = document.getElementById('nombreClasses');
-        const imagesSpan = document.getElementById('imagesCount'); // Changé pour imagesCount
-        const imagesDisplay = document.getElementById('imagesDisplay'); // Pour l'affichage conditionnel
+        const imagesSpan = document.getElementById('imagesCount'); 
+        const imagesDisplay = document.getElementById('imagesDisplay'); 
         const professeursSpan = document.getElementById('professeurs');
         const etudierButton = document.getElementById('etudierButton');
         const acheterEleveButton = document.getElementById('acheterEleveButton');
         const acheterClasseButton = document.getElementById('acheterClasseButton');
         const acheterImageButton = document.getElementById('acheterImageButton');
         const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
-        const skillsButton = document.getElementById('skillsButton'); // Nouveau bouton Compétences
+        const skillsButton = document.getElementById('skillsButton'); 
 
         // Récupération des sections d'achat pour la visibilité dynamique
         const achatEleveSection = document.getElementById('achatEleveSection');
@@ -332,6 +514,11 @@
         const confirmElevePurchaseNoBtn = document.getElementById('confirmElevePurchaseNo');
         const disableEleveWarningCheckbox = document.getElementById('disableEleveWarningCheckbox');
 
+        // Éléments de l'arbre de compétences
+        const skillTreeContainer = document.getElementById('skillTreeContainer');
+        const skillsGrid = document.getElementById('skills-grid');
+
+
         // --- Fonctions de sauvegarde et de chargement de l'état du jeu ---
         function saveGameState() {
             const gameState = {
@@ -341,7 +528,7 @@
                 images,
                 nombreProfesseurs,
                 disableEleveWarning,
-                unlockedSkills: Object.keys(unlockedSkills), // Sauvegarde seulement les IDs
+                unlockedSkills: Object.keys(unlockedSkills), 
                 elevesUnlocked,
                 classesUnlocked,
                 imagesUnlocked,
@@ -367,7 +554,6 @@
                 professeursUnlocked = gameState.professeursUnlocked || false;
                 skillsButtonUnlocked = gameState.skillsButtonUnlocked || false;
 
-                // Reconstruire l'objet unlockedSkills
                 unlockedSkills = {};
                 if (gameState.unlockedSkills) {
                     gameState.unlockedSkills.forEach(skillId => {
@@ -375,35 +561,83 @@
                     });
                 }
                 
-                // Appliquer les effets des compétences débloquées au chargement
-                applyAllSkillEffects();
+                applyAllSkillEffects(); // Appliquer les effets des compétences débloquées au chargement
             }
         }
 
-        // --- Fonctions pour appliquer les effets des compétences ---
+        // --- Définition des données des compétences (20 par famille) ---
         const skillsData = [
-            // Pédagogie Branch (Exemples, à étendre à 20 par branche)
+            // Pédagogie Branch (20 compétences)
             { id: 'P1', name: 'Méthodes Actives', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Techniques d\'enseignement engageantes qui stimulent l\'apprentissage.', cost: 1, effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: [], row: 0, col: 0 },
             { id: 'P2', name: 'Apprentissage Collaboratif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Les élèves apprennent mieux en interagissant et en s\'aidant mutuellement.', cost: 1, effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: ['P1'], row: 1, col: 0 },
             { id: 'P3', name: 'Gestion de Classe Optimale', family: 'Pédagogie', description: 'Augmente la production des classes de 5%.', flavorText: 'Optimisation de l\'environnement d\'apprentissage pour minimiser les distractions.', cost: 2, effect: { type: 'classeMultiplierBonus', value: 0.05 }, prerequisites: ['P2'], row: 2, col: 0 },
-            // ... (autres compétences Pédagogie)
+            { id: 'P4', name: 'Motivation Intrinsèque', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.2 BP/s par élève.', flavorText: 'Développe l\'envie naturelle d\'apprendre chez les élèves, au-delà des récompenses.', cost: 2, effect: { type: 'eleveBpsBonus', value: 0.2 }, prerequisites: ['P3'], row: 3, col: 0 },
+            { id: 'P5', name: 'Pédagogie Différenciée', family: 'Pédagogie', description: 'Augmente la production des classes de 10%.', flavorText: 'Adapte les méthodes d\'enseignement aux besoins et rythmes de chaque élève.', cost: 3, effect: { type: 'classeMultiplierBonus', value: 0.10 }, prerequisites: ['P4'], row: 4, col: 0 },
+            { id: 'P6', name: 'Évaluation Formative', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.15 BP/s par élève.', flavorText: 'Des retours constants pour guider l\'apprentissage et identifier les lacunes.', cost: 3, effect: { type: 'eleveBpsBonus', value: 0.15 }, prerequisites: ['P5'], row: 5, col: 0 },
+            { id: 'P7', name: 'Inclusion Scolaire', family: 'Pédagogie', description: 'Augmente la production des classes de 7%.', flavorText: 'Création d\'un environnement où chaque élève, quelle que soit sa différence, peut réussir.', cost: 4, effect: { type: 'classeMultiplierBonus', value: 0.07 }, prerequisites: ['P6'], row: 6, col: 0 },
+            { id: 'P8', name: 'Compétences Transversales', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Développement de capacités comme la pensée critique et la résolution de problèmes.', cost: 4, effect: { type: 'totalBpsMultiplierBonus', value: 0.05 }, prerequisites: ['P7'], row: 7, col: 0 },
+            { id: 'P9', name: 'Apprentissage par Projet', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.25 BP/s par élève.', flavorText: 'Les élèves apprennent en réalisant des projets concrets, stimulant l\'autonomie.', cost: 5, effect: { type: 'eleveBpsBonus', value: 0.25 }, prerequisites: ['P8'], row: 8, col: 0 },
+            { id: 'P10', name: 'Mentorats Pédagogiques', family: 'Pédagogie', description: 'Augmente la production des classes de 12%.', flavorText: 'Les élèves plus avancés aident leurs pairs, renforçant la compréhension de tous.', cost: 5, effect: { type: 'classeMultiplierBonus', value: 0.12 }, prerequisites: ['P9'], row: 9, col: 0 },
+            { id: 'P11', name: 'Curriculum Adaptatif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.3 BP/s par élève.', flavorText: 'Un programme scolaire qui s\'ajuste aux progrès et aux besoins individuels.', cost: 6, effect: { type: 'eleveBpsBonus', value: 0.3 }, prerequisites: ['P10'], row: 10, col: 0 },
+            { id: 'P12', name: 'Neurosciences Éducatives', family: 'Pédagogie', description: 'Augmente la production des classes de 15%.', flavorText: 'Appliquer les découvertes sur le cerveau pour optimiser les stratégies d\'enseignement.', cost: 6, effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['P11'], row: 11, col: 0 },
+            { id: 'P13', name: 'Gamification de l\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 7%.', flavorText: 'Intégration d\'éléments de jeu pour rendre l\'apprentissage plus engageant et amusant.', cost: 7, effect: { type: 'totalBpsMultiplierBonus', value: 0.07 }, prerequisites: ['P12'], row: 12, col: 0 },
+            { id: 'P14', name: 'Pédagogie Inversée', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.35 BP/s par élève.', flavorText: 'Les élèves apprennent à la maison et pratiquent en classe, maximisant l\'interaction.', cost: 7, effect: { type: 'eleveBpsBonus', value: 0.35 }, prerequisites: ['P13'], row: 13, col: 0 },
+            { id: 'P15', name: 'Apprentissage par le Service', family: 'Pédagogie', description: 'Augmente la production des classes de 18%.', flavorText: 'Les élèves s\'engagent dans des projets communautaires, développant des compétences civiques.', cost: 8, effect: { type: 'classeMultiplierBonus', value: 0.18 }, prerequisites: ['P14'], row: 14, col: 0 },
+            { id: 'P16', name: 'Maîtrise des Émotions', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Enseigner aux élèves à gérer leurs émotions pour un apprentissage plus serein.', cost: 8, effect: { type: 'eleveBpsBonus', value: 0.4 }, prerequisites: ['P15'], row: 15, col: 0 },
+            { id: 'P17', name: 'Leadership Éducatif', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Former les élèves à prendre des initiatives et à guider leurs pairs.', cost: 9, effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['P16'], row: 16, col: 0 },
+            { id: 'P18', name: 'Citoyenneté Numérique', family: 'Pédagogie', description: 'Augmente la production des classes de 20%.', flavorText: 'Préparer les élèves à naviguer de manière responsable et éthique dans le monde numérique.', cost: 9, effect: { type: 'classeMultiplierBonus', value: 0.20 }, prerequisites: ['P17'], row: 17, col: 0 },
+            { id: 'P19', name: 'Innovation Pédagogique', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.5 BP/s par élève.', flavorText: 'Recherche et implémentation de nouvelles approches révolutionnaires en éducation.', cost: 10, effect: { type: 'eleveBpsBonus', value: 0.5 }, prerequisites: ['P18'], row: 18, col: 0 },
+            { id: 'P20', name: 'Écosystème d\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Création d\'un environnement d\'apprentissage holistique et interconnecté.', cost: 10, effect: { type: 'totalBpsMultiplierBonus', value: 0.15 }, prerequisites: ['P19'], row: 19, col: 0 },
 
-            // Rationnalisme Branch (Exemples)
+            // Rationnalisme Branch (20 compétences)
             { id: 'R1', name: 'Analyse des Données', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 10%.', flavorText: 'Utilisation des statistiques pour identifier les goulots d\'étranglement et améliorer l\'efficacité.', cost: 1, effect: { type: 'eleveCostReduction', value: 0.10 }, prerequisites: [], row: 0, col: 1 },
             { id: 'R2', name: 'Optimisation des Processus', family: 'Rationnalisme', description: 'Réduit le coût des classes de 5%.', flavorText: 'Rationalisation des flux de travail pour une meilleure utilisation des ressources.', cost: 1, effect: { type: 'classeCostReduction', value: 0.05 }, prerequisites: ['R1'], row: 1, col: 1 },
             { id: 'R3', name: 'Planification Stratégique', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Élaboration de plans à long terme pour une croissance durable et prévisible.', cost: 2, effect: { type: 'totalBpsMultiplierBonus', value: 0.05 }, prerequisites: ['R2'], row: 2, col: 1 },
-            // ... (autres compétences Rationnalisme)
+            { id: 'R4', name: 'Efficacité Logistique', family: 'Rationnalisme', description: 'Réduit le coût des images de 5%.', flavorText: 'Amélioration de la chaîne d\'approvisionnement pour les ressources rares.', cost: 2, effect: { type: 'imageCostReduction', value: 0.05 }, prerequisites: ['R3'], row: 3, col: 1 },
+            { id: 'R5', name: 'Gestion des Risques', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 10%.', flavorText: 'Anticipation et atténuation des problèmes potentiels pour une progression fluide.', cost: 3, effect: { type: 'professeurCostReduction', value: 0.10 }, prerequisites: ['R4'], row: 4, col: 1 },
+            { id: 'R6', name: 'Audit Financier', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 15%.', flavorText: 'Examen minutieux des dépenses pour maximiser l\'investissement dans l\'éducation.', cost: 3, effect: { type: 'eleveCostReduction', value: 0.15 }, prerequisites: ['R5'], row: 5, col: 1 },
+            { id: 'R7', name: 'Standardisation des Procédures', family: 'Rationnalisme', description: 'Réduit le coût des classes de 7%.', flavorText: 'Mise en place de méthodes uniformes pour une efficacité accrue.', cost: 4, effect: { type: 'classeCostReduction', value: 0.07 }, prerequisites: ['R6'], row: 6, col: 1 },
+            { id: 'R8', name: 'Automatisation Administrative', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 7%.', flavorText: 'Utilisation de la technologie pour réduire les tâches répétitives et libérer des ressources.', cost: 4, effect: { type: 'totalBpsMultiplierBonus', value: 0.07 }, prerequisites: ['R7'], row: 7, col: 1 },
+            { id: 'R9', name: 'Gestion de Projet Agile', family: 'Rationnalisme', description: 'Réduit le coût des images de 10%.', flavorText: 'Approche flexible et itérative pour la réalisation de projets éducatifs.', cost: 5, effect: { type: 'imageCostReduction', value: 0.10 }, prerequisites: ['R8'], row: 8, col: 1 },
+            { id: 'R10', name: 'Benchmarking Éducatif', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 15%.', flavorText: 'Comparaison des performances avec les meilleures pratiques pour identifier les axes d\'amélioration.', cost: 5, effect: { type: 'professeurCostReduction', value: 0.15 }, prerequisites: ['R9'], row: 9, col: 1 },
+            { id: 'R11', name: 'Modélisation Prédictive', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 20%.', flavorText: 'Utilisation de modèles statistiques pour anticiper les besoins futurs et optimiser les allocations.', cost: 6, effect: { type: 'eleveCostReduction', value: 0.20 }, prerequisites: ['R10'], row: 10, col: 1 },
+            { id: 'R12', name: 'Optimisation des Ressources', family: 'Rationnalisme', description: 'Réduit le coût des classes de 10%.', flavorText: 'Maximisation de l\'utilisation de chaque ressource disponible pour l\'éducation.', cost: 6, effect: { type: 'classeCostReduction', value: 0.10 }, prerequisites: ['R11'], row: 11, col: 1 },
+            { id: 'R13', name: 'Chaîne de Valeur Éducative', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Analyse de toutes les étapes du processus éducatif pour trouver des gains d\'efficacité.', cost: 7, effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['R12'], row: 12, col: 1 },
+            { id: 'R14', name: 'Contrôle Qualité', family: 'Rationnalisme', description: 'Réduit le coût des images de 15%.', flavorText: 'Assurance que les standards d\'excellence sont maintenus à chaque niveau de l\'enseignement.', cost: 7, effect: { type: 'imageCostReduction', value: 0.15 }, prerequisites: ['R13'], row: 13, col: 1 },
+            { id: 'R15', name: 'Gestion de Crise', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 20%.', flavorText: 'Préparation et réponse efficaces aux défis imprévus qui pourraient affecter l\'éducation.', cost: 8, effect: { type: 'professeurCostReduction', value: 0.20 }, prerequisites: ['R14'], row: 14, col: 1 },
+            { id: 'R16', name: 'Ingénierie des Coûts', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 25%.', flavorText: 'Conception de systèmes éducatifs pour minimiser les dépenses sans compromettre la qualité.', cost: 8, effect: { type: 'eleveCostReduction', value: 0.25 }, prerequisites: ['R15'], row: 15, col: 1 },
+            { id: 'R17', name: 'Optimisation Fiscale', family: 'Rationnalisme', description: 'Réduit le coût des classes de 12%.', flavorText: 'Gestion intelligente des fonds pour maximiser les investissements dans les infrastructures éducatives.', cost: 9, effect: { type: 'classeCostReduction', value: 0.12 }, prerequisites: ['R16'], row: 16, col: 1 },
+            { id: 'R18', name: 'Synergies Opérationnelles', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 12%.', flavorText: 'Identification et exploitation des complémentarités entre les différentes composantes du système éducatif.', cost: 9, effect: { type: 'totalBpsMultiplierBonus', value: 0.12 }, prerequisites: ['R17'], row: 17, col: 1 },
+            { id: 'R19', name: 'Modèle Économique Scalable', family: 'Rationnalisme', description: 'Réduit le coût des images de 20%.', flavorText: 'Conception d\'un modèle financier permettant une croissance rapide et durable de l\'impact éducatif.', cost: 10, effect: { type: 'imageCostReduction', value: 0.20 }, prerequisites: ['R18'], row: 18, col: 1 },
+            { id: 'R20', name: 'Rationnalisme Absolu', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 25%.', flavorText: 'Atteinte de l\'efficacité et de la logique maximales dans toutes les facettes de l\'éducation.', cost: 10, effect: { type: 'professeurCostReduction', value: 0.25 }, prerequisites: ['R19'], row: 19, col: 1 },
 
-            // Science Branch (Exemples)
+            // Science Branch (20 compétences)
             { id: 'S1', name: 'Recherche Fondamentale', family: 'Science', description: 'Augmente la production des élèves de 0.05 BP/s par élève.', flavorText: 'Exploration des principes de base de l\'apprentissage et de la cognition.', cost: 1, effect: { type: 'eleveBpsBonus', value: 0.05 }, prerequisites: [], row: 0, col: 2 },
             { id: 'S2', name: 'Développement Expérimental', family: 'Science', description: 'Augmente la production des classes de 5%.', flavorText: 'Application pratique des découvertes pour créer de nouvelles méthodes pédagogiques.', cost: 1, effect: { type: 'classeMultiplierBonus', value: 0.05 }, prerequisites: ['S1'], row: 1, col: 2 },
             { id: 'S3', name: 'Laboratoire d\'Innovation', family: 'Science', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Un espace dédié à la conception et au test de nouvelles approches éducatives.', cost: 2, effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: ['S2'], row: 2, col: 2 },
-            // ... (autres compétences Science)
+            { id: 'S4', name: 'Théorie du Chaos Appliquée', family: 'Science', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Comprendre les systèmes complexes pour prédire et influencer les résultats d\'apprentissage.', cost: 2, effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['S3'], row: 3, col: 2 },
+            { id: 'S5', name: 'Neuro-Pédagogie', family: 'Science', description: 'Augmente la production des classes de 15%.', flavorText: 'Fusion de la science du cerveau et des méthodes d\'enseignement pour un apprentissage optimisé.', cost: 3, effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['S4'], row: 4, col: 2 },
+            { id: 'S6', name: 'Bio-Ingénierie Cognitive', family: 'Science', description: 'Augmente la production des élèves de 0.2 BP/s par élève.', flavorText: 'Application des principes biologiques pour améliorer les fonctions cérébrales liées à l\'apprentissage.', cost: 3, effect: { type: 'eleveBpsBonus', value: 0.2 }, prerequisites: ['S5'], row: 5, col: 2 },
+            { id: 'S7', name: 'Modélisation Comportementale', family: 'Science', description: 'Augmente la production des classes de 8%.', flavorText: 'Prédiction des réactions des élèves face à différentes méthodes pédagogiques.', cost: 4, effect: { type: 'classeMultiplierBonus', value: 0.08 }, prerequisites: ['S6'], row: 6, col: 2 },
+            { id: 'S8', name: 'Psychologie Expérimentale', family: 'Science', description: 'Augmente la production totale de BP/s de 6%.', flavorText: 'Étude des processus mentaux et des comportements pour optimiser l\'environnement d\'apprentissage.', cost: 4, effect: { type: 'totalBpsMultiplierBonus', value: 0.06 }, prerequisites: ['S7'], row: 7, col: 2 },
+            { id: 'S9', name: 'Intelligence Artificielle Éducative', family: 'Science', description: 'Augmente la production des élèves de 0.3 BP/s par élève.', flavorText: 'Développement de systèmes IA pour personnaliser l\'enseignement et le tutorat.', cost: 5, effect: { type: 'eleveBpsBonus', value: 0.3 }, prerequisites: ['S8'], row: 8, col: 2 },
+            { id: 'S10', name: 'Génétique de l\'Apprentissage', family: 'Science', description: 'Augmente la production des classes de 18%.', flavorText: 'Comprendre l\'influence des facteurs génétiques sur les capacités d\'apprentissage.', cost: 5, effect: { type: 'classeMultiplierBonus', value: 0.18 }, prerequisites: ['S9'], row: 9, col: 2 },
+            { id: 'S11', name: 'Nanotechnologie Éducative', family: 'Science', description: 'Augmente la production des élèves de 0.35 BP/s par élève.', flavorText: 'Utilisation de la nanotechnologie pour créer des outils d\'apprentissage avancés.', cost: 6, effect: { type: 'eleveBpsBonus', value: 0.35 }, prerequisites: ['S10'], row: 10, col: 2 },
+            { id: 'S12', name: 'Réalité Virtuelle Pédagogique', family: 'Science', description: 'Augmente la production des classes de 20%.', flavorText: 'Création d\'environnements d\'apprentissage immersifs pour une meilleure rétention.', cost: 6, effect: { type: 'classeMultiplierBonus', value: 0.20 }, prerequisites: ['S11'], row: 11, col: 2 },
+            { id: 'S13', name: 'Robotique Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 8%.', flavorText: 'Développement de robots assistants pour l\'enseignement et l\'interaction avec les élèves.', cost: 7, effect: { type: 'totalBpsMultiplierBonus', value: 0.08 }, prerequisites: ['S12'], row: 12, col: 2 },
+            { id: 'S14', name: 'Interface Cerveau-Machine', family: 'Science', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Connexion directe entre le cerveau et les systèmes d\'apprentissage pour une acquisition de connaissances accélérée.', cost: 7, effect: { type: 'eleveBpsBonus', value: 0.4 }, prerequisites: ['S13'], row: 13, col: 2 },
+            { id: 'S15', name: 'Clonage des Connaissances', family: 'Science', description: 'Augmente la production des classes de 22%.', flavorText: 'Techniques avancées pour dupliquer et transférer des connaissances entre les entités éducatives.', cost: 8, effect: { type: 'classeMultiplierBonus', value: 0.22 }, prerequisites: ['S14'], row: 14, col: 2 },
+            { id: 'S16', name: 'Synthèse de l\'Expérience', family: 'Science', description: 'Augmente la production des élèves de 0.45 BP/s par élève.', flavorText: 'Création artificielle d\'expériences d\'apprentissage pour une immersion totale et rapide.', cost: 8, effect: { type: 'eleveBpsBonus', value: 0.45 }, prerequisites: ['S15'], row: 15, col: 2 },
+            { id: 'S17', name: 'Théorie Unifiée de l\'Apprentissage', family: 'Science', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Une théorie englobante qui explique tous les aspects de l\'acquisition des connaissances.', cost: 9, effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['S16'], row: 16, col: 2 },
+            { id: 'S18', name: 'Manipulation Quantique Pédagogique', family: 'Science', description: 'Augmente la production des classes de 25%.', flavorText: 'Exploitation des principes quantiques pour des avancées sans précédent en éducation.', cost: 9, effect: { type: 'classeMultiplierBonus', value: 0.25 }, prerequisites: ['S17'], row: 17, col: 2 },
+            { id: 'S19', name: 'Conscience Artificielle', family: 'Science', description: 'Augmente la production des élèves de 0.5 BP/s par élève.', flavorText: 'Développement d\'entités conscientes capables d\'apprendre et d\'enseigner de manière autonome.', cost: 10, effect: { type: 'eleveBpsBonus', value: 0.5 }, prerequisites: ['S18'], row: 18, col: 2 },
+            { id: 'S20', name: 'Singularité Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Le point où l\'intelligence éducative dépasse l\'entendement humain, transformant l\'apprentissage pour toujours.', cost: 10, effect: { type: 'totalBpsMultiplierBonus', value: 0.15 }, prerequisites: ['S19'], row: 19, col: 2 },
 
-            // Compétences inter-branches (Exemples)
-            { id: 'PS1', name: 'Didactique Avancée', family: 'Pédagogie-Science', description: 'Augmente la production des élèves de 0.15 BP/s par élève.', flavorText: 'L\'art et la science de l\'enseignement, affinés par la recherche cognitive.', cost: 4, effect: { type: 'eleveBpsBonus', value: 0.15 }, prerequisites: ['P5', 'S5'], row: 5, col: 1 },
-            { id: 'RS1', name: 'Ingénierie Éducative', family: 'Rationnalisme-Science', description: 'Augmente la production des classes de 15%.', flavorText: 'Application rigoureuse des principes scientifiques à la conception de systèmes éducatifs.', cost: 4, effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['R5', 'S5'], row: 5, col: 2 },
-            { id: 'PR1', name: 'Gestion des Talents Scolaires', family: 'Pédagogie-Rationnalisme', description: 'Réduit le coût des élèves de 15%.', flavorText: 'Approche systématique pour identifier et développer le potentiel de chaque élève.', cost: 4, effect: { type: 'eleveCostReduction', value: 0.15 }, prerequisites: ['P5', 'R5'], row: 5, col: 0 }
+            // Compétences inter-branches (Exemples, à étendre)
+            // Les prérequis ici sont des compétences de fin de branche pour l'exemple
+            { id: 'PS1', name: 'Didactique Avancée', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.15 BP/s par élève.', flavorText: 'L\'art et la science de l\'enseignement, affinés par la recherche cognitive.', cost: 4, effect: { type: 'eleveBpsBonus', value: 0.15 }, prerequisites: ['P5', 'S5'], row: 6, col: 0 },
+            { id: 'RS1', name: 'Ingénierie Éducative', family: 'Rationnalisme', description: 'Augmente la production des classes de 15%.', flavorText: 'Application rigoureuse des principes scientifiques à la conception de systèmes éducatifs.', cost: 4, effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['R5', 'S5'], row: 6, col: 1 },
+            { id: 'PR1', name: 'Gestion des Talents Scolaires', family: 'Pédagogie', description: 'Réduit le coût des élèves de 15%.', flavorText: 'Approche systématique pour identifier et développer le potentiel de chaque élève.', cost: 4, effect: { type: 'eleveCostReduction', value: 0.15 }, prerequisites: ['P5', 'R5'], row: 6, col: 2 }
         ];
 
         function resetSkillEffects() {
@@ -453,7 +687,6 @@
             bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
             bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
             coutEleveActuel = calculateNextEleveCost(); // Recalculer le coût de l'élève avec la réduction
-            // Les réductions de coût pour classe, image, professeur seront appliquées directement lors de l'achat.
         }
 
         // Fonction pour afficher une notification discrète
@@ -491,7 +724,7 @@
             // Appliquer la réduction de coût des compétences
             finalCost *= (1 - skillEffects.eleveCostReduction);
 
-            return Math.max(1, finalCost); // Le coût minimum est 1
+            return Math.max(1, finalCost); 
         }
 
         // Fonction pour mettre à jour l'état visuel des boutons d'achat (couleur de bordure)
@@ -560,11 +793,142 @@
                 showNotification("Un élève a été acheté !");
                 checkUnlockConditions();
                 updateButtonStates();
-                saveGameState(); // Sauvegarder l'état après l'achat
+                saveGameState(); 
             } else {
                 showNotification("Pas assez de bons points pour acheter un élève !");
             }
         }
+
+        // --- Fonctions de l'arbre de compétences ---
+        function renderSkillTree() {
+            skillsGrid.innerHTML = ''; // Nettoyer l'arbre existant
+
+            const branches = {
+                'Pédagogie': document.createElement('div'),
+                'Rationnalisme': document.createElement('div'),
+                'Science': document.createElement('div')
+            };
+
+            // Initialiser les branches et les ajouter à la grille
+            for (const family in branches) {
+                const branchDiv = branches[family];
+                branchDiv.classList.add('skill-branch', family.toLowerCase());
+                const h3 = document.createElement('h3');
+                h3.textContent = family;
+                branchDiv.appendChild(h3);
+                skillsGrid.appendChild(branchDiv);
+            }
+
+            // Regrouper les compétences par famille et par ligne pour un rendu ordonné
+            const skillsByFamilyAndRow = {};
+            skillsData.forEach(skill => {
+                if (!skillsByFamilyAndRow[skill.family]) {
+                    skillsByFamilyAndRow[skill.family] = {};
+                }
+                if (!skillsByFamilyAndRow[skill.family][skill.row]) {
+                    skillsByFamilyAndRow[skill.family][skill.row] = [];
+                }
+                skillsByFamilyAndRow[skill.family][skill.row].push(skill);
+            });
+
+            // Créer les nœuds de compétences
+            for (const family in branches) {
+                const branchDiv = branches[family];
+                const rows = skillsByFamilyAndRow[family] ? Object.keys(skillsByFamilyAndRow[family]).sort((a, b) => a - b) : [];
+
+                rows.forEach(row => {
+                    const skillsInRow = skillsByFamilyAndRow[family][row].sort((a, b) => a.col - b.col); // Trier par colonne
+
+                    skillsInRow.forEach(skill => {
+                        const skillWrapper = document.createElement('div');
+                        skillWrapper.classList.add('skill-wrapper');
+
+                        const skillNameDisplay = document.createElement('div');
+                        skillNameDisplay.classList.add('skill-name-display');
+                        skillNameDisplay.textContent = skill.name;
+                        skillWrapper.appendChild(skillNameDisplay);
+
+                        const skillNode = document.createElement('div');
+                        skillNode.id = `skill-${skill.id}`;
+                        skillNode.classList.add('skill-node');
+
+                        const isUnlocked = unlockedSkills[skill.id];
+                        const canAfford = images >= skill.cost;
+                        const prerequisitesMet = skill.prerequisites.every(prereqId => unlockedSkills[prereqId]);
+
+                        if (isUnlocked) {
+                            skillNode.classList.add('unlocked');
+                        } else if (canAfford && prerequisitesMet) {
+                            skillNode.classList.add('can-afford');
+                            skillNode.addEventListener('click', () => unlockSkill(skill.id));
+                        } else {
+                            skillNode.classList.add('locked');
+                        }
+
+                        skillNode.innerHTML += `
+                            <div class="skill-cost images-color">${skill.cost} I</div>
+                            <div class="tooltip-text">
+                                <strong>${skill.name}</strong><br>
+                                <span class="skill-effect-description">${skill.description}</span><br>
+                                <span class="skill-flavor-text">${skill.flavorText}</span>
+                                ${!isUnlocked && !prerequisitesMet ? '<br><span style="color:red;">Prérequis non remplis</span>' : ''}
+                                ${!isUnlocked && !canAfford ? '<br><span style="color:red;">Coût insuffisant</span>' : ''}
+                            </div>
+                        `;
+                        skillWrapper.appendChild(skillNode);
+                        branchDiv.appendChild(skillWrapper);
+                    });
+                });
+            }
+            updateImagesDisplay(); // Mettre à jour l'affichage des images
+        }
+
+        // Fonction pour débloquer une compétence
+        function unlockSkill(skillId) {
+            const skill = skillsData.find(s => s.id === skillId);
+
+            if (!skill) {
+                showNotification("Compétence introuvable.");
+                return;
+            }
+            if (unlockedSkills[skillId]) {
+                showNotification("Compétence déjà débloquée.");
+                return;
+            }
+
+            const prerequisitesMet = skill.prerequisites.every(prereqId => unlockedSkills[prereqId]);
+            if (!prerequisitesMet) {
+                showNotification("Prérequis non remplis pour cette compétence.");
+                return;
+            }
+
+            if (images >= skill.cost) {
+                images -= skill.cost;
+                unlockedSkills[skillId] = true;
+                showNotification(`Compétence débloquée : ${skill.name} !`);
+                saveGameState(); 
+                applyAllSkillEffects(); // Appliquer les effets immédiatement
+                renderSkillTree(); // Re-rendre l'arbre pour mettre à jour les états visuels
+                mettreAJourAffichage(); // Mettre à jour l'affichage principal du jeu
+            } else {
+                showNotification("Pas assez d'images pour débloquer cette compétence !");
+            }
+        }
+
+        // Met à jour l'affichage des images
+        function updateImagesDisplay() {
+            imagesSpan.textContent = images;
+        }
+
+        // Événement pour le bouton "Compétences"
+        skillsButton.addEventListener('click', () => {
+            if (skillTreeContainer.style.display === 'flex') {
+                skillTreeContainer.style.display = 'none';
+            } else {
+                renderSkillTree(); // S'assurer que l'arbre est rendu à jour
+                skillTreeContainer.style.display = 'flex';
+            }
+        });
 
         // Événement pour le bouton "Étudier sagement"
         etudierButton.addEventListener('click', () => {
@@ -572,7 +936,7 @@
             mettreAJourAffichageBonsPoints();
             checkUnlockConditions(); 
             updateButtonStates(); 
-            saveGameState(); // Sauvegarder l'état après le clic
+            saveGameState(); 
         });
 
         // Événement pour le bouton "Acheter un élève"
@@ -599,7 +963,7 @@
         // Événement pour la case à cocher "Ne plus afficher cet avertissement"
         disableEleveWarningCheckbox.addEventListener('change', (event) => {
             disableEleveWarning = event.target.checked;
-            saveGameState(); // Sauvegarder l'état de la préférence
+            saveGameState(); 
         });
 
         // Événement pour le bouton "Acheter une salle de classe"
@@ -618,7 +982,7 @@
                 showNotification("Une salle de classe a été achetée !");
                 checkUnlockConditions();
                 updateButtonStates(); 
-                saveGameState(); // Sauvegarder l'état après l'achat
+                saveGameState(); 
             } else {
                 showNotification(`Pas assez d'élèves (${nombreEleves}/${classeCostEleves}) pour acheter une salle de classe !`);
             }
@@ -635,7 +999,7 @@
                 showNotification("Une image a été achetée !");
                 checkUnlockConditions(); 
                 updateButtonStates(); 
-                saveGameState(); // Sauvegarder l'état après l'achat
+                saveGameState(); 
             } else {
                 showNotification("Pas assez de bons points pour acheter une image !");
             }
@@ -654,21 +1018,14 @@
                 mettreAJourAffichage();
                 showNotification("Un professeur a été recruté !");
                 updateButtonStates(); 
-                saveGameState(); // Sauvegarder l'état après l'achat
+                saveGameState(); 
             } else {
                 showNotification("Pas assez d'images pour acheter un professeur !");
             }
         });
 
-        // Événement pour le bouton "Compétences"
-        skillsButton.addEventListener('click', () => {
-            saveGameState(); // Sauvegarder l'état avant de changer de page
-            window.location.href = 'skills.html'; // Rediriger vers la page des compétences
-        });
-
         // Fonction pour mettre à jour l'affichage des ressources et productions
         function mettreAJourAffichage() {
-            // Appliquer le multiplicateur total des compétences
             totalBonsPointsParSeconde = (bonsPointsParSecondeEleves + bonsPointsParSecondeClasses) * (1 + skillEffects.totalBpsMultiplierBonus);
             
             bonsPointsSpan.textContent = Math.floor(bonsPoints); 
@@ -738,19 +1095,19 @@
             mettreAJourAffichageBonsPoints(); 
             checkUnlockConditions(); 
             updateButtonStates(); 
-            saveGameState(); // Sauvegarder l'état régulièrement
+            saveGameState(); 
         }, 1000);
 
         // Initialisation de l'affichage au chargement de la page
-        loadGameState(); // Charger l'état du jeu au démarrage
-        coutEleveActuel = calculateNextEleveCost(); // Recalculer le coût de l'élève après le chargement
+        loadGameState(); 
+        coutEleveActuel = calculateNextEleveCost(); 
         acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
         acheterClasseButton.innerHTML = `Salle de classe : <span class="eleves-color">30 Élèves</span>`; 
         acheterImageButton.innerHTML = `Image : <span class="bons-points-color">1000 BP</span>`; 
         acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">2 I</span>`; 
         mettreAJourAffichage(); 
         checkUnlockConditions(); 
-        disableEleveWarningCheckbox.checked = disableEleveWarning; // Restaurer l'état de la checkbox
+        disableEleveWarningCheckbox.checked = disableEleveWarning; 
     </script>
 </body>
 </html>
