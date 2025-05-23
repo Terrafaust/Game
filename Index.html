@@ -80,21 +80,33 @@
             font-size: 17px;
             cursor: pointer;
             margin-top: 15px;
-            border: none;
+            /* Changements pour le style des boutons */
+            background-color: white; /* Intérieur blanc */
+            color: #333; /* Texte sombre pour la visibilité */
+            border: 2px solid #ccc; /* Contour neutre par défaut */
             border-radius: 8px; /* Coins arrondis pour les boutons */
-            background-color: #4CAF50; /* Couleur verte */
-            color: white;
-            transition: background-color 0.3s ease, transform 0.1s ease;
+            transition: background-color 0.3s ease, transform 0.1s ease, border-color 0.3s ease; /* Transition pour la couleur de la bordure */
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         button:hover {
-            background-color: #45a049;
+            background-color: #f0f0f0; /* Léger changement de fond au survol */
             transform: translateY(-2px);
         }
 
         button:active {
             transform: translateY(0);
+        }
+
+        /* Styles pour les boutons achetables et non achetables */
+        button.can-afford {
+            border-color: #4CAF50; /* Vert quand on peut acheter */
+        }
+
+        button.cannot-afford {
+            border-color: #FF6347; /* Rouge quand on ne peut pas acheter */
+            cursor: not-allowed; /* Curseur "non autorisé" */
+            opacity: 0.7; /* Légèrement estompé */
         }
 
         .ressources, .production {
@@ -134,43 +146,123 @@
             90% { opacity: 1; transform: translateX(0); }
             100% { opacity: 0; transform: translateX(100%); }
         }
+
+        /* Couleurs des monnaies */
+        .bons-points-color {
+            color: #4CAF50; /* Vert */
+            font-weight: bold;
+        }
+
+        .images-color {
+            color: #8A2BE2; /* Violet */
+            font-weight: bold;
+        }
+
+        .eleves-color {
+            color: #333; /* Noir */
+            font-weight: bold;
+        }
+
+        /* Styles pour la modale de confirmation */
+        #confirmElevePurchaseModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            display: none; /* Masqué par défaut */
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: #FF6347; /* Rouge pour l'avertissement */
+        }
+
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            margin: 0; /* Supprimer les marges des boutons généraux */
+        }
+
+        .modal-checkbox {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: #555;
+        }
     </style>
 </head>
 <body>
     <div id="side-menu">
         <h2>Achats</h2>
         <div id="achatEleveSection" class="achat-section" style="display: none;">
-            <button id="acheterEleveButton">Acheter un élève (coût : 10 bons points)</button>
-            <p>Nombre d'élèves : <span id="nombreEleves">0</span></p>
-            <p class="production" title="Production de bons points par seconde par les élèves">bp/s élèves : <span id="elevesBpsPerItem">0</span></p>
+            <button id="acheterEleveButton">Élève : <span class="bons-points-color">10 BP</span></button>
+            <p>Quantité : <span id="nombreEleves">0</span></p>
+            <p class="production" title="Production de bons points par seconde par élève : 0.5">bp/s élèves : <span id="elevesBpsPerItem">0</span></p>
         </div>
         <div id="achatClasseSection" class="achat-section" style="display: none;">
-            <button id="acheterClasseButton">Acheter une salle de classe (coût : 30 élèves)</button>
-            <p>Nombre de salles de classe : <span id="nombreClasses">0</span></p>
-            <p class="production" title="Production de bons points par seconde par les salles de classe">bp/s classes : <span id="classesBpsPerItem">0</span></p>
+            <button id="acheterClasseButton">Salle de classe : <span class="eleves-color">30 Élèves</span></button>
+            <p>Quantité : <span id="nombreClasses">0</span></p>
+            <p class="production" title="Production de bons points par seconde par classe : 25">bp/s classes : <span id="classesBpsPerItem">0</span></p>
         </div>
         <div id="achatImageSection" class="achat-section" style="display: none;">
-            <button id="acheterImageButton">Acheter une image (coût : 1000 bons points)</button>
-            <p>Images : <span id="images">0</span></p>
+            <button id="acheterImageButton">Image : <span class="bons-points-color">1000 BP</span></button>
+            <p>Quantité : <span id="images">0</span></p>
         </div>
         <div id="achatProfesseurSection" class="achat-section" style="display: none;">
-            <button id="acheterProfesseurButton">Acheter un professeur (coût : 2 images)</button>
-            <p>Professeurs : <span id="professeurs">0</span></p>
+            <button id="acheterProfesseurButton">Professeur : <span class="images-color">2 I</span></button>
+            <p>Quantité : <span id="professeurs">0</span></p>
         </div>
-    </div>
+        <button id="skillsButton" style="display: none;">Compétences</button> </div>
 
     <div id="main-content">
         <div class="container">
             <div class="ressources">
-                <p>Bons points : <span id="bonsPoints">0</span></p>
-                <p class="production" title="Nombre total de bons points par seconde">bp/s total : <span id="totalBps">0</span></p>
+                <p>Bons points : <span id="bonsPoints" class="bons-points-color">0</span></p>
+                <p id="imagesDisplay" style="display: none;">Images : <span id="imagesCount" class="images-color">0</span></p> <p class="production" title="Nombre total de bons points par seconde">bp/s total : <span id="totalBps">0</span></p>
             </div>
 
-            <button id="etudierButton">Étudier sagement (+1 bon point)</button>
+            <button id="etudierButton">Étudier sagement (+1 BP)</button>
         </div>
     </div>
 
     <div id="notifications-container"></div>
+
+    <div id="confirmElevePurchaseModal">
+        <div class="modal-content">
+            <h3>Attention !</h3>
+            <p>Le prochain élève coûtera 10 fois le prix normal car c'est le premier d'un nouveau groupe de 30.</p>
+            <p>Voulez-vous vraiment continuer ?</p>
+            <div class="modal-buttons">
+                <button id="confirmElevePurchaseYes" class="can-afford">Oui</button>
+                <button id="confirmElevePurchaseNo" class="cannot-afford">Non</button>
+            </div>
+            <div class="modal-checkbox">
+                <input type="checkbox" id="disableEleveWarningCheckbox">
+                <label for="disableEleveWarningCheckbox">Ne plus afficher cet avertissement</label>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Variables du jeu
@@ -179,33 +271,53 @@
         let bonsPointsParSecondeClasses = 0;
         let totalBonsPointsParSeconde = 0;
         let nombreEleves = 0;
-        let coutEleveBase = 10;
-        let coutEleveActuel = coutEleveBase; // Le coût initial d'un élève
+        let coutEleveBase = 10; 
+        let coutEleveActuel; 
         let nombreClasses = 0;
         let images = 0;
         let nombreProfesseurs = 0;
-        let multiplicateurProfesseur = 1; // Multiplicateur de production des classes par les professeurs
+        let multiplicateurProfesseur = 1; 
 
         // Drapeaux pour le déblocage des sections d'achat
         let elevesUnlocked = false;
         let classesUnlocked = false;
         let imagesUnlocked = false;
         let professeursUnlocked = false;
+        let skillsButtonUnlocked = false; // Nouveau drapeau pour le bouton Compétences
+
+        // Variables pour le système de confirmation d'achat d'élève
+        let disableEleveWarning = false; 
+
+        // Compétences débloquées (pour la persistance de l'état)
+        let unlockedSkills = {}; // Objet pour stocker les IDs des compétences débloquées
+
+        // Effets des compétences (pour être appliqués au chargement)
+        let skillEffects = {
+            eleveBpsBonus: 0,
+            classeMultiplierBonus: 0,
+            eleveCostReduction: 0,
+            classeCostReduction: 0,
+            imageCostReduction: 0,
+            professeurCostReduction: 0,
+            totalBpsMultiplierBonus: 0 // Nouveau pour les compétences qui affectent le total BPS
+        };
 
         // Récupération des éléments HTML
         const bonsPointsSpan = document.getElementById('bonsPoints');
         const totalBpsSpan = document.getElementById('totalBps');
-        const elevesBpsPerItemSpan = document.getElementById('elevesBpsPerItem'); // Nouveau span pour BPS par élève
-        const classesBpsPerItemSpan = document.getElementById('classesBpsPerItem'); // Nouveau span pour BPS par classe
+        const elevesBpsPerItemSpan = document.getElementById('elevesBpsPerItem'); 
+        const classesBpsPerItemSpan = document.getElementById('classesBpsPerItem'); 
         const nombreElevesSpan = document.getElementById('nombreEleves');
         const nombreClassesSpan = document.getElementById('nombreClasses');
-        const imagesSpan = document.getElementById('images');
+        const imagesSpan = document.getElementById('imagesCount'); // Changé pour imagesCount
+        const imagesDisplay = document.getElementById('imagesDisplay'); // Pour l'affichage conditionnel
         const professeursSpan = document.getElementById('professeurs');
         const etudierButton = document.getElementById('etudierButton');
         const acheterEleveButton = document.getElementById('acheterEleveButton');
         const acheterClasseButton = document.getElementById('acheterClasseButton');
         const acheterImageButton = document.getElementById('acheterImageButton');
         const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
+        const skillsButton = document.getElementById('skillsButton'); // Nouveau bouton Compétences
 
         // Récupération des sections d'achat pour la visibilité dynamique
         const achatEleveSection = document.getElementById('achatEleveSection');
@@ -213,6 +325,136 @@
         const achatImageSection = document.getElementById('achatImageSection');
         const achatProfesseurSection = document.getElementById('achatProfesseurSection');
         const notificationsContainer = document.getElementById('notifications-container');
+
+        // Récupération des éléments de la modale de confirmation
+        const confirmElevePurchaseModal = document.getElementById('confirmElevePurchaseModal');
+        const confirmElevePurchaseYesBtn = document.getElementById('confirmElevePurchaseYes');
+        const confirmElevePurchaseNoBtn = document.getElementById('confirmElevePurchaseNo');
+        const disableEleveWarningCheckbox = document.getElementById('disableEleveWarningCheckbox');
+
+        // --- Fonctions de sauvegarde et de chargement de l'état du jeu ---
+        function saveGameState() {
+            const gameState = {
+                bonsPoints,
+                nombreEleves,
+                nombreClasses,
+                images,
+                nombreProfesseurs,
+                disableEleveWarning,
+                unlockedSkills: Object.keys(unlockedSkills), // Sauvegarde seulement les IDs
+                elevesUnlocked,
+                classesUnlocked,
+                imagesUnlocked,
+                professeursUnlocked,
+                skillsButtonUnlocked
+            };
+            localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
+        }
+
+        function loadGameState() {
+            const savedState = localStorage.getItem('incrementalGameSave');
+            if (savedState) {
+                const gameState = JSON.parse(savedState);
+                bonsPoints = gameState.bonsPoints || 0;
+                nombreEleves = gameState.nombreEleves || 0;
+                nombreClasses = gameState.nombreClasses || 0;
+                images = gameState.images || 0;
+                nombreProfesseurs = gameState.nombreProfesseurs || 0;
+                disableEleveWarning = gameState.disableEleveWarning || false;
+                elevesUnlocked = gameState.elevesUnlocked || false;
+                classesUnlocked = gameState.classesUnlocked || false;
+                imagesUnlocked = gameState.imagesUnlocked || false;
+                professeursUnlocked = gameState.professeursUnlocked || false;
+                skillsButtonUnlocked = gameState.skillsButtonUnlocked || false;
+
+                // Reconstruire l'objet unlockedSkills
+                unlockedSkills = {};
+                if (gameState.unlockedSkills) {
+                    gameState.unlockedSkills.forEach(skillId => {
+                        unlockedSkills[skillId] = true;
+                    });
+                }
+                
+                // Appliquer les effets des compétences débloquées au chargement
+                applyAllSkillEffects();
+            }
+        }
+
+        // --- Fonctions pour appliquer les effets des compétences ---
+        const skillsData = [
+            // Pédagogie Branch (Exemples, à étendre à 20 par branche)
+            { id: 'P1', name: 'Méthodes Actives', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Techniques d\'enseignement engageantes qui stimulent l\'apprentissage.', cost: 1, effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: [], row: 0, col: 0 },
+            { id: 'P2', name: 'Apprentissage Collaboratif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Les élèves apprennent mieux en interagissant et en s\'aidant mutuellement.', cost: 1, effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: ['P1'], row: 1, col: 0 },
+            { id: 'P3', name: 'Gestion de Classe Optimale', family: 'Pédagogie', description: 'Augmente la production des classes de 5%.', flavorText: 'Optimisation de l\'environnement d\'apprentissage pour minimiser les distractions.', cost: 2, effect: { type: 'classeMultiplierBonus', value: 0.05 }, prerequisites: ['P2'], row: 2, col: 0 },
+            // ... (autres compétences Pédagogie)
+
+            // Rationnalisme Branch (Exemples)
+            { id: 'R1', name: 'Analyse des Données', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 10%.', flavorText: 'Utilisation des statistiques pour identifier les goulots d\'étranglement et améliorer l\'efficacité.', cost: 1, effect: { type: 'eleveCostReduction', value: 0.10 }, prerequisites: [], row: 0, col: 1 },
+            { id: 'R2', name: 'Optimisation des Processus', family: 'Rationnalisme', description: 'Réduit le coût des classes de 5%.', flavorText: 'Rationalisation des flux de travail pour une meilleure utilisation des ressources.', cost: 1, effect: { type: 'classeCostReduction', value: 0.05 }, prerequisites: ['R1'], row: 1, col: 1 },
+            { id: 'R3', name: 'Planification Stratégique', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Élaboration de plans à long terme pour une croissance durable et prévisible.', cost: 2, effect: { type: 'totalBpsMultiplierBonus', value: 0.05 }, prerequisites: ['R2'], row: 2, col: 1 },
+            // ... (autres compétences Rationnalisme)
+
+            // Science Branch (Exemples)
+            { id: 'S1', name: 'Recherche Fondamentale', family: 'Science', description: 'Augmente la production des élèves de 0.05 BP/s par élève.', flavorText: 'Exploration des principes de base de l\'apprentissage et de la cognition.', cost: 1, effect: { type: 'eleveBpsBonus', value: 0.05 }, prerequisites: [], row: 0, col: 2 },
+            { id: 'S2', name: 'Développement Expérimental', family: 'Science', description: 'Augmente la production des classes de 5%.', flavorText: 'Application pratique des découvertes pour créer de nouvelles méthodes pédagogiques.', cost: 1, effect: { type: 'classeMultiplierBonus', value: 0.05 }, prerequisites: ['S1'], row: 1, col: 2 },
+            { id: 'S3', name: 'Laboratoire d\'Innovation', family: 'Science', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Un espace dédié à la conception et au test de nouvelles approches éducatives.', cost: 2, effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: ['S2'], row: 2, col: 2 },
+            // ... (autres compétences Science)
+
+            // Compétences inter-branches (Exemples)
+            { id: 'PS1', name: 'Didactique Avancée', family: 'Pédagogie-Science', description: 'Augmente la production des élèves de 0.15 BP/s par élève.', flavorText: 'L\'art et la science de l\'enseignement, affinés par la recherche cognitive.', cost: 4, effect: { type: 'eleveBpsBonus', value: 0.15 }, prerequisites: ['P5', 'S5'], row: 5, col: 1 },
+            { id: 'RS1', name: 'Ingénierie Éducative', family: 'Rationnalisme-Science', description: 'Augmente la production des classes de 15%.', flavorText: 'Application rigoureuse des principes scientifiques à la conception de systèmes éducatifs.', cost: 4, effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['R5', 'S5'], row: 5, col: 2 },
+            { id: 'PR1', name: 'Gestion des Talents Scolaires', family: 'Pédagogie-Rationnalisme', description: 'Réduit le coût des élèves de 15%.', flavorText: 'Approche systématique pour identifier et développer le potentiel de chaque élève.', cost: 4, effect: { type: 'eleveCostReduction', value: 0.15 }, prerequisites: ['P5', 'R5'], row: 5, col: 0 }
+        ];
+
+        function resetSkillEffects() {
+            skillEffects = {
+                eleveBpsBonus: 0,
+                classeMultiplierBonus: 0,
+                eleveCostReduction: 0,
+                classeCostReduction: 0,
+                imageCostReduction: 0,
+                professeurCostReduction: 0,
+                totalBpsMultiplierBonus: 0
+            };
+        }
+
+        function applyAllSkillEffects() {
+            resetSkillEffects(); // Réinitialiser avant d'appliquer
+            skillsData.forEach(skill => {
+                if (unlockedSkills[skill.id]) {
+                    if (skill.effect) {
+                        switch (skill.effect.type) {
+                            case 'eleveBpsBonus':
+                                skillEffects.eleveBpsBonus += skill.effect.value;
+                                break;
+                            case 'classeMultiplierBonus':
+                                skillEffects.classeMultiplierBonus += skill.effect.value;
+                                break;
+                            case 'eleveCostReduction':
+                                skillEffects.eleveCostReduction += skill.effect.value;
+                                break;
+                            case 'classeCostReduction':
+                                skillEffects.classeCostReduction += skill.effect.value;
+                                break;
+                            case 'imageCostReduction':
+                                skillEffects.imageCostReduction += skill.effect.value;
+                                break;
+                            case 'professeurCostReduction':
+                                skillEffects.professeurCostReduction += skill.effect.value;
+                                break;
+                            case 'totalBpsMultiplierBonus':
+                                skillEffects.totalBpsMultiplierBonus += skill.effect.value;
+                                break;
+                        }
+                    }
+                }
+            });
+            // Recalculer les productions et coûts après application des effets
+            bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
+            bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
+            coutEleveActuel = calculateNextEleveCost(); // Recalculer le coût de l'élève avec la réduction
+            // Les réductions de coût pour classe, image, professeur seront appliquées directement lors de l'achat.
+        }
 
         // Fonction pour afficher une notification discrète
         function showNotification(message) {
@@ -227,62 +469,173 @@
             }, 1500);
         }
 
+        // Fonction pour calculer le coût du prochain élève
+        function calculateNextEleveCost() {
+            let baseCostForNextEleve = 0;
+            let elevesInCurrentCycle = nombreEleves % 30; 
+
+            if (elevesInCurrentCycle < 10) { 
+                baseCostForNextEleve = 10;
+            } else if (elevesInCurrentCycle < 20) { 
+                baseCostForNextEleve = 12;
+            } else { 
+                baseCostForNextEleve = 15;
+            }
+
+            let finalCost = baseCostForNextEleve * (nombreClasses + 1);
+
+            if (nombreEleves > 0 && elevesInCurrentCycle === 0) { 
+                finalCost *= 10;
+            }
+
+            // Appliquer la réduction de coût des compétences
+            finalCost *= (1 - skillEffects.eleveCostReduction);
+
+            return Math.max(1, finalCost); // Le coût minimum est 1
+        }
+
+        // Fonction pour mettre à jour l'état visuel des boutons d'achat (couleur de bordure)
+        function updateButtonStates() {
+            // Élève
+            if (bonsPoints >= coutEleveActuel) {
+                acheterEleveButton.classList.remove('cannot-afford');
+                acheterEleveButton.classList.add('can-afford');
+            } else {
+                acheterEleveButton.classList.remove('can-afford');
+                acheterEleveButton.classList.add('cannot-afford');
+            }
+
+            // Salle de classe
+            let classeCostEleves = 30;
+            if (nombreEleves >= classeCostEleves) {
+                acheterClasseButton.classList.remove('cannot-afford');
+                acheterClasseButton.classList.add('can-afford');
+            } else {
+                acheterClasseButton.classList.remove('can-afford');
+                acheterClasseButton.classList.add('cannot-afford');
+            }
+
+            // Image
+            let imageCost = 1000 * (1 - skillEffects.imageCostReduction);
+            if (bonsPoints >= imageCost) {
+                acheterImageButton.classList.remove('cannot-afford');
+                acheterImageButton.classList.add('can-afford');
+            } else {
+                acheterImageButton.classList.remove('can-afford');
+                acheterImageButton.classList.add('cannot-afford');
+            }
+
+            // Professeur
+            let professeurCost = 2 * (1 - skillEffects.professeurCostReduction);
+            if (images >= professeurCost) {
+                acheterProfesseurButton.classList.remove('cannot-afford');
+                acheterProfesseurButton.classList.add('can-afford');
+            } else {
+                acheterProfesseurButton.classList.remove('can-afford');
+                acheterProfesseurButton.classList.add('cannot-afford');
+            }
+        }
+
+        // Fonction pour afficher la modale de confirmation
+        function showEleveWarningModal() {
+            confirmElevePurchaseModal.style.display = 'flex'; 
+        }
+
+        // Fonction pour cacher la modale de confirmation
+        function hideEleveWarningModal() {
+            confirmElevePurchaseModal.style.display = 'none'; 
+        }
+
+        // Logique d'achat d'élève, séparée pour être appelée par le bouton ou la modale
+        function performElevePurchase() {
+            if (bonsPoints >= coutEleveActuel) {
+                bonsPoints -= coutEleveActuel;
+                nombreEleves++;
+                bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus); 
+                
+                coutEleveActuel = calculateNextEleveCost(); 
+                
+                mettreAJourAffichage();
+                acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
+                showNotification("Un élève a été acheté !");
+                checkUnlockConditions();
+                updateButtonStates();
+                saveGameState(); // Sauvegarder l'état après l'achat
+            } else {
+                showNotification("Pas assez de bons points pour acheter un élève !");
+            }
+        }
+
         // Événement pour le bouton "Étudier sagement"
         etudierButton.addEventListener('click', () => {
             bonsPoints++;
             mettreAJourAffichageBonsPoints();
-            checkUnlockConditions(); // Vérifier les déblocages après chaque clic
+            checkUnlockConditions(); 
+            updateButtonStates(); 
+            saveGameState(); // Sauvegarder l'état après le clic
         });
 
         // Événement pour le bouton "Acheter un élève"
         acheterEleveButton.addEventListener('click', () => {
-            if (bonsPoints >= coutEleveActuel) {
-                bonsPoints -= coutEleveActuel;
-                nombreEleves++;
-                bonsPointsParSecondeEleves = nombreEleves * 0.5; // Recalculer la production des élèves
-                
-                // Le coût de l'élève augmente après chaque achat d'élève
-                // On ajoute un coût fixe pour chaque élève acheté, en plus du multiplicateur par classe
-                coutEleveActuel += 5; // Chaque élève coûte 5 bons points de plus après le premier
-                
-                mettreAJourAffichage();
-                acheterEleveButton.textContent = `Acheter un élève (coût : ${Math.floor(coutEleveActuel)} bons points)`;
-                showNotification("Un élève a été acheté !");
-                checkUnlockConditions();
+            if (nombreEleves > 0 && (nombreEleves % 30 === 0) && !disableEleveWarning) {
+                showEleveWarningModal();
             } else {
-                showNotification("Pas assez de bons points pour acheter un élève !");
+                performElevePurchase();
             }
+        });
+
+        // Événement pour le bouton "Oui" de la modale de confirmation
+        confirmElevePurchaseYesBtn.addEventListener('click', () => {
+            hideEleveWarningModal();
+            performElevePurchase(); 
+        });
+
+        // Événement pour le bouton "Non" de la modale de confirmation
+        confirmElevePurchaseNoBtn.addEventListener('click', () => {
+            hideEleveWarningModal();
+            showNotification("Achat d'élève annulé.");
+        });
+
+        // Événement pour la case à cocher "Ne plus afficher cet avertissement"
+        disableEleveWarningCheckbox.addEventListener('change', (event) => {
+            disableEleveWarning = event.target.checked;
+            saveGameState(); // Sauvegarder l'état de la préférence
         });
 
         // Événement pour le bouton "Acheter une salle de classe"
         acheterClasseButton.addEventListener('click', () => {
-            if (nombreEleves >= 30) {
-                nombreEleves -= 30; // Consomme 30 élèves
+            let classeCostEleves = 30;
+            if (nombreEleves >= classeCostEleves) {
+                nombreEleves -= classeCostEleves; 
                 nombreClasses++;
-                bonsPointsParSecondeEleves = nombreEleves * 0.5; // Recalculer la production des élèves restants
-                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur; // Recalculer la production des classes
+                bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus); 
+                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus); 
                 
-                // Le prix de chaque élève revient au prix de base, mais est multiplié par le nombre de salles de classe
-                coutEleveActuel = coutEleveBase * (nombreClasses + 1); // +1 car la première classe est la "base"
-                acheterEleveButton.textContent = `Acheter un élève (coût : ${Math.floor(coutEleveActuel)} bons points)`;
+                coutEleveActuel = calculateNextEleveCost(); 
+                acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`; 
                 
                 mettreAJourAffichage();
                 showNotification("Une salle de classe a été achetée !");
                 checkUnlockConditions();
+                updateButtonStates(); 
+                saveGameState(); // Sauvegarder l'état après l'achat
             } else {
-                showNotification(`Pas assez d'élèves (${nombreEleves}/30) pour acheter une salle de classe !`);
+                showNotification(`Pas assez d'élèves (${nombreEleves}/${classeCostEleves}) pour acheter une salle de classe !`);
             }
         });
 
         // Événement pour le bouton "Acheter une image"
         acheterImageButton.addEventListener('click', () => {
-            if (bonsPoints >= 1000) {
-                bonsPoints -= 1000;
+            let imageCost = 1000 * (1 - skillEffects.imageCostReduction);
+            if (bonsPoints >= imageCost) {
+                bonsPoints -= imageCost;
                 images++;
                 imagesSpan.textContent = images;
                 mettreAJourAffichageBonsPoints();
                 showNotification("Une image a été achetée !");
-                checkUnlockConditions(); // Vérifier le déblocage des professeurs
+                checkUnlockConditions(); 
+                updateButtonStates(); 
+                saveGameState(); // Sauvegarder l'état après l'achat
             } else {
                 showNotification("Pas assez de bons points pour acheter une image !");
             }
@@ -290,30 +643,50 @@
 
         // Événement pour le bouton "Acheter un professeur"
         acheterProfesseurButton.addEventListener('click', () => {
-            if (images >= 2) {
-                images -= 2;
+            let professeurCost = 2 * (1 - skillEffects.professeurCostReduction);
+            if (images >= professeurCost) {
+                images -= professeurCost;
                 nombreProfesseurs++;
-                multiplicateurProfesseur = 1 + (0.25 * nombreProfesseurs); // Bonus de 25% par professeur
-                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur; // Recalculer la production des classes avec le nouveau multiplicateur
+                multiplicateurProfesseur = 1 + (0.25 * nombreProfesseurs); 
+                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus); 
                 professeursSpan.textContent = nombreProfesseurs;
                 imagesSpan.textContent = images;
                 mettreAJourAffichage();
                 showNotification("Un professeur a été recruté !");
+                updateButtonStates(); 
+                saveGameState(); // Sauvegarder l'état après l'achat
             } else {
                 showNotification("Pas assez d'images pour acheter un professeur !");
             }
         });
 
+        // Événement pour le bouton "Compétences"
+        skillsButton.addEventListener('click', () => {
+            saveGameState(); // Sauvegarder l'état avant de changer de page
+            window.location.href = 'skills.html'; // Rediriger vers la page des compétences
+        });
+
         // Fonction pour mettre à jour l'affichage des ressources et productions
         function mettreAJourAffichage() {
-            totalBonsPointsParSeconde = bonsPointsParSecondeEleves + bonsPointsParSecondeClasses;
-            bonsPointsSpan.textContent = Math.floor(bonsPoints); // Afficher l'entier pour les bons points
+            // Appliquer le multiplicateur total des compétences
+            totalBonsPointsParSeconde = (bonsPointsParSecondeEleves + bonsPointsParSecondeClasses) * (1 + skillEffects.totalBpsMultiplierBonus);
+            
+            bonsPointsSpan.textContent = Math.floor(bonsPoints); 
             totalBpsSpan.textContent = totalBonsPointsParSeconde.toFixed(1);
-            elevesBpsPerItemSpan.textContent = (nombreEleves * 0.5).toFixed(1); // Production des élèves
-            classesBpsPerItemSpan.textContent = (nombreClasses * 25 * multiplicateurProfesseur).toFixed(1); // Production des classes
+            elevesBpsPerItemSpan.textContent = (nombreEleves * (0.5 + skillEffects.eleveBpsBonus)).toFixed(1); 
+            classesBpsPerItemSpan.textContent = (nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus)).toFixed(1); 
             nombreElevesSpan.textContent = nombreEleves;
             nombreClassesSpan.textContent = nombreClasses;
+            imagesSpan.textContent = images; 
             professeursSpan.textContent = nombreProfesseurs;
+
+            // Afficher le nombre d'images seulement si images > 0
+            if (images > 0) {
+                imagesDisplay.style.display = 'block';
+            } else {
+                imagesDisplay.style.display = 'none';
+            }
+            updateButtonStates(); 
         }
 
         // Fonction spécifique pour mettre à jour uniquement l'affichage des bons points (pour éviter le recalcul complet à chaque clic)
@@ -321,10 +694,10 @@
             bonsPointsSpan.textContent = Math.floor(bonsPoints);
         }
 
-        // Fonction pour vérifier et débloquer les sections d'achat
+        // Fonction pour vérifier et débloquer les sections d'achat et le bouton Compétences
         function checkUnlockConditions() {
             // Déblocage de la section des élèves
-            if (!elevesUnlocked && bonsPoints >= coutEleveBase) { // Utiliser coutEleveBase pour le premier déblocage
+            if (!elevesUnlocked && bonsPoints >= coutEleveActuel) { 
                 elevesUnlocked = true;
                 achatEleveSection.style.display = 'block';
                 showNotification("Nouvel achat débloqué : Élèves !");
@@ -350,18 +723,34 @@
                 achatProfesseurSection.style.display = 'block';
                 showNotification("Nouvel achat débloqué : Professeurs !");
             }
+
+            // Déblocage du bouton Compétences (quand la première image est acquise)
+            if (!skillsButtonUnlocked && images >= 1) {
+                skillsButtonUnlocked = true;
+                skillsButton.style.display = 'block';
+                showNotification("Nouvelle section débloquée : Compétences !");
+            }
         }
 
         // Boucle de production automatique (toutes les secondes)
         setInterval(() => {
             bonsPoints += totalBonsPointsParSeconde;
-            mettreAJourAffichageBonsPoints(); // Mettre à jour l'affichage des bons points
-            checkUnlockConditions(); // Vérifier les déblocages à chaque tick de production
+            mettreAJourAffichageBonsPoints(); 
+            checkUnlockConditions(); 
+            updateButtonStates(); 
+            saveGameState(); // Sauvegarder l'état régulièrement
         }, 1000);
 
         // Initialisation de l'affichage au chargement de la page
-        mettreAJourAffichage();
-        checkUnlockConditions(); // Vérifier les conditions de déblocage au démarrage
+        loadGameState(); // Charger l'état du jeu au démarrage
+        coutEleveActuel = calculateNextEleveCost(); // Recalculer le coût de l'élève après le chargement
+        acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
+        acheterClasseButton.innerHTML = `Salle de classe : <span class="eleves-color">30 Élèves</span>`; 
+        acheterImageButton.innerHTML = `Image : <span class="bons-points-color">1000 BP</span>`; 
+        acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">2 I</span>`; 
+        mettreAJourAffichage(); 
+        checkUnlockConditions(); 
+        disableEleveWarningCheckbox.checked = disableEleveWarning; // Restaurer l'état de la checkbox
     </script>
 </body>
 </html>
