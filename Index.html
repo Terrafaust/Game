@@ -6,7 +6,58 @@
     <title>Jeu Incrémental - Cahier d'Étude</title>
     <style>
         body {
-            font-family: sans-serif;
+            font-family: 'Inter', sans-serif; /* Utilisation de la police Inter */
+            display: flex; /* Utilisation de flexbox pour la mise en page principale */
+            min-height: 100vh; /* S'assure que le corps prend au moins toute la hauteur de la vue */
+            background-color: #f0f2f5; /* Couleur de fond légère */
+            color: #333;
+            margin: 0; /* Supprime les marges par défaut du corps */
+        }
+
+        /* Styles du menu latéral */
+        #side-menu {
+            width: 250px; /* Largeur fixe du menu latéral */
+            background-color: #ffffff;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05); /* Ombre légère sur le côté */
+            display: flex;
+            flex-direction: column;
+            gap: 20px; /* Espacement entre les sections d'achat */
+            position: sticky; /* Rendre le menu collant */
+            top: 0; /* Collé en haut */
+            align-self: flex-start; /* Aligner en haut dans le conteneur flex */
+            height: 100vh; /* Prend toute la hauteur de la vue */
+            overflow-y: auto; /* Permet le défilement si le contenu dépasse */
+        }
+
+        #side-menu h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4CAF50;
+        }
+
+        .achat-section {
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .achat-section p {
+            margin-top: 5px;
+            margin-bottom: 5px;
+        }
+
+        .achat-section button {
+            width: 100%; /* Boutons prennent toute la largeur de la section */
+            margin-top: 10px;
+        }
+
+        /* Styles du contenu principal du jeu */
+        #main-content {
+            flex-grow: 1; /* Prend l'espace restant */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -15,87 +66,137 @@
 
         .container {
             text-align: center;
-            border: 1px solid #ccc;
-            padding: 20px;
-            border-radius: 5px;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            padding: 30px;
+            border-radius: 12px; /* Coins arrondis */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Ombre douce */
+            max-width: 90%; /* Largeur fluide */
+            width: 500px;
         }
 
         button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 12px 25px;
+            font-size: 17px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
+            border: none;
+            border-radius: 8px; /* Coins arrondis pour les boutons */
+            background-color: #4CAF50; /* Couleur verte */
+            color: white;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .ressources {
-            margin-bottom: 20px;
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .ressources, .production {
+            margin-bottom: 15px;
+            font-size: 1.1em;
         }
 
         .production {
-            margin-bottom: 10px;
             font-style: italic;
+            color: #555;
         }
 
-        .achats {
-            margin-top: 20px;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
+        /* Styles pour les notifications */
+        #notifications-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1000;
         }
 
-        .achat-item {
-            margin-bottom: 10px;
+        .notification-item {
+            background-color: #333;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            opacity: 0; /* Commence invisible */
+            animation: fadeInOut 1.5s forwards; /* Animation d'apparition et disparition */
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(100%); }
+            10% { opacity: 1; transform: translateX(0); }
+            90% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0; transform: translateX(100%); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="ressources">
-            <p>Bons points : <span id="bonsPoints">0</span></p>
-            <p class="production">Bons points par seconde (total) : <span id="totalBps">0</span></p>
-            <p class="production">Bons points par seconde (élèves) : <span id="elevesBps">0</span></p>
-            <p class="production">Bons points par seconde (classes) : <span id="classesBps">0</span></p>
-            <p>Images : <span id="images">0</span></p>
-            <p>Professeurs : <span id="professeurs">0</span></p>
+    <div id="side-menu">
+        <h2>Achats</h2>
+        <div id="achatEleveSection" class="achat-section" style="display: none;">
+            <button id="acheterEleveButton">Acheter un élève (coût : 10 bons points)</button>
+            <p>Nombre d'élèves : <span id="nombreEleves">0</span></p>
+            <p class="production" title="Production de bons points par seconde par les élèves">bp/s élèves : <span id="elevesBpsPerItem">0</span></p>
         </div>
-
-        <button id="etudierButton">Étudier sagement (+1 bon point)</button>
-
-        <div class="achats">
-            <h2>Achats</h2>
-            <div id="achatEleveSection">
-                <button id="acheterEleveButton">Acheter un élève (coût : 10 bons points)</button>
-                <p>Nombre d'élèves : <span id="nombreEleves">0</span></p>
-            </div>
-            <div id="achatClasseSection">
-                <button id="acheterClasseButton">Acheter une salle de classe (coût : 30 élèves)</button>
-                <p>Nombre de salles de classe : <span id="nombreClasses">0</span></p>
-            </div>
-            <div id="achatImageSection">
-                <button id="acheterImageButton">Acheter une image (coût : 1000 bons points)</button>
-            </div>
-            <div id="achatProfesseurSection" style="display: none;">
-                <button id="acheterProfesseurButton">Acheter un professeur (coût : 2 images)</button>
-            </div>
+        <div id="achatClasseSection" class="achat-section" style="display: none;">
+            <button id="acheterClasseButton">Acheter une salle de classe (coût : 30 élèves)</button>
+            <p>Nombre de salles de classe : <span id="nombreClasses">0</span></p>
+            <p class="production" title="Production de bons points par seconde par les salles de classe">bp/s classes : <span id="classesBpsPerItem">0</span></p>
+        </div>
+        <div id="achatImageSection" class="achat-section" style="display: none;">
+            <button id="acheterImageButton">Acheter une image (coût : 1000 bons points)</button>
+            <p>Images : <span id="images">0</span></p>
+        </div>
+        <div id="achatProfesseurSection" class="achat-section" style="display: none;">
+            <button id="acheterProfesseurButton">Acheter un professeur (coût : 2 images)</button>
+            <p>Professeurs : <span id="professeurs">0</span></p>
         </div>
     </div>
 
+    <div id="main-content">
+        <div class="container">
+            <div class="ressources">
+                <p>Bons points : <span id="bonsPoints">0</span></p>
+                <p class="production" title="Nombre total de bons points par seconde">bp/s total : <span id="totalBps">0</span></p>
+            </div>
+
+            <button id="etudierButton">Étudier sagement (+1 bon point)</button>
+        </div>
+    </div>
+
+    <div id="notifications-container"></div>
+
     <script>
+        // Variables du jeu
         let bonsPoints = 0;
         let bonsPointsParSecondeEleves = 0;
         let bonsPointsParSecondeClasses = 0;
         let totalBonsPointsParSeconde = 0;
         let nombreEleves = 0;
         let coutEleveBase = 10;
-        let coutEleveActuel = coutEleveBase;
+        let coutEleveActuel = coutEleveBase; // Le coût initial d'un élève
         let nombreClasses = 0;
         let images = 0;
         let nombreProfesseurs = 0;
-        let multiplicateurProfesseur = 1;
+        let multiplicateurProfesseur = 1; // Multiplicateur de production des classes par les professeurs
 
+        // Drapeaux pour le déblocage des sections d'achat
+        let elevesUnlocked = false;
+        let classesUnlocked = false;
+        let imagesUnlocked = false;
+        let professeursUnlocked = false;
+
+        // Récupération des éléments HTML
         const bonsPointsSpan = document.getElementById('bonsPoints');
         const totalBpsSpan = document.getElementById('totalBps');
-        const elevesBpsSpan = document.getElementById('elevesBps');
-        const classesBpsSpan = document.getElementById('classesBps');
+        const elevesBpsPerItemSpan = document.getElementById('elevesBpsPerItem'); // Nouveau span pour BPS par élève
+        const classesBpsPerItemSpan = document.getElementById('classesBpsPerItem'); // Nouveau span pour BPS par classe
         const nombreElevesSpan = document.getElementById('nombreEleves');
         const nombreClassesSpan = document.getElementById('nombreClasses');
         const imagesSpan = document.getElementById('images');
@@ -105,94 +206,162 @@
         const acheterClasseButton = document.getElementById('acheterClasseButton');
         const acheterImageButton = document.getElementById('acheterImageButton');
         const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
-        const achatProfesseurSection = document.getElementById('achatProfesseurSection');
 
+        // Récupération des sections d'achat pour la visibilité dynamique
+        const achatEleveSection = document.getElementById('achatEleveSection');
+        const achatClasseSection = document.getElementById('achatClasseSection');
+        const achatImageSection = document.getElementById('achatImageSection');
+        const achatProfesseurSection = document.getElementById('achatProfesseurSection');
+        const notificationsContainer = document.getElementById('notifications-container');
+
+        // Fonction pour afficher une notification discrète
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.classList.add('notification-item');
+            notification.textContent = message;
+            notificationsContainer.appendChild(notification);
+
+            // Supprimer la notification après 1.5 secondes
+            setTimeout(() => {
+                notification.remove();
+            }, 1500);
+        }
+
+        // Événement pour le bouton "Étudier sagement"
         etudierButton.addEventListener('click', () => {
             bonsPoints++;
             mettreAJourAffichageBonsPoints();
+            checkUnlockConditions(); // Vérifier les déblocages après chaque clic
         });
 
+        // Événement pour le bouton "Acheter un élève"
         acheterEleveButton.addEventListener('click', () => {
             if (bonsPoints >= coutEleveActuel) {
                 bonsPoints -= coutEleveActuel;
                 nombreEleves++;
-                bonsPointsParSecondeEleves = nombreEleves * 0.5;
+                bonsPointsParSecondeEleves = nombreEleves * 0.5; // Recalculer la production des élèves
+                
+                // Le coût de l'élève augmente après chaque achat d'élève
+                // On ajoute un coût fixe pour chaque élève acheté, en plus du multiplicateur par classe
+                coutEleveActuel += 5; // Chaque élève coûte 5 bons points de plus après le premier
+                
                 mettreAJourAffichage();
-                coutEleveActuel = coutEleveBase * (nombreClasses + 1);
-                acheterEleveButton.textContent = `Acheter un élève (coût : ${coutEleveActuel} bons points)`;
+                acheterEleveButton.textContent = `Acheter un élève (coût : ${Math.floor(coutEleveActuel)} bons points)`;
+                showNotification("Un élève a été acheté !");
+                checkUnlockConditions();
             } else {
-                alert("Pas assez de bons points !");
+                showNotification("Pas assez de bons points pour acheter un élève !");
             }
         });
 
+        // Événement pour le bouton "Acheter une salle de classe"
         acheterClasseButton.addEventListener('click', () => {
             if (nombreEleves >= 30) {
-                nombreEleves -= 30;
+                nombreEleves -= 30; // Consomme 30 élèves
                 nombreClasses++;
-                bonsPointsParSecondeEleves = nombreEleves * 0.5; // Recalculer le BPS des élèves restants
-                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur;
-                coutEleveActuel = coutEleveBase * nombreClasses; // Le prix de l'élève augmente avec le nombre de classes
-                acheterEleveButton.textContent = `Acheter un élève (coût : ${coutEleveActuel} bons points)`;
+                bonsPointsParSecondeEleves = nombreEleves * 0.5; // Recalculer la production des élèves restants
+                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur; // Recalculer la production des classes
+                
+                // Le prix de chaque élève revient au prix de base, mais est multiplié par le nombre de salles de classe
+                coutEleveActuel = coutEleveBase * (nombreClasses + 1); // +1 car la première classe est la "base"
+                acheterEleveButton.textContent = `Acheter un élève (coût : ${Math.floor(coutEleveActuel)} bons points)`;
+                
                 mettreAJourAffichage();
+                showNotification("Une salle de classe a été achetée !");
+                checkUnlockConditions();
             } else {
-                alert("Pas assez d'élèves pour acheter une salle de classe !");
+                showNotification(`Pas assez d'élèves (${nombreEleves}/30) pour acheter une salle de classe !`);
             }
         });
 
+        // Événement pour le bouton "Acheter une image"
         acheterImageButton.addEventListener('click', () => {
             if (bonsPoints >= 1000) {
                 bonsPoints -= 1000;
                 images++;
                 imagesSpan.textContent = images;
                 mettreAJourAffichageBonsPoints();
-                verifierDeblocageProfesseur();
+                showNotification("Une image a été achetée !");
+                checkUnlockConditions(); // Vérifier le déblocage des professeurs
             } else {
-                alert("Pas assez de bons points pour acheter une image !");
+                showNotification("Pas assez de bons points pour acheter une image !");
             }
         });
 
-        function verifierDeblocageProfesseur() {
-            if (images >= 2) {
-                achatProfesseurSection.style.display = 'block';
-            }
-        }
-
+        // Événement pour le bouton "Acheter un professeur"
         acheterProfesseurButton.addEventListener('click', () => {
             if (images >= 2) {
                 images -= 2;
                 nombreProfesseurs++;
-                multiplicateurProfesseur = 1 + (0.25 * nombreProfesseurs); // Exemple d'un bonus de 25% par professeur
-                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur;
+                multiplicateurProfesseur = 1 + (0.25 * nombreProfesseurs); // Bonus de 25% par professeur
+                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur; // Recalculer la production des classes avec le nouveau multiplicateur
                 professeursSpan.textContent = nombreProfesseurs;
                 imagesSpan.textContent = images;
                 mettreAJourAffichage();
+                showNotification("Un professeur a été recruté !");
             } else {
-                alert("Pas assez d'images pour acheter un professeur !");
+                showNotification("Pas assez d'images pour acheter un professeur !");
             }
         });
 
+        // Fonction pour mettre à jour l'affichage des ressources et productions
         function mettreAJourAffichage() {
             totalBonsPointsParSeconde = bonsPointsParSecondeEleves + bonsPointsParSecondeClasses;
-            bonsPointsSpan.textContent = Math.floor(bonsPoints); // Afficher l'entier
+            bonsPointsSpan.textContent = Math.floor(bonsPoints); // Afficher l'entier pour les bons points
             totalBpsSpan.textContent = totalBonsPointsParSeconde.toFixed(1);
-            elevesBpsSpan.textContent = bonsPointsParSecondeEleves.toFixed(1);
-            classesBpsSpan.textContent = bonsPointsParSecondeClasses.toFixed(1);
+            elevesBpsPerItemSpan.textContent = (nombreEleves * 0.5).toFixed(1); // Production des élèves
+            classesBpsPerItemSpan.textContent = (nombreClasses * 25 * multiplicateurProfesseur).toFixed(1); // Production des classes
             nombreElevesSpan.textContent = nombreEleves;
             nombreClassesSpan.textContent = nombreClasses;
             professeursSpan.textContent = nombreProfesseurs;
         }
 
+        // Fonction spécifique pour mettre à jour uniquement l'affichage des bons points (pour éviter le recalcul complet à chaque clic)
         function mettreAJourAffichageBonsPoints() {
             bonsPointsSpan.textContent = Math.floor(bonsPoints);
         }
 
+        // Fonction pour vérifier et débloquer les sections d'achat
+        function checkUnlockConditions() {
+            // Déblocage de la section des élèves
+            if (!elevesUnlocked && bonsPoints >= coutEleveBase) { // Utiliser coutEleveBase pour le premier déblocage
+                elevesUnlocked = true;
+                achatEleveSection.style.display = 'block';
+                showNotification("Nouvel achat débloqué : Élèves !");
+            }
+
+            // Déblocage de la section des salles de classe
+            if (!classesUnlocked && nombreEleves >= 30) {
+                classesUnlocked = true;
+                achatClasseSection.style.display = 'block';
+                showNotification("Nouvel achat débloqué : Salles de classe !");
+            }
+
+            // Déblocage de la section des images
+            if (!imagesUnlocked && bonsPoints >= 1000) {
+                imagesUnlocked = true;
+                achatImageSection.style.display = 'block';
+                showNotification("Nouvel achat débloqué : Images !");
+            }
+
+            // Déblocage de la section des professeurs
+            if (!professeursUnlocked && images >= 2) {
+                professeursUnlocked = true;
+                achatProfesseurSection.style.display = 'block';
+                showNotification("Nouvel achat débloqué : Professeurs !");
+            }
+        }
+
+        // Boucle de production automatique (toutes les secondes)
         setInterval(() => {
             bonsPoints += totalBonsPointsParSeconde;
-            mettreAJourAffichageBonsPoints();
+            mettreAJourAffichageBonsPoints(); // Mettre à jour l'affichage des bons points
+            checkUnlockConditions(); // Vérifier les déblocages à chaque tick de production
         }, 1000);
 
-        // Initialisation de l'affichage
+        // Initialisation de l'affichage au chargement de la page
         mettreAJourAffichage();
+        checkUnlockConditions(); // Vérifier les conditions de déblocage au démarrage
     </script>
 </body>
 </html>
