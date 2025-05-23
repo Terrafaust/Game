@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu Incrémental - Cahier d'Étude</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 50px;
+        }
+
+        .container {
+            text-align: center;
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .ressources {
+            margin-bottom: 20px;
+        }
+
+        .achats {
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .achat-item {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="ressources">
+            <p>Bons points : <span id="bonsPoints">0</span></p>
+            <p>Images : <span id="images">0</span></p>
+        </div>
+
+        <button id="etudierButton">Étudier sagement (+1 bon point)</button>
+
+        <div class="achats" id="achatsSection" style="display: none;">
+            <h2>Achats</h2>
+            <div id="elevesSection">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        let bonsPoints = 0;
+        let images = 0;
+        let coutEleve = 1;
+        let nombreEleves = 0;
+
+        const bonsPointsSpan = document.getElementById('bonsPoints');
+        const imagesSpan = document.getElementById('images');
+        const etudierButton = document.getElementById('etudierButton');
+        const achatsSection = document.getElementById('achatsSection');
+        const elevesSection = document.getElementById('elevesSection');
+
+        etudierButton.addEventListener('click', () => {
+            bonsPoints++;
+            bonsPointsSpan.textContent = bonsPoints;
+            verifierDeblocageImage();
+        });
+
+        function verifierDeblocageImage() {
+            if (bonsPoints >= 10 && images < 1) {
+                images++;
+                imagesSpan.textContent = images;
+                alert("Félicitations ! Tu as gagné une image !");
+                debloquerAchats();
+            }
+        }
+
+        function debloquerAchats() {
+            achatsSection.style.display = 'block';
+            afficherOptionAchatEleve();
+        }
+
+        function afficherOptionAchatEleve() {
+            const boutonAchatEleve = document.createElement('button');
+            boutonAchatEleve.textContent = `Acheter un élève (coût : ${coutEleve} image)`;
+            boutonAchatEleve.addEventListener('click', acheterEleve);
+            elevesSection.appendChild(boutonAchatEleve);
+        }
+
+        function acheterEleve() {
+            if (images >= coutEleve) {
+                images -= coutEleve;
+                imagesSpan.textContent = images;
+                nombreEleves++;
+                coutEleve++; // Augmentation simple du coût pour l'instant
+                afficherNombreEleves();
+                mettreAJourBoutonAchatEleve();
+                if (nombreEleves === 1) {
+                    demarrerProductionAutomatique();
+                }
+            } else {
+                alert("Pas assez d'images !");
+            }
+        }
+
+        function afficherNombreEleves() {
+            let paragrapheNombreEleves = document.getElementById('nombreEleves');
+            if (!paragrapheNombreEleves) {
+                paragrapheNombreEleves = document.createElement('p');
+                paragrapheNombreEleves.id = 'nombreEleves';
+                achatsSection.insertBefore(paragrapheNombreEleves, elevesSection);
+            }
+            paragrapheNombreEleves.textContent = `Nombre d'élèves : ${nombreEleves}`;
+        }
+
+        function mettreAJourBoutonAchatEleve() {
+            const boutonAchat = elevesSection.querySelector('button');
+            if (boutonAchat) {
+                boutonAchat.textContent = `Acheter un élève (coût : ${coutEleve} image)`;
+            } else {
+                afficherOptionAchatEleve(); // Si le bouton a été supprimé pour une raison quelconque
+            }
+        }
+
+        function demarrerProductionAutomatique() {
+            setInterval(() => {
+                bonsPoints += nombreEleves * 0.5;
+                bonsPointsSpan.textContent = bonsPoints.toFixed(1); // Afficher avec une décimale
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
