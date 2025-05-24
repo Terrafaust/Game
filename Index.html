@@ -704,6 +704,31 @@
     </div>
 
     <script>
+        /**
+         * Formats a number for display, using scientific notation for very large numbers,
+         * locale-specific formatting for large numbers, and fixed decimals for smaller numbers.
+         * @param {number} num The number to format.
+         * @param {number} [decimalPlaces=0] The number of decimal places to show for smaller numbers.
+         * @returns {string} The formatted number string.
+         */
+        function formatNumber(num, decimalPlaces = 0) {
+            // Use scientific notation for numbers >= 1 billion (1e9)
+            if (Math.abs(num) >= 1e9) {
+                return num.toExponential(2); // e.g., 1.23e+9
+            }
+            // For numbers between 1,000 and 1 billion, use locale string for thousands separators
+            else if (Math.abs(num) >= 1000) {
+                return num.toLocaleString('fr-FR', {
+                    minimumFractionDigits: decimalPlaces,
+                    maximumFractionDigits: decimalPlaces
+                });
+            }
+            // For smaller numbers, use toFixed for consistent decimal places
+            else {
+                return num.toFixed(decimalPlaces);
+            }
+        }
+
         // Variables du jeu
         let bonsPoints = 0;
         let bonsPointsParSecondeEleves = 0;
@@ -1220,7 +1245,7 @@
                 acheterProfesseurButton.classList.add('cannot-afford');
             }
             // Mise à jour du texte du bouton Professeur avec le coût actuel
-            acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${Math.floor(professeurCost)} I</span>`;
+            acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${formatNumber(professeurCost, 0)} I</span>`;
 
             // Ascension Button (always enabled if visible, as it's a reset)
             if (ascensionUnlocked) {
@@ -1248,7 +1273,7 @@
                 acheterEcoleButton.classList.remove('can-afford');
                 acheterEcoleButton.classList.add('cannot-afford');
             }
-            coutEcoleSpan.textContent = `${Math.floor(calculateNextEcoleCost())} PA`;
+            coutEcoleSpan.textContent = `${formatNumber(calculateNextEcoleCost(), 0)} PA`;
 
             // Unlock Multi Purchase Button (in Ascension Menu)
             if (multiPurchaseOptionUnlocked) {
@@ -1334,7 +1359,7 @@
                 autoEleveButton.textContent = "Désactiver Automatisation Élèves";
                 autoEleveButton.classList.add('automation-active');
             } else {
-                autoEleveButton.textContent = `Automatiser Élèves : ${100} PA`;
+                autoEleveButton.textContent = `Automatiser Élèves : ${formatNumber(100, 0)} PA`;
                 autoEleveButton.classList.remove('automation-active');
                 if (ascensionPoints >= 100) {
                     autoEleveButton.classList.remove('cannot-afford');
@@ -1350,7 +1375,7 @@
                 autoImageButton.textContent = "Désactiver Automatisation Images";
                 autoImageButton.classList.add('automation-active');
             } else {
-                autoImageButton.textContent = `Automatiser Images : ${10000} PA`;
+                autoImageButton.textContent = `Automatiser Images : ${formatNumber(10000, 0)} PA`;
                 autoImageButton.classList.remove('automation-active');
                 if (ascensionPoints >= 10000) {
                     autoImageButton.classList.remove('cannot-afford');
@@ -1366,7 +1391,7 @@
                 autoProfesseurButton.textContent = "Désactiver Automatisation Professeurs";
                 autoProfesseurButton.classList.add('automation-active');
             } else {
-                autoProfesseurButton.textContent = `Automatiser Professeurs : ${100000} PA`;
+                autoProfesseurButton.textContent = `Automatiser Professeurs : ${formatNumber(100000, 0)} PA`;
                 autoProfesseurButton.classList.remove('automation-active');
                 if (ascensionPoints >= 100000) {
                     autoProfesseurButton.classList.remove('cannot-afford');
@@ -1471,14 +1496,14 @@
                     nombreEleves += quantityToBuy;
                     bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
                     coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
-                    acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
+                    acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
                 } else if (itemType === 'classe') {
                     nombreEleves -= totalCost;
                     nombreClasses += quantityToBuy;
                     bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
                     bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
                     coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
-                    acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
+                    acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
                 } else if (itemType === 'image') {
                     bonsPoints -= totalCost;
                     images += quantityToBuy;
@@ -1694,12 +1719,12 @@
 
         // Met à jour l'affichage des images
         function updateImagesDisplay() {
-            imagesSpan.textContent = images;
+            imagesSpan.textContent = formatNumber(images, 0);
         }
 
         // Met à jour l'affichage des professeurs disponibles
         function updateProfessorsDisplay() {
-            availableProfessorsCountSpan.textContent = nombreProfesseurs - professorsUsedForSkills;
+            availableProfessorsCountSpan.textContent = formatNumber(nombreProfesseurs - professorsUsedForSkills, 0);
         }
 
         // Événement pour le bouton "Compétences"
@@ -1750,7 +1775,7 @@
         // Événement pour le bouton "Ascension"
         ascensionButton.addEventListener('click', () => {
             const paGained = calculatePAGained(); // Calculate PA gained for display
-            paGainedDisplay.textContent = `${paGained} PA`; // Update the display in the modal
+            paGainedDisplay.textContent = `${formatNumber(paGained, 0)} PA`; // Update the display in the modal
 
             if (ascensionCount === 0 && !disableAscensionWarning) {
                 // Première ascension et avertissement non désactivé
@@ -2099,7 +2124,7 @@
                 ascensionCount++; // Incrémente le nombre d'ascensions
                 firstAscensionPerformed = true; // Marque qu'une ascension a eu lieu
 
-                showNotification(`Ascension réussie ! Vous avez gagné ${paGained} Points d'Ascension !`);
+                showNotification(`Ascension réussie ! Vous avez gagné ${formatNumber(paGained, 0)} Points d'Ascension !`);
                 
                 softResetGame(); // Réinitialisation douce
             } else {
@@ -2230,27 +2255,27 @@
             // Appliquer le multiplicateur des écoles en dernier sur la production totale
             totalBonsPointsParSeconde = (bonsPointsParSecondeEleves + bonsPointsParSecondeClasses) * (1 + skillEffects.totalBpsMultiplierBonus) * ascensionMultiplier * schoolMultiplier;
 
-            bonsPointsSpan.textContent = Math.floor(bonsPoints);
-            totalBpsInlineSpan.textContent = totalBonsPointsParSeconde.toFixed(1); // Updated inline display
-            elevesBpsPerItemSpan.textContent = (nombreEleves * (0.5 + skillEffects.eleveBpsBonus)).toFixed(1);
-            classesBpsPerItemSpan.textContent = (nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus)).toFixed(1);
-            nombreElevesSpan.textContent = nombreEleves;
-            nombreClassesSpan.textContent = nombreClasses;
-            imagesSpan.textContent = images;
-            professeursSpan.textContent = nombreProfesseurs;
-            ascensionPointsCountSpan.textContent = ascensionPoints; // Mettre à jour l'affichage des PA disponibles
-            ascensionCountSpan.textContent = ascensionCount; // Mettre à jour l'affichage du nombre d'ascensions
-            totalPAEarnedSpanInline.textContent = totalPAEarned; // Updated inline display
+            bonsPointsSpan.textContent = formatNumber(bonsPoints, 0);
+            totalBpsInlineSpan.textContent = formatNumber(totalBonsPointsParSeconde, 1); // Updated inline display
+            elevesBpsPerItemSpan.textContent = formatNumber(nombreEleves * (0.5 + skillEffects.eleveBpsBonus), 1);
+            classesBpsPerItemSpan.textContent = formatNumber(nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus), 1);
+            nombreElevesSpan.textContent = formatNumber(nombreEleves, 0);
+            nombreClassesSpan.textContent = formatNumber(nombreClasses, 0);
+            imagesSpan.textContent = formatNumber(images, 0);
+            professeursSpan.textContent = formatNumber(nombreProfesseurs, 0);
+            ascensionPointsCountSpan.textContent = formatNumber(ascensionPoints, 0); // Mettre à jour l'affichage des PA disponibles
+            ascensionCountSpan.textContent = formatNumber(ascensionCount, 0); // Mettre à jour l'affichage du nombre d'ascensions
+            totalPAEarnedSpanInline.textContent = formatNumber(totalPAEarned, 0); // Updated inline display
 
             // Affichage du menu Ascension
-            ascensionMenuPACountSpan.textContent = ascensionPoints;
-            nombreEcolesSpan.textContent = schoolCount;
-            ecoleMultiplierSpan.textContent = `${schoolMultiplier.toFixed(1)}x`;
+            ascensionMenuPACountSpan.textContent = formatNumber(ascensionPoints, 0);
+            nombreEcolesSpan.textContent = formatNumber(schoolCount, 0);
+            ecoleMultiplierSpan.textContent = `${formatNumber(schoolMultiplier, 1)}x`;
 
             // Afficher le bonus d'ascension
             if (ascensionCount > 0) {
                 ascensionBonusDisplay.style.display = 'block';
-                ascensionBonusValueSpan.textContent = `${ascensionMultiplier.toFixed(2)}x`;
+                ascensionBonusValueSpan.textContent = `${formatNumber(ascensionMultiplier, 2)}x`;
             } else {
                 ascensionBonusDisplay.style.display = 'none';
             }
@@ -2279,7 +2304,7 @@
 
         // Fonction spécifique pour mettre à jour uniquement l'affichage des bons points (pour éviter le recalcul complet à chaque clic)
         function mettreAJourAffichageBonsPoints() {
-            bonsPointsSpan.textContent = Math.floor(bonsPoints);
+            bonsPointsSpan.textContent = formatNumber(bonsPoints, 0);
         }
 
         // Fonction pour vérifier et débloquer les sections d'achat et les boutons de menu
@@ -2353,7 +2378,7 @@
                 if (bonsPoints >= bonus.threshold && !bonusPointsClaimed[bonus.threshold]) {
                     bonsPoints += bonus.amount;
                     bonusPointsClaimed[bonus.threshold] = true;
-                    showNotification(`Bonus de ${bonus.amount} BP atteint !`);
+                    showNotification(`Bonus de ${formatNumber(bonus.amount, 0)} BP atteint !`);
                     mettreAJourAffichageBonsPoints(); // Mettre à jour l'affichage des BP immédiatement
                     saveGameState(); // Sauvegarder l'état après le bonus
                 }
@@ -2457,10 +2482,10 @@
         coutEleveActuel = calculateNextEleveCost();
         coutEcoleActuel = calculateNextEcoleCost(); // Initialiser le coût de l'école
         
-        acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
+        acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
         acheterClasseButton.innerHTML = `Salle de classe : <span class="eleves-color">30 Élèves</span>`;
         acheterImageButton.innerHTML = `Image : <span class="bons-points-color">1000 BP</span>`;
-        acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${Math.floor(calculateNextProfessorCost())} I</span>`; // Initialiser le coût du professeur
+        acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${formatNumber(calculateNextProfessorCost(), 0)} I</span>`; // Initialiser le coût du professeur
         
         mettreAJourAffichage();
         checkUnlockConditions();
