@@ -37,7 +37,8 @@
         body.dark-theme #skillTreeContainer h1,
         body.dark-theme #settingsContainer h1,
         body.dark-theme #ascensionMenuContainer h1,
-        body.dark-theme .skill-branch h3 {
+        body.dark-theme .skill-branch h3,
+        body.dark-theme #automationSection h3 { /* Added for automation section title */
             color: #76FF03; /* Vert clair pour les titres en mode nuit */
         }
 
@@ -196,6 +197,15 @@
             cursor: not-allowed; /* Curseur "non autorisé" */
             opacity: 0.7; /* Légèrement estompé */
         }
+        
+        button.automation-active { /* Style for active automation buttons */
+            background-color: #28a745; /* Green */
+            color: white;
+            border-color: #218838;
+        }
+        button.automation-active:hover {
+            background-color: #218838;
+        }
 
         .ressources {
             display: flex; /* Use flexbox for two columns */
@@ -343,7 +353,7 @@
         }
 
         /* --- Styles de l'arbre de compétences --- */
-        #skillTreeContainer, #settingsContainer, #ascensionMenuContainer {
+        #skillTreeContainer, #settingsContainer, #ascensionMenuContainer, #automationContainer { /* Added automationContainer */
             width: 100%;
             max-width: 1200px;
             margin-top: 30px;
@@ -356,7 +366,7 @@
             align-items: center;
         }
 
-        #skillTreeContainer h1, #settingsContainer h1, #ascensionMenuContainer h1 {
+        #skillTreeContainer h1, #settingsContainer h1, #ascensionMenuContainer h1, #automationContainer h1 { /* Added automationContainer */
             color: #4CAF50;
             margin-bottom: 20px;
         }
@@ -548,7 +558,7 @@
                 <button id="setMultiplierX1" class="multiplier-button active">x1</button>
                 <button id="setMultiplierX10" class="multiplier-button">x10</button>
                 <button id="setMultiplierX100" class="multiplier-button">x100</button>
-            </div>
+                <button id="setMultiplierXMax" class="multiplier-button" style="display: none;">xMax</button> </div>
         </div>
         <div id="achatEleveSection" class="achat-section" style="display: none;">
             <button id="acheterEleveButton">Élève : <span class="bons-points-color">10 BP</span></button>
@@ -567,6 +577,11 @@
         <div id="achatProfesseurSection" class="achat-section" style="display: none;">
             <button id="acheterProfesseurButton">Professeur : <span class="images-color">2 I</span></button>
             <p>Quantité : <span id="professeurs">0</span></p>
+        </div>
+        <div id="automationSection" class="achat-section" style="display: none;"> <h3>Automatisation</h3>
+            <button id="autoEleveButton">Automatiser Élèves : <span class="ascension-points-color">100 PA</span></button>
+            <button id="autoImageButton">Automatiser Images : <span class="ascension-points-color">10 000 PA</span></button>
+            <button id="autoProfesseurButton">Automatiser Professeurs : <span class="ascension-points-color">100 000 PA</span></button>
         </div>
         <button id="skillsButton" style="display: none;">Compétences</button>
         <button id="settingsButton" style="display: none;">Paramètres</button>
@@ -621,11 +636,12 @@
                 <button id="unlockMultiPurchaseButton">Débloquer Achat Multiple : <span class="ascension-points-color">10 PA</span></button>
             </div>
             <div class="achat-section">
+                <button id="unlockMaxPurchaseButton">Débloquer Achat Multiple Max : <span class="ascension-points-color">100 PA</span></button> </div>
+            <div class="achat-section">
                 <button id="unlockNewSettingsButton">Débloquer de nouveaux réglages : <span class="ascension-points-color">10 PA</span></button>
             </div>
             <div class="achat-section">
-                <button id="automatisationButton" class="cannot-afford" disabled>Automatisation : <span class="ascension-points-color">1000 PA</span> (Prochaine mise à jour)</button>
-            </div>
+                <button id="unlockAutomationCategoryButton">Débloquer Automatisation : <span class="ascension-points-color">1000 PA</span></button> </div>
         </div>
     </div>
 
@@ -715,8 +731,16 @@
         let coutEcoleActuel;
         let schoolMultiplier = 1; // Multiplicateur des écoles
         let newSettingsUnlocked = false; // Drapeau pour "Débloquer de nouveaux réglages"
-        let multiPurchaseOptionUnlocked = false; // Drapeau pour l'option "Achat multiple" dans les réglages
-        let currentPurchaseMultiplier = 1; // Nouveau: multiplicateur d'achat actuel
+        let multiPurchaseOptionUnlocked = false; // Drapeau pour l'option "Achat multiple" dans les réglages (x1, x10, x100)
+        let maxPurchaseOptionUnlocked = false; // Nouveau: Drapeau pour l'option "Achat multiple max" (xMax)
+        let currentPurchaseMultiplier = 1; // Nouveau: multiplicateur d'achat actuel (peut être 1, 10, 100, ou 'max')
+
+        // Variables d'Automatisation
+        let automationCategoryUnlocked = false; // Nouveau: Drapeau pour débloquer la catégorie Automatisation
+        let autoEleveActive = false; // Nouveau: Drapeau pour l'automatisation des élèves
+        let autoImageActive = false; // Nouveau: Drapeau pour l'automatisation des images
+        let autoProfesseurActive = false; // Nouveau: Drapeau pour l'automatisation des professeurs
+
 
         // Drapeaux pour le déblocage des sections d'achat
         let elevesUnlocked = false;
@@ -823,8 +847,6 @@
         const settingsContainer = document.getElementById('settingsContainer');
         const themeToggleButton = document.getElementById('themeToggleButton');
         const resetProgressionButton = document.getElementById('resetProgressionButton');
-        // const multiPurchaseSetting = document.getElementById('multiPurchaseSetting'); // Moved to Ascension Menu
-        // const buyMultiPurchaseButton = document.getElementById('buyMultiPurchaseButton'); // Moved to Ascension Menu
 
         // Éléments de la modale de confirmation de réinitialisation
         const confirmResetModal = document.getElementById('confirmResetModal');
@@ -849,14 +871,22 @@
         const nombreEcolesSpan = document.getElementById('nombreEcoles');
         const ecoleMultiplierSpan = document.getElementById('ecoleMultiplier');
         const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
-        const automatisationButton = document.getElementById('automatisationButton');
-        const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton'); // Nouveau
-        
+        const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton');
+        const unlockMaxPurchaseButton = document.getElementById('unlockMaxPurchaseButton'); // Nouveau
+        const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton'); // Ancien automatisationButton
+
         // Éléments du multiplicateur d'achat
-        const purchaseMultiplierSelection = document.getElementById('purchaseMultiplierSelection'); // Nouveau
-        const setMultiplierX1 = document.getElementById('setMultiplierX1'); // Nouveau
-        const setMultiplierX10 = document.getElementById('setMultiplierX10'); // Nouveau
-        const setMultiplierX100 = document.getElementById('setMultiplierX100'); // Nouveau
+        const purchaseMultiplierSelection = document.getElementById('purchaseMultiplierSelection');
+        const setMultiplierX1 = document.getElementById('setMultiplierX1');
+        const setMultiplierX10 = document.getElementById('setMultiplierX10');
+        const setMultiplierX100 = document.getElementById('setMultiplierX100');
+        const setMultiplierXMax = document.getElementById('setMultiplierXMax'); // Nouveau
+
+        // Éléments de la section Automatisation
+        const automationSection = document.getElementById('automationSection'); // Nouveau
+        const autoEleveButton = document.getElementById('autoEleveButton'); // Nouveau
+        const autoImageButton = document.getElementById('autoImageButton'); // Nouveau
+        const autoProfesseurButton = document.getElementById('autoProfesseurButton'); // Nouveau
 
 
         // --- Fonctions de sauvegarde et de chargement de l'état du jeu ---
@@ -891,7 +921,12 @@
                 schoolMultiplier,
                 newSettingsUnlocked,
                 multiPurchaseOptionUnlocked,
-                currentPurchaseMultiplier // Sauvegarde du multiplicateur
+                maxPurchaseOptionUnlocked, // Sauvegarde du nouveau drapeau
+                currentPurchaseMultiplier, // Sauvegarde du multiplicateur
+                automationCategoryUnlocked, // Sauvegarde du nouveau drapeau
+                autoEleveActive, // Sauvegarde du nouveau drapeau
+                autoImageActive, // Sauvegarde du nouveau drapeau
+                autoProfesseurActive // Sauvegarde du nouveau drapeau
             };
             localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
         }
@@ -924,7 +959,12 @@
                 schoolMultiplier = gameState.schoolMultiplier || 1;
                 newSettingsUnlocked = gameState.newSettingsUnlocked || false;
                 multiPurchaseOptionUnlocked = gameState.multiPurchaseOptionUnlocked || false;
+                maxPurchaseOptionUnlocked = gameState.maxPurchaseOptionUnlocked || false; // Chargement du nouveau drapeau
                 currentPurchaseMultiplier = gameState.currentPurchaseMultiplier || 1; // Chargement du multiplicateur
+                automationCategoryUnlocked = gameState.automationCategoryUnlocked || false; // Chargement du nouveau drapeau
+                autoEleveActive = gameState.autoEleveActive || false; // Chargement du nouveau drapeau
+                autoImageActive = gameState.autoImageActive || false; // Chargement du nouveau drapeau
+                autoProfesseurActive = gameState.autoProfesseurActive || false; // Chargement du nouveau drapeau
 
 
                 unlockedSkills = {};
@@ -1134,10 +1174,15 @@
             return Math.max(1, cost * (1 - skillEffects.professeurCostReduction)); // Appliquer la réduction de coût
         }
 
+        // Fonction pour calculer le coût de la prochaine école
+        function calculateNextEcoleCost() {
+            return Math.floor(coutEcoleBase * (1.5 ** schoolCount));
+        }
+
         // Fonction pour mettre à jour l'état visuel des boutons d'achat (couleur de bordure)
         function updateButtonStates() {
             // Élève
-            if (bonsPoints >= calculateNextEleveCost()) { // Check if at least 1 can be afforded
+            if (bonsPoints >= calculateNextEleveCost()) {
                 acheterEleveButton.classList.remove('cannot-afford');
                 acheterEleveButton.classList.add('can-afford');
             } else {
@@ -1147,7 +1192,7 @@
 
             // Salle de classe
             let classeCostEleves = 30;
-            if (nombreEleves >= classeCostEleves) {
+            if (nombreEleves >= classeElevesCost()) { // Use a function for class cost
                 acheterClasseButton.classList.remove('cannot-afford');
                 acheterClasseButton.classList.add('can-afford');
             } else {
@@ -1196,25 +1241,37 @@
             }
 
             // Acheter Ecole Button (in Ascension Menu)
-            if (ascensionPoints >= coutEcoleActuel) {
+            if (ascensionPoints >= calculateNextEcoleCost()) {
                 acheterEcoleButton.classList.remove('cannot-afford');
                 acheterEcoleButton.classList.add('can-afford');
             } else {
                 acheterEcoleButton.classList.remove('can-afford');
                 acheterEcoleButton.classList.add('cannot-afford');
             }
-            coutEcoleSpan.textContent = `${Math.floor(coutEcoleActuel)} PA`;
+            coutEcoleSpan.textContent = `${Math.floor(calculateNextEcoleCost())} PA`;
 
             // Unlock Multi Purchase Button (in Ascension Menu)
             if (multiPurchaseOptionUnlocked) {
                 unlockMultiPurchaseButton.style.display = 'none';
-                purchaseMultiplierSelection.style.display = 'block'; // Show multiplier selection if unlocked
+                // purchaseMultiplierSelection.style.display = 'block'; // This is handled by updateSectionVisibility
             } else if (ascensionPoints >= 10) {
                 unlockMultiPurchaseButton.classList.remove('cannot-afford');
                 unlockMultiPurchaseButton.classList.add('can-afford');
             } else {
                 unlockMultiPurchaseButton.classList.remove('can-afford');
                 unlockMultiPurchaseButton.classList.add('cannot-afford');
+            }
+
+            // Unlock Max Purchase Button (in Ascension Menu)
+            if (maxPurchaseOptionUnlocked) {
+                unlockMaxPurchaseButton.style.display = 'none';
+                setMultiplierXMax.style.display = 'block'; // Show xMax button if unlocked
+            } else if (ascensionPoints >= 100) {
+                unlockMaxPurchaseButton.classList.remove('cannot-afford');
+                unlockMaxPurchaseButton.classList.add('can-afford');
+            } else {
+                unlockMaxPurchaseButton.classList.remove('can-afford');
+                unlockMaxPurchaseButton.classList.add('cannot-afford');
             }
 
             // Unlock New Settings Button (in Ascension Menu)
@@ -1228,8 +1285,28 @@
                 unlockNewSettingsButton.classList.add('cannot-afford');
             }
 
+            // Unlock Automation Category Button (in Ascension Menu)
+            if (automationCategoryUnlocked) {
+                unlockAutomationCategoryButton.style.display = 'none';
+                // automationSection.style.display = 'block'; // Handled by updateSectionVisibility
+            } else if (ascensionPoints >= 1000) {
+                unlockAutomationCategoryButton.classList.remove('cannot-afford');
+                unlockAutomationCategoryButton.classList.add('can-afford');
+            } else {
+                unlockAutomationCategoryButton.classList.remove('can-afford');
+                unlockAutomationCategoryButton.classList.add('cannot-afford');
+            }
+
+            // Automation buttons in Automation Section
+            updateAutomationButtonStates();
+
             updateSettingsButtonStates(); // Mettre à jour les états des boutons de paramètres
             updateMultiplierButtons(); // Mettre à jour l'état des boutons du multiplicateur
+        }
+
+        // Helper function for class cost (moved here for consistency)
+        function classeElevesCost() {
+            return 30 * (1 - skillEffects.classeCostReduction);
         }
 
         // Fonction pour mettre à jour l'état visuel des boutons du multiplicateur
@@ -1237,6 +1314,7 @@
             setMultiplierX1.classList.remove('active');
             setMultiplierX10.classList.remove('active');
             setMultiplierX100.classList.remove('active');
+            setMultiplierXMax.classList.remove('active');
 
             if (currentPurchaseMultiplier === 1) {
                 setMultiplierX1.classList.add('active');
@@ -1244,6 +1322,59 @@
                 setMultiplierX10.classList.add('active');
             } else if (currentPurchaseMultiplier === 100) {
                 setMultiplierX100.classList.add('active');
+            } else if (currentPurchaseMultiplier === 'max') {
+                setMultiplierXMax.classList.add('active');
+            }
+        }
+
+        // Fonction pour mettre à jour l'état des boutons d'automatisation
+        function updateAutomationButtonStates() {
+            // Eleve Automation
+            if (autoEleveActive) {
+                autoEleveButton.textContent = "Désactiver Automatisation Élèves";
+                autoEleveButton.classList.add('automation-active');
+            } else {
+                autoEleveButton.textContent = `Automatiser Élèves : ${100} PA`;
+                autoEleveButton.classList.remove('automation-active');
+                if (ascensionPoints >= 100) {
+                    autoEleveButton.classList.remove('cannot-afford');
+                    autoEleveButton.classList.add('can-afford');
+                } else {
+                    autoEleveButton.classList.remove('can-afford');
+                    autoEleveButton.classList.add('cannot-afford');
+                }
+            }
+
+            // Image Automation
+            if (autoImageActive) {
+                autoImageButton.textContent = "Désactiver Automatisation Images";
+                autoImageButton.classList.add('automation-active');
+            } else {
+                autoImageButton.textContent = `Automatiser Images : ${10000} PA`;
+                autoImageButton.classList.remove('automation-active');
+                if (ascensionPoints >= 10000) {
+                    autoImageButton.classList.remove('cannot-afford');
+                    autoImageButton.classList.add('can-afford');
+                } else {
+                    autoImageButton.classList.remove('can-afford');
+                    autoImageButton.classList.add('cannot-afford');
+                }
+            }
+
+            // Professeur Automation
+            if (autoProfesseurActive) {
+                autoProfesseurButton.textContent = "Désactiver Automatisation Professeurs";
+                autoProfesseurButton.classList.add('automation-active');
+            } else {
+                autoProfesseurButton.textContent = `Automatiser Professeurs : ${100000} PA`;
+                autoProfesseurButton.classList.remove('automation-active');
+                if (ascensionPoints >= 100000) {
+                    autoProfesseurButton.classList.remove('cannot-afford');
+                    autoProfesseurButton.classList.add('can-afford');
+                } else {
+                    autoProfesseurButton.classList.remove('can-afford');
+                    autoProfesseurButton.classList.add('cannot-afford');
+                }
             }
         }
 
@@ -1257,40 +1388,121 @@
             confirmElevePurchaseModal.style.display = 'none';
         }
 
-        // Logique d'achat d'élève, séparée pour être appelée par le bouton ou la modale
-        function performElevePurchase() {
-            let quantityToBuy = currentPurchaseMultiplier;
-            let affordableQuantity = 0;
+        // Logique d'achat générique
+        function performPurchase(itemType, quantityRequested, isAutomated = false) {
+            let quantityToBuy = 0;
             let totalCost = 0;
-            let tempBonsPoints = bonsPoints;
-            let tempNombreEleves = nombreEleves;
+            let tempResource = 0;
+            let tempItemCount = 0;
+            let costPerItem = 0;
 
-            for (let i = 0; i < quantityToBuy; i++) {
-                let costOfNextEleve = calculateNextEleveCostForSimulation(tempNombreEleves);
-                if (tempBonsPoints >= costOfNextEleve) {
-                    tempBonsPoints -= costOfNextEleve;
-                    totalCost += costOfNextEleve;
-                    affordableQuantity++;
-                    tempNombreEleves++;
-                } else {
-                    break;
+            if (itemType === 'eleve') {
+                tempResource = bonsPoints;
+                tempItemCount = nombreEleves;
+            } else if (itemType === 'classe') {
+                tempResource = nombreEleves;
+                tempItemCount = nombreClasses;
+            } else if (itemType === 'image') {
+                tempResource = bonsPoints;
+                tempItemCount = images;
+            } else if (itemType === 'professeur') {
+                tempResource = images;
+                tempItemCount = nombreProfesseurs;
+            } else if (itemType === 'ecole') {
+                tempResource = ascensionPoints;
+                tempItemCount = schoolCount;
+            }
+
+            if (quantityRequested === 'max') {
+                let currentTempItemCount = tempItemCount;
+                while (true) {
+                    if (itemType === 'eleve') {
+                        costPerItem = calculateNextEleveCostForSimulation(currentTempItemCount);
+                    } else if (itemType === 'classe') {
+                        costPerItem = classeElevesCost(); // Fixed cost for classes
+                    } else if (itemType === 'image') {
+                        costPerItem = 1000 * (1 - skillEffects.imageCostReduction);
+                    } else if (itemType === 'professeur') {
+                        costPerItem = calculateNextProfessorCostForSimulation(currentTempItemCount);
+                    } else if (itemType === 'ecole') {
+                        costPerItem = calculateNextEcoleCostForSimulation(currentTempItemCount);
+                    }
+
+                    if (tempResource >= costPerItem) {
+                        tempResource -= costPerItem;
+                        totalCost += costPerItem;
+                        quantityToBuy++;
+                        currentTempItemCount++;
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                quantityToBuy = quantityRequested;
+                let currentTempItemCount = tempItemCount;
+                for (let i = 0; i < quantityToBuy; i++) {
+                    if (itemType === 'eleve') {
+                        costPerItem = calculateNextEleveCostForSimulation(currentTempItemCount);
+                    } else if (itemType === 'classe') {
+                        costPerItem = classeElevesCost();
+                    } else if (itemType === 'image') {
+                        costPerItem = 1000 * (1 - skillEffects.imageCostReduction);
+                    } else if (itemType === 'professeur') {
+                        costPerItem = calculateNextProfessorCostForSimulation(currentTempItemCount);
+                    } else if (itemType === 'ecole') {
+                        costPerItem = calculateNextEcoleCostForSimulation(currentTempItemCount);
+                    }
+
+                    if (tempResource >= costPerItem) {
+                        tempResource -= costPerItem;
+                        totalCost += costPerItem;
+                        currentTempItemCount++;
+                    } else {
+                        // If not enough for the full requested quantity, buy what's affordable
+                        quantityToBuy = i;
+                        break;
+                    }
                 }
             }
 
-            if (affordableQuantity > 0) {
-                bonsPoints -= totalCost;
-                nombreEleves += affordableQuantity;
-                bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
-                coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
+            if (quantityToBuy > 0) {
+                if (itemType === 'eleve') {
+                    bonsPoints -= totalCost;
+                    nombreEleves += quantityToBuy;
+                    bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
+                    coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
+                    acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
+                } else if (itemType === 'classe') {
+                    nombreEleves -= totalCost;
+                    nombreClasses += quantityToBuy;
+                    bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
+                    bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
+                    coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
+                    acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
+                } else if (itemType === 'image') {
+                    bonsPoints -= totalCost;
+                    images += quantityToBuy;
+                } else if (itemType === 'professeur') {
+                    images -= totalCost;
+                    nombreProfesseurs += quantityToBuy;
+                    multiplicateurProfesseur = 1 + (0.25 * nombreProfesseurs);
+                    bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
+                } else if (itemType === 'ecole') {
+                    ascensionPoints -= totalCost;
+                    schoolCount += quantityToBuy;
+                    schoolMultiplier = 1 + (0.5 * schoolCount);
+                    coutEcoleActuel = calculateNextEcoleCost(); // Update for display
+                }
 
+                if (!isAutomated) {
+                    showNotification(`Acheté ${quantityToBuy} ${itemType}(s) !`);
+                }
                 mettreAJourAffichage();
-                acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
-                showNotification(`Acheté ${affordableQuantity} élève(s) !`);
                 checkUnlockConditions();
                 updateButtonStates();
                 saveGameState();
-            } else {
-                showNotification("Pas assez de bons points pour acheter un élève !");
+            } else if (!isAutomated) {
+                showNotification(`Pas assez de ressources pour acheter ${itemType} !`);
             }
         }
 
@@ -1320,6 +1532,18 @@
             }
             finalCost *= (1 - skillEffects.eleveCostReduction);
             return Math.max(1, finalCost);
+        }
+
+        // Helper function for professor cost simulation
+        function calculateNextProfessorCostForSimulation(currentProfessors) {
+            let nextProfIndex = currentProfessors + 1;
+            const cost = fibonacciSequence[nextProfIndex] || fibonacciSequence[fibonacciSequence.length - 1];
+            return Math.max(1, cost * (1 - skillEffects.professeurCostReduction));
+        }
+
+        // Helper function for ecole cost simulation
+        function calculateNextEcoleCostForSimulation(currentSchools) {
+            return Math.floor(coutEcoleBase * (1.5 ** currentSchools));
         }
 
 
@@ -1489,6 +1713,7 @@
                 resetSkillsButton.style.display = 'block'; // Afficher le bouton de reset quand l'arbre est visible
                 settingsContainer.style.display = 'none'; // Cacher les paramètres si ouverts
                 ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension si ouvert
+                automationSection.style.display = 'none'; // Cacher l'automatisation si ouverte
             }
         });
 
@@ -1502,6 +1727,7 @@
                 skillTreeContainer.style.display = 'none';
                 resetSkillsButton.style.display = 'none';
                 ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension si ouvert
+                automationSection.style.display = 'none'; // Cacher l'automatisation si ouverte
                 updateSettingsButtonStates(); // Mettre à jour le texte du bouton de thème
             }
         });
@@ -1516,6 +1742,7 @@
                 skillTreeContainer.style.display = 'none';
                 resetSkillsButton.style.display = 'none';
                 settingsContainer.style.display = 'none';
+                automationSection.style.display = 'none'; // Cacher l'automatisation si ouverte
                 mettreAJourAffichage(); // Mettre à jour l'affichage du menu ascension
             }
         });
@@ -1570,7 +1797,25 @@
 
         // Événement pour le bouton "Réinitialiser Compétences"
         resetSkillsButton.addEventListener('click', () => {
-            if (confirm("Êtes-vous sûr de vouloir réinitialiser toutes les compétences ? Vous perdrez les professeurs assignés.")) {
+            // Using a custom modal for confirmation instead of browser's confirm()
+            const customConfirmModal = document.createElement('div');
+            customConfirmModal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background-color: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;
+            `;
+            customConfirmModal.innerHTML = `
+                <div class="modal-content">
+                    <h3 class="warning-color">Réinitialiser les compétences ?</h3>
+                    <p>Êtes-vous sûr de vouloir réinitialiser toutes les compétences ? Vous perdrez les professeurs assignés.</p>
+                    <div class="modal-buttons">
+                        <button id="customConfirmYes" class="can-afford">Oui</button>
+                        <button id="customConfirmNo" class="cannot-afford">Non</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(customConfirmModal);
+
+            document.getElementById('customConfirmYes').addEventListener('click', () => {
                 professorsUsedForSkills = 0;
                 unlockedSkills = {};
                 s15Clicks = 0; // Réinitialise aussi le compteur de clics S15
@@ -1579,8 +1824,15 @@
                 renderSkillTree();
                 mettreAJourAffichage();
                 showNotification("Compétences réinitialisées !");
-            }
+                customConfirmModal.remove();
+            });
+
+            document.getElementById('customConfirmNo').addEventListener('click', () => {
+                showNotification("Réinitialisation des compétences annulée.");
+                customConfirmModal.remove();
+            });
         });
+
 
         // Événement pour le bouton "Étudier sagement"
         etudierButton.addEventListener('click', () => {
@@ -1614,14 +1866,14 @@
                 eleveWarningMessageP.textContent = warningMessage;
                 showEleveWarningModal();
             } else {
-                performElevePurchase();
+                performPurchase('eleve', currentPurchaseMultiplier);
             }
         });
 
         // Événement pour le bouton "Oui" de la modale de confirmation d'élève
         confirmElevePurchaseYesBtn.addEventListener('click', () => {
             hideEleveWarningModal();
-            performElevePurchase();
+            performPurchase('eleve', currentPurchaseMultiplier);
         });
 
         // Événement pour le bouton "Non" de la modale de confirmation d'élève
@@ -1638,115 +1890,18 @@
 
         // Événement pour le bouton "Acheter une salle de classe"
         acheterClasseButton.addEventListener('click', () => {
-            let quantityToBuy = currentPurchaseMultiplier;
-            let affordableQuantity = 0;
-            let totalCostEleves = 0;
-            let tempNombreEleves = nombreEleves;
-
-            for (let i = 0; i < quantityToBuy; i++) {
-                let costOfNextClasse = 30; // Cost is always 30 élèves per class
-                if (tempNombreEleves >= costOfNextClasse) {
-                    tempNombreEleves -= costOfNextClasse;
-                    totalCostEleves += costOfNextClasse;
-                    affordableQuantity++;
-                } else {
-                    break;
-                }
-            }
-
-            if (affordableQuantity > 0) {
-                nombreEleves -= totalCostEleves;
-                nombreClasses += affordableQuantity;
-                bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
-                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
-                coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
-
-                mettreAJourAffichage();
-                acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
-                showNotification(`Acheté ${affordableQuantity} salle(s) de classe !`);
-                checkUnlockConditions();
-                updateButtonStates();
-                saveGameState();
-            } else {
-                showNotification(`Pas assez d'élèves pour acheter une salle de classe !`);
-            }
+            performPurchase('classe', currentPurchaseMultiplier);
         });
 
         // Événement pour le bouton "Acheter une image"
         acheterImageButton.addEventListener('click', () => {
-            let quantityToBuy = currentPurchaseMultiplier;
-            let affordableQuantity = 0;
-            let totalCost = 0;
-            let tempBonsPoints = bonsPoints;
-
-            for (let i = 0; i < quantityToBuy; i++) {
-                let costOfNextImage = 1000 * (1 - skillEffects.imageCostReduction);
-                if (tempBonsPoints >= costOfNextImage) {
-                    tempBonsPoints -= costOfNextImage;
-                    totalCost += costOfNextImage;
-                    affordableQuantity++;
-                } else {
-                    break;
-                }
-            }
-
-            if (affordableQuantity > 0) {
-                bonsPoints -= totalCost;
-                images += affordableQuantity;
-                imagesSpan.textContent = images;
-                mettreAJourAffichageBonsPoints();
-                showNotification(`Acheté ${affordableQuantity} image(s) !`);
-                checkUnlockConditions();
-                updateButtonStates();
-                saveGameState();
-            } else {
-                showNotification("Pas assez de bons points pour acheter une image !");
-            }
+            performPurchase('image', currentPurchaseMultiplier);
         });
 
         // Événement pour le bouton "Acheter un professeur"
         acheterProfesseurButton.addEventListener('click', () => {
-            let quantityToBuy = currentPurchaseMultiplier;
-            let affordableQuantity = 0;
-            let totalCost = 0;
-            let tempImages = images;
-            let tempNombreProfesseurs = nombreProfesseurs;
-
-            for (let i = 0; i < quantityToBuy; i++) {
-                let costOfNextProfesseur = calculateNextProfessorCostForSimulation(tempNombreProfesseurs);
-                if (tempImages >= costOfNextProfesseur) {
-                    tempImages -= costOfNextProfesseur;
-                    totalCost += costOfNextProfesseur;
-                    affordableQuantity++;
-                    tempNombreProfesseurs++;
-                } else {
-                    break;
-                }
-            }
-
-            if (affordableQuantity > 0) {
-                images -= totalCost;
-                nombreProfesseurs += affordableQuantity;
-                // Recalculate multiplicateurProfesseur based on new total
-                multiplicateurProfesseur = 1 + (0.25 * nombreProfesseurs);
-                bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
-                professeursSpan.textContent = nombreProfesseurs;
-                imagesSpan.textContent = images;
-                mettreAJourAffichage();
-                showNotification(`Acheté ${affordableQuantity} professeur(s) !`);
-                updateButtonStates();
-                saveGameState();
-            } else {
-                showNotification(`Pas assez d'images pour acheter un professeur !`);
-            }
+            performPurchase('professeur', currentPurchaseMultiplier);
         });
-
-        // Helper function for professor cost simulation
-        function calculateNextProfessorCostForSimulation(currentProfessors) {
-            let nextProfIndex = currentProfessors + 1;
-            const cost = fibonacciSequence[nextProfIndex] || fibonacciSequence[fibonacciSequence.length - 1];
-            return Math.max(1, cost * (1 - skillEffects.professeurCostReduction));
-        }
 
         // --- Fonctions du menu Paramètres ---
         themeToggleButton.addEventListener('click', () => {
@@ -1781,10 +1936,6 @@
             }
         });
 
-        // This button is now in the Ascension Menu
-        // buyMultiPurchaseButton.addEventListener('click', () => { /* ... */ });
-
-
         resetProgressionButton.addEventListener('click', () => {
             if (images >= 10) {
                 confirmResetModal.style.display = 'flex';
@@ -1811,39 +1962,10 @@
 
         // --- Fonctions du menu Ascension ---
         acheterEcoleButton.addEventListener('click', () => {
-            let quantityToBuy = currentPurchaseMultiplier;
-            let affordableQuantity = 0;
-            let totalCost = 0;
-            let tempAscensionPoints = ascensionPoints;
-            let tempSchoolCount = schoolCount;
-
-            for (let i = 0; i < quantityToBuy; i++) {
-                let costOfNextEcole = Math.floor(coutEcoleBase * (1.5 ** tempSchoolCount));
-                if (tempAscensionPoints >= costOfNextEcole) {
-                    tempAscensionPoints -= costOfNextEcole;
-                    totalCost += costOfNextEcole;
-                    affordableQuantity++;
-                    tempSchoolCount++;
-                } else {
-                    break;
-                }
-            }
-
-            if (affordableQuantity > 0) {
-                ascensionPoints -= totalCost;
-                schoolCount += affordableQuantity;
-                schoolMultiplier = 1 + (0.5 * schoolCount);
-                coutEcoleActuel = Math.floor(coutEcoleBase * (1.5 ** schoolCount)); // Update for display
-                showNotification(`Acheté ${affordableQuantity} école(s) ! Multiplicateur total : ${schoolMultiplier.toFixed(1)}x`);
-                mettreAJourAffichage();
-                updateButtonStates();
-                saveGameState();
-            } else {
-                showNotification(`Pas assez de PA pour acheter une école !`);
-            }
+            performPurchase('ecole', currentPurchaseMultiplier);
         });
 
-        unlockMultiPurchaseButton.addEventListener('click', () => { // Nouveau
+        unlockMultiPurchaseButton.addEventListener('click', () => {
             if (multiPurchaseOptionUnlocked) {
                 showNotification("L'achat multiple est déjà débloqué !");
                 return;
@@ -1851,12 +1973,29 @@
             if (ascensionPoints >= 10) {
                 ascensionPoints -= 10;
                 multiPurchaseOptionUnlocked = true;
-                showNotification("Option 'Achat multiple' débloquée !");
+                showNotification("Option 'Achat multiple' débloquée (x1, x10, x100) !");
                 mettreAJourAffichage();
                 updateButtonStates();
                 saveGameState();
             } else {
                 showNotification("Pas assez de PA pour débloquer l'achat multiple (coût : 10 PA) !");
+            }
+        });
+
+        unlockMaxPurchaseButton.addEventListener('click', () => { // Nouveau
+            if (maxPurchaseOptionUnlocked) {
+                showNotification("L'achat multiple max est déjà débloqué !");
+                return;
+            }
+            if (ascensionPoints >= 100) {
+                ascensionPoints -= 100;
+                maxPurchaseOptionUnlocked = true;
+                showNotification("Option 'Achat multiple Max' débloquée !");
+                mettreAJourAffichage();
+                updateButtonStates();
+                saveGameState();
+            } else {
+                showNotification("Pas assez de PA pour débloquer l'achat multiple Max (coût : 100 PA) !");
             }
         });
 
@@ -1875,6 +2014,78 @@
             } else {
                 showNotification("Pas assez de PA pour débloquer de nouveaux réglages (coût : 10 PA) !");
             }
+        });
+
+        unlockAutomationCategoryButton.addEventListener('click', () => { // Nouveau
+            if (automationCategoryUnlocked) {
+                showNotification("La catégorie Automatisation est déjà débloquée !");
+                return;
+            }
+            if (ascensionPoints >= 1000) {
+                ascensionPoints -= 1000;
+                automationCategoryUnlocked = true;
+                showNotification("Catégorie 'Automatisation' débloquée !");
+                mettreAJourAffichage();
+                updateButtonStates();
+                saveGameState();
+            } else {
+                showNotification("Pas assez de PA pour débloquer la catégorie Automatisation (coût : 1000 PA) !");
+            }
+        });
+
+        // --- Fonctions d'Automatisation ---
+        autoEleveButton.addEventListener('click', () => {
+            if (autoEleveActive) {
+                autoEleveActive = false;
+                showNotification("Automatisation Élèves désactivée.");
+            } else {
+                if (ascensionPoints >= 100) {
+                    ascensionPoints -= 100;
+                    autoEleveActive = true;
+                    showNotification("Automatisation Élèves activée !");
+                } else {
+                    showNotification("Pas assez de PA pour activer l'automatisation des élèves (coût : 100 PA) !");
+                }
+            }
+            mettreAJourAffichage();
+            updateAutomationButtonStates();
+            saveGameState();
+        });
+
+        autoImageButton.addEventListener('click', () => {
+            if (autoImageActive) {
+                autoImageActive = false;
+                showNotification("Automatisation Images désactivée.");
+            } else {
+                if (ascensionPoints >= 10000) {
+                    ascensionPoints -= 10000;
+                    autoImageActive = true;
+                    showNotification("Automatisation Images activée !");
+                } else {
+                    showNotification("Pas assez de PA pour activer l'automatisation des images (coût : 10 000 PA) !");
+                }
+            }
+            mettreAJourAffichage();
+            updateAutomationButtonStates();
+            saveGameState();
+        });
+
+        autoProfesseurButton.addEventListener('click', () => {
+            if (autoProfesseurActive) {
+                autoProfesseurActive = false;
+                showNotification("Automatisation Professeurs désactivée.");
+            } else {
+                if (ascensionPoints >= 100000) {
+                    ascensionPoints -= 100000;
+                    autoProfesseurActive = true;
+                    showNotification("Automatisation Professeurs activée !");
+                } else {
+                    showNotification("Pas assez de PA pour activer l'automatisation des professeurs (coût : 100 000 PA) !");
+                }
+            }
+            mettreAJourAffichage();
+            updateAutomationButtonStates();
+            saveGameState();
         });
 
 
@@ -1927,7 +2138,7 @@
             // isDayTheme et themeOptionUnlocked ne sont PAS réinitialisés ici
             // disableAscensionWarning N'EST PAS réinitialisé ici pour persister
             // firstAscensionPerformed N'EST PAS réinitialisé ici pour persister
-            // schoolCount, coutEcoleActuel, schoolMultiplier, newSettingsUnlocked, multiPurchaseOptionUnlocked, currentPurchaseMultiplier NE SONT PAS réinitialisés ici.
+            // schoolCount, coutEcoleActuel, schoolMultiplier, newSettingsUnlocked, multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, currentPurchaseMultiplier, automationCategoryUnlocked, autoEleveActive, autoImageActive, autoProfesseurActive NE SONT PAS réinitialisés ici.
 
             // Cacher toutes les sections qui sont débloquées dynamiquement
             achatEleveSection.style.display = 'none';
@@ -1942,6 +2153,7 @@
             skillTreeContainer.style.display = 'none';
             settingsContainer.style.display = 'none';
             ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension
+            automationSection.style.display = 'none'; // Cacher l'automatisation
 
             document.body.classList.remove('dark-theme'); // Réinitialiser le thème visuellement au thème jour par défaut
             if (!isDayTheme) { // Si le thème était nuit, le remettre à jour pour refléter isDayTheme
@@ -1968,7 +2180,13 @@
             schoolMultiplier = 1; // Réinitialise le multiplicateur des écoles
             newSettingsUnlocked = false; // Réinitialise le déblocage des nouveaux réglages
             multiPurchaseOptionUnlocked = false; // Réinitialise l'option d'achat multiple
+            maxPurchaseOptionUnlocked = false; // Réinitialise l'option d'achat multiple max
             currentPurchaseMultiplier = 1; // Réinitialise le multiplicateur d'achat
+            automationCategoryUnlocked = false; // Réinitialise la catégorie Automatisation
+            autoEleveActive = false; // Réinitialise l'automatisation des élèves
+            autoImageActive = false; // Réinitialise l'automatisation des images
+            autoProfesseurActive = false; // Réinitialise l'automatisation des professeurs
+
 
             document.body.classList.remove('dark-theme'); // S'assurer que le thème est réinitialisé visuellement
             saveGameState();
@@ -2037,14 +2255,14 @@
                 ascensionBonusDisplay.style.display = 'none';
             }
 
-            // Afficher le nombre d'images seulement si images > 0
-            if (images >= 1) { // Changed to >= 1
+            // Afficher le nombre d'images seulement si images >= 1
+            if (images >= 1) {
                 imagesDisplay.style.display = 'block';
             } else {
                 imagesDisplay.style.display = 'none';
             }
-            // Afficher les PA disponibles seulement si ascensionPoints > 0 ou si l'ascension est débloquée
-            if (ascensionPoints >= 1 || ascensionUnlocked) { // Changed to >= 1
+            // Afficher les PA disponibles seulement si ascensionPoints >= 1 ou si l'ascension est débloquée
+            if (ascensionPoints >= 1 || ascensionUnlocked) {
                 currentAscensionPointsDisplay.style.display = 'block';
             } else {
                 currentAscensionPointsDisplay.style.display = 'none';
@@ -2052,10 +2270,8 @@
             // Afficher le nombre d'ascensions et les PA totaux seulement si ascensionCount > 0
             if (ascensionCount > 0) {
                 ascensionCountDisplay.style.display = 'block';
-                // totalPAEarnedDisplay.style.display = 'block'; // Now inline
             } else {
                 ascensionCountDisplay.style.display = 'none';
-                // totalPAEarnedDisplay.style.display = 'none'; // Now inline
             }
 
             updateButtonStates(); // Met à jour tous les boutons d'achat et de paramètres
@@ -2167,13 +2383,23 @@
             if (ascensionUnlocked) {
                 ascensionButton.style.display = 'block';
             }
-            if (ascensionMenuButtonUnlocked) { // Nouveau
+            if (ascensionMenuButtonUnlocked) {
                 ascensionMenuButton.style.display = 'block';
             }
-            if (multiPurchaseOptionUnlocked) { // Show multiplier selection if unlocked
+            if (multiPurchaseOptionUnlocked) {
                 purchaseMultiplierSelection.style.display = 'block';
             } else {
                 purchaseMultiplierSelection.style.display = 'none';
+            }
+            if (maxPurchaseOptionUnlocked) {
+                setMultiplierXMax.style.display = 'block';
+            } else {
+                setMultiplierXMax.style.display = 'none';
+            }
+            if (automationCategoryUnlocked) {
+                automationSection.style.display = 'block';
+            } else {
+                automationSection.style.display = 'none';
             }
         }
 
@@ -2196,6 +2422,13 @@
             updateButtonStates();
             saveGameState();
         });
+        setMultiplierXMax.addEventListener('click', () => { // Nouveau
+            currentPurchaseMultiplier = 'max';
+            updateMultiplierButtons();
+            updateButtonStates();
+            saveGameState();
+        });
+
 
         // Boucle de production automatique (toutes les secondes)
         setInterval(() => {
@@ -2204,13 +2437,25 @@
             checkUnlockConditions();
             updateButtonStates();
             saveGameState();
+
+            // Automatisation des achats
+            if (autoEleveActive) {
+                performPurchase('eleve', 'max', true); // true for isAutomated
+            }
+            if (autoImageActive) {
+                performPurchase('image', 'max', true);
+            }
+            if (autoProfesseurActive) {
+                performPurchase('professeur', 'max', true);
+            }
+
         }, 1000);
 
         // Initialisation de l'affichage au chargement de la page
         loadGameState();
         // Initialisation des coûts qui dépendent de l'état chargé
         coutEleveActuel = calculateNextEleveCost();
-        coutEcoleActuel = Math.floor(coutEcoleBase * (1.5 ** schoolCount)); // Initialiser le coût de l'école
+        coutEcoleActuel = calculateNextEcoleCost(); // Initialiser le coût de l'école
         
         acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
         acheterClasseButton.innerHTML = `Salle de classe : <span class="eleves-color">30 Élèves</span>`;
@@ -2221,6 +2466,7 @@
         checkUnlockConditions();
         disableEleveWarningCheckbox.checked = disableEleveWarning;
         updateMultiplierButtons(); // Ensure multiplier buttons are correctly highlighted on load
+        updateAutomationButtonStates(); // Ensure automation buttons are correctly highlighted on load
     </script>
 </body>
 </html>
