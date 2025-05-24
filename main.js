@@ -4,7 +4,7 @@
  * Coordonne les différents modules et gère la boucle de jeu principale.
  */
 
-import { gameState, getInitialGameState, resetGameState } from './gameState.js';
+import { gameState, resetGameState, getInitialGameState } from './gameState.js';
 import { 
     updateUI, 
     formatNumber, 
@@ -12,11 +12,10 @@ import {
     showModal, 
     hideModal, 
     applyTheme, 
-    toggleTheme,
+    toggleTheme, 
     showMainContainer 
 } from './uiManager.js';
 import { 
-    skillsData, 
     generateSkillTreeUI, 
     updateSkillTreeUI, 
     buySkill, 
@@ -24,21 +23,16 @@ import {
 } from './skillManager.js';
 
 // =============================================================================
-// 1. Constantes et Configuration
+// 1. Système de Sauvegarde et Chargement
 // =============================================================================
 
 const SAVE_KEY = 'incrementalGameSave';
 const AUTOSAVE_INTERVAL = 30000; // 30 secondes
-const GAME_TICK_RATE = 50; // 20 FPS (50ms par tick)
-
-// =============================================================================
-// 2. Système de Sauvegarde et Chargement
-// =============================================================================
 
 /**
  * Sauvegarde l'état actuel du jeu dans le localStorage.
  */
-export function saveGame() {
+function saveGame() {
     try {
         const saveState = {};
         for (const key in gameState) {
@@ -111,11 +105,11 @@ function loadGame() {
 }
 
 // =============================================================================
-// 3. Calculs du Jeu
+// 2. Calculs et Logique du Jeu
 // =============================================================================
 
 /**
- * Recalcule toutes les valeurs du jeu qui dépendent d'autres valeurs.
+ * Recalcule toutes les productions et coûts affectés par les bonus.
  */
 export function recalculateGameValues() {
     // Coût des élèves
@@ -140,13 +134,26 @@ export function recalculateGameValues() {
         gameState.ascensionBonusMultiplier = new Decimal(1);
     }
 
-    // Coût et multiplicateur des écoles
+    // Coût des écoles
     gameState.coutEcoleActuel = gameState.coutEcoleBase.mul(Decimal.pow(1.5, gameState.schoolCount));
+    
+    // Multiplicateur des écoles
     gameState.schoolMultiplier = new Decimal(1).add(gameState.schoolCount.mul(0.1));
 }
 
 /**
- * Calcule le nombre de PA potentiels à gagner lors de l'ascension.
+ * Calcule le coût total pour l'achat de N unités avec un coût exponentiel.
+ */
+function calculateTotalCost(currentOwned, quantityToBuy, baseCost, growthRate, costReduction = new Decimal(1)) {
+    let totalCost = new Decimal(0);
+    for (let i = 0; i < quantityToBuy.toNumber(); i++) {
+        totalCost = totalCost.add(baseCost.mul(Decimal.pow(growthRate, currentOwned.add(i))).div(costReduction));
+    }
+    return totalCost;
+}
+
+/**
+ * Calcule le nombre potentiel de Points d'Ascension à gagner.
  */
 function calculatePotentialPA() {
     const professorThreshold = new Decimal(10);
@@ -157,36 +164,35 @@ function calculatePotentialPA() {
 }
 
 // =============================================================================
-// 4. Fonctions d'Achat
+// 3. Actions du Joueur
 // =============================================================================
 
 /**
- * Calcule le coût total pour acheter N unités avec croissance exponentielle.
+ * Gère le clic sur le bouton "Étudier sagement".
  */
-function calculateTotalCost(currentOwned, quantityToBuy, baseCost, growthRate, costReduction = new Decimal(1)) {
-    let totalCost = new Decimal(0);
-    for (let i = 0; i < quantityToBuy.toNumber(); i++) {
-        const unitCost = baseCost.mul(Decimal.pow(growthRate, currentOwned.add(i))).div(costReduction);
-        totalCost = totalCost.add(unitCost);
-    }
-    return totalCost;
+function etudierSagement() {
+    gameState.bonsPoints = gameState.bonsPoints.add(1);
+    updateUI();
 }
 
 /**
- * Achète un ou plusieurs élèves.
+ * Achète des élèves.
  */
-export function buyEleve(quantity = new Decimal(1), isAutomated = false) {
+function buyEleve(quantity = new Decimal(1), isAutomated = false) {
     let actualQuantity = quantity;
-    
-    if (!isAutomated && gameState.currentPurchaseMultiplier === Infinity) {
-        actualQuantity = gameState.bonsPoints.div(gameState.coutEleveActuel).floor();
-    } else if (!isAutomated && gameState.currentPurchaseMultiplier > 1) {
-        actualQuantity = new Decimal(gameState.currentPurchaseMultiplier);
+
+    if (!isAutomated) {
+        if (gameState.currentPurchaseMultiplier !== 1 && gameState.currentPurchaseMultiplier !== Infinity) {
+            actualQuantity = new Decimal(gameState.currentPurchaseMultiplier);
+        }
+        if (gameState.currentPurchaseMultiplier === Infinity) {
+            actualQuantity = gameState.bonsPoints.div(gameState.coutEleveActuel).floor();
+        }
     }
 
     if (actualQuantity.lt(1)) return;
 
-    const totalCost = calculateTotalCost(
+    const finalCost = calculateTotalCost(
         gameState.nombreEleves, 
         actualQuantity, 
         gameState.coutEleveBase, 
@@ -194,36 +200,40 @@ export function buyEleve(quantity = new Decimal(1), isAutomated = false) {
         gameState.skillEffects.eleveCostReduction
     );
 
-    if (gameState.bonsPoints.gte(totalCost)) {
-        // Vérifier l'avertissement pour les élèves
-        if (!isAutomated && !gameState.disableEleveWarning && gameState.nombreEleves.mod(30).eq(0) && actualQuantity.gt(0)) {
+    if (gameState.bonsPoints.gte(finalCost)) {
+        if (!isAutomated && gameState.nombreEleves.mod(30).eq(0) && actualQuantity.gt(0) && !gameState.disableEleveWarning) {
             showModal('confirmElevePurchaseModal');
-            // Stocker la quantité et le coût pour l'utiliser après confirmation
-            window.pendingElevePurchase = { quantity: actualQuantity, cost: totalCost };
+            document.getElementById('confirmElevePurchaseYes').onclick = () => {
+                hideModal('confirmElevePurchaseModal');
+                performElevePurchase(finalCost, actualQuantity);
+            };
             return;
         }
-
-        gameState.bonsPoints = gameState.bonsPoints.sub(totalCost);
-        gameState.nombreEleves = gameState.nombreEleves.add(actualQuantity);
-        recalculateGameValues();
-        if (!isAutomated) {
-            showNotification(`Acheté ${formatNumber(actualQuantity)} élève(s) !`, 'success');
-        }
+        performElevePurchase(finalCost, actualQuantity);
     } else if (!isAutomated) {
         showNotification("Pas assez de Bons Points pour acheter cet élève.", 'error');
     }
 }
 
+function performElevePurchase(cost, quantity) {
+    gameState.bonsPoints = gameState.bonsPoints.sub(cost);
+    gameState.nombreEleves = gameState.nombreEleves.add(quantity);
+    recalculateGameValues();
+    updateUI();
+    showNotification(`Acheté ${formatNumber(quantity)} élève(s)!`, 'success');
+}
+
 /**
- * Achète une ou plusieurs salles de classe.
+ * Achète des salles de classe.
  */
-export function buyClasse() {
+function buyClasse() {
     const cost = gameState.coutClasseEnEleves;
     if (gameState.nombreEleves.gte(cost)) {
         gameState.nombreEleves = gameState.nombreEleves.sub(cost);
         gameState.nombreClasses = gameState.nombreClasses.add(1);
         gameState.coutEleveBase = gameState.coutEleveBase.mul(1.05);
         recalculateGameValues();
+        updateUI();
         showNotification('Acheté une salle de classe !', 'success');
     } else {
         showNotification("Pas assez d'élèves pour acheter une salle de classe.", 'error');
@@ -231,15 +241,18 @@ export function buyClasse() {
 }
 
 /**
- * Achète une ou plusieurs images.
+ * Achète des images.
  */
-export function buyImage(quantity = new Decimal(1), isAutomated = false) {
+function buyImage(quantity = new Decimal(1), isAutomated = false) {
     let actualQuantity = quantity;
-    
-    if (!isAutomated && gameState.currentPurchaseMultiplier === Infinity) {
-        actualQuantity = gameState.bonsPoints.div(gameState.coutImage).floor();
-    } else if (!isAutomated && gameState.currentPurchaseMultiplier > 1) {
-        actualQuantity = new Decimal(gameState.currentPurchaseMultiplier);
+
+    if (!isAutomated) {
+        if (gameState.currentPurchaseMultiplier !== 1 && gameState.currentPurchaseMultiplier !== Infinity) {
+            actualQuantity = new Decimal(gameState.currentPurchaseMultiplier);
+        }
+        if (gameState.currentPurchaseMultiplier === Infinity) {
+            actualQuantity = gameState.bonsPoints.div(gameState.coutImage).floor();
+        }
     }
 
     if (actualQuantity.lt(1)) return;
@@ -249,6 +262,7 @@ export function buyImage(quantity = new Decimal(1), isAutomated = false) {
     if (gameState.bonsPoints.gte(totalCost)) {
         gameState.bonsPoints = gameState.bonsPoints.sub(totalCost);
         gameState.images = gameState.images.add(actualQuantity);
+        updateUI();
         if (!isAutomated) {
             showNotification(`Acheté ${formatNumber(actualQuantity)} image(s) !`, 'success');
         }
@@ -258,15 +272,18 @@ export function buyImage(quantity = new Decimal(1), isAutomated = false) {
 }
 
 /**
- * Achète un ou plusieurs professeurs.
+ * Achète des professeurs.
  */
-export function buyProfesseur(quantity = new Decimal(1), isAutomated = false) {
+function buyProfesseur(quantity = new Decimal(1), isAutomated = false) {
     let actualQuantity = quantity;
-    
-    if (!isAutomated && gameState.currentPurchaseMultiplier === Infinity) {
-        actualQuantity = gameState.images.div(gameState.coutProfesseur).floor();
-    } else if (!isAutomated && gameState.currentPurchaseMultiplier > 1) {
-        actualQuantity = new Decimal(gameState.currentPurchaseMultiplier);
+
+    if (!isAutomated) {
+        if (gameState.currentPurchaseMultiplier !== 1 && gameState.currentPurchaseMultiplier !== Infinity) {
+            actualQuantity = new Decimal(gameState.currentPurchaseMultiplier);
+        }
+        if (gameState.currentPurchaseMultiplier === Infinity) {
+            actualQuantity = gameState.images.div(gameState.coutProfesseur).floor();
+        }
     }
 
     if (actualQuantity.lt(1)) return;
@@ -277,6 +294,7 @@ export function buyProfesseur(quantity = new Decimal(1), isAutomated = false) {
         gameState.images = gameState.images.sub(totalCost);
         gameState.nombreProfesseurs = gameState.nombreProfesseurs.add(actualQuantity);
         recalculateGameValues();
+        updateUI();
         if (!isAutomated) {
             showNotification(`Acheté ${formatNumber(actualQuantity)} professeur(s) !`, 'success');
         }
@@ -285,15 +303,98 @@ export function buyProfesseur(quantity = new Decimal(1), isAutomated = false) {
     }
 }
 
+// =============================================================================
+// 4. Mécanique d'Ascension
+// =============================================================================
+
 /**
- * Achète une école avec des PA.
+ * Gère le processus d'ascension.
  */
-export function buySchool() {
+function ascend() {
+    const paGained = calculatePotentialPA();
+    if (paGained.lt(1)) {
+        showNotification("Vous n'avez pas assez de professeurs pour ascensionner et gagner des PA.", 'error');
+        return;
+    }
+
+    showModal('confirmAscensionModal');
+    document.getElementById('paGainedDisplay').textContent = formatNumber(paGained);
+
+    const firstAscensionWarning = document.getElementById('firstAscensionWarning');
+    const subsequentAscensionWarning = document.getElementById('subsequentAscensionWarning');
+
+    if (firstAscensionWarning && subsequentAscensionWarning) {
+        if (gameState.ascensionCount.eq(0) && !gameState.disableAscensionWarning) {
+            firstAscensionWarning.classList.remove('hidden');
+            subsequentAscensionWarning.classList.add('hidden');
+        } else {
+            firstAscensionWarning.classList.add('hidden');
+            subsequentAscensionWarning.classList.remove('hidden');
+        }
+    }
+
+    document.getElementById('confirmAscensionYes').onclick = () => {
+        hideModal('confirmAscensionModal');
+        performAscension(paGained);
+    };
+
+    document.getElementById('confirmAscensionNo').onclick = () => {
+        hideModal('confirmAscensionModal');
+    };
+}
+
+function performAscension(paGained) {
+    gameState.ascensionPoints = gameState.ascensionPoints.add(paGained);
+    gameState.totalPAEarned = gameState.totalPAEarned.add(paGained);
+    gameState.ascensionCount = gameState.ascensionCount.add(1);
+
+    // Sauvegarder les flags qui doivent persister
+    const persistentData = {
+        ascensionPoints: gameState.ascensionPoints,
+        totalPAEarned: gameState.totalPAEarned,
+        ascensionCount: gameState.ascensionCount,
+        disableEleveWarning: gameState.disableEleveWarning,
+        disableAscensionWarning: gameState.disableAscensionWarning,
+        themeOptionUnlocked: gameState.themeOptionUnlocked,
+        currentTheme: gameState.currentTheme,
+        multiPurchaseOptionUnlocked: gameState.multiPurchaseOptionUnlocked,
+        maxPurchaseOptionUnlocked: gameState.maxPurchaseOptionUnlocked,
+        newSettingsUnlocked: gameState.newSettingsUnlocked,
+        automationCategoryUnlocked: gameState.automationCategoryUnlocked,
+        autoEleveActive: gameState.autoEleveActive,
+        autoImageActive: gameState.autoImageActive,
+        autoProfesseurActive: gameState.autoProfesseurActive,
+        schoolCount: gameState.schoolCount,
+        coutEcoleBase: gameState.coutEcoleBase,
+        coutEcoleActuel: gameState.coutEcoleActuel,
+        schoolMultiplier: gameState.schoolMultiplier,
+    };
+
+    // Réinitialiser l'état du jeu
+    const newState = getInitialGameState();
+    
+    // Restaurer les données persistantes
+    for (const key in persistentData) {
+        newState[key] = persistentData[key];
+    }
+
+    resetGameState(newState);
+    recalculateGameValues();
+    saveGame();
+    updateUI();
+    showNotification(`Ascension effectuée ! Vous avez gagné ${formatNumber(paGained)} PA.`, 'success');
+}
+
+/**
+ * Achète une école avec des Points d'Ascension.
+ */
+function buySchool() {
     const cost = gameState.coutEcoleActuel;
     if (gameState.ascensionPoints.gte(cost)) {
         gameState.ascensionPoints = gameState.ascensionPoints.sub(cost);
         gameState.schoolCount = gameState.schoolCount.add(1);
         recalculateGameValues();
+        updateUI();
         showNotification('École achetée !', 'success');
     } else {
         showNotification("Pas assez de Points d'Ascension pour acheter une école.", 'error');
@@ -301,91 +402,51 @@ export function buySchool() {
 }
 
 // =============================================================================
-// 5. Système d'Ascension
+// 5. Améliorations d'Ascension
 // =============================================================================
 
-/**
- * Effectue une ascension.
- */
-export function performAscension() {
-    const paGained = calculatePotentialPA();
-    if (paGained.lt(1)) {
-        showNotification("Vous n'avez pas assez de professeurs pour ascensionner.", 'error');
-        return;
-    }
-
-    // Sauvegarder les valeurs persistantes
-    const persistentValues = {
-        ascensionPoints: gameState.ascensionPoints.add(paGained),
-        totalPAEarned: gameState.totalPAEarned.add(paGained),
-        ascensionCount: gameState.ascensionCount.add(1),
-        ascensionBonusMultiplier: gameState.ascensionBonusMultiplier,
-        schoolCount: gameState.schoolCount,
-        schoolMultiplier: gameState.schoolMultiplier,
-        currentTheme: gameState.currentTheme,
-        themeOptionUnlocked: gameState.themeOptionUnlocked,
-        multiPurchaseOptionUnlocked: gameState.multiPurchaseOptionUnlocked,
-        maxPurchaseOptionUnlocked: gameState.maxPurchaseOptionUnlocked,
-        automationCategoryUnlocked: gameState.automationCategoryUnlocked,
-        autoEleveActive: gameState.autoEleveActive,
-        autoImageActive: gameState.autoImageActive,
-        autoProfesseurActive: gameState.autoProfesseurActive,
-        disableEleveWarning: gameState.disableEleveWarning,
-        disableAscensionWarning: gameState.disableAscensionWarning
-    };
-
-    // Réinitialiser l'état
-    const newState = getInitialGameState();
-    
-    // Restaurer les valeurs persistantes
-    Object.assign(newState, persistentValues);
-    
-    resetGameState(newState);
-    recalculateGameValues();
-    saveGame();
-    showNotification(`Ascension effectuée ! Vous avez gagné ${formatNumber(paGained)} PA.`, 'success');
-}
-
-// =============================================================================
-// 6. Fonctions d'Amélioration d'Ascension
-// =============================================================================
-
-/**
- * Débloque l'option d'achat multiple.
- */
-export function unlockMultiPurchase() {
+function unlockMultiPurchase() {
     const cost = new Decimal(10);
     if (gameState.ascensionPoints.gte(cost)) {
         gameState.ascensionPoints = gameState.ascensionPoints.sub(cost);
         gameState.multiPurchaseOptionUnlocked = true;
+        updateUI();
         showNotification('Achat multiple débloqué !', 'success');
     } else {
         showNotification("Pas assez de PA pour débloquer l'achat multiple.", 'error');
     }
 }
 
-/**
- * Débloque l'option d'achat max.
- */
-export function unlockMaxPurchase() {
+function unlockMaxPurchase() {
     const cost = new Decimal(100);
     if (gameState.ascensionPoints.gte(cost)) {
         gameState.ascensionPoints = gameState.ascensionPoints.sub(cost);
         gameState.maxPurchaseOptionUnlocked = true;
+        updateUI();
         showNotification('Achat Max débloqué !', 'success');
     } else {
         showNotification("Pas assez de PA pour débloquer l'achat Max.", 'error');
     }
 }
 
-/**
- * Débloque la catégorie d'automatisation.
- */
-export function unlockAutomationCategory() {
+function unlockNewSettings() {
+    const cost = new Decimal(10);
+    if (gameState.ascensionPoints.gte(cost)) {
+        gameState.ascensionPoints = gameState.ascensionPoints.sub(cost);
+        gameState.newSettingsUnlocked = true;
+        updateUI();
+        showNotification('Nouveaux réglages débloqués !', 'success');
+    } else {
+        showNotification("Pas assez de PA pour débloquer de nouveaux réglages.", 'error');
+    }
+}
+
+function unlockAutomationCategory() {
     const cost = new Decimal(1000);
     if (gameState.ascensionPoints.gte(cost)) {
         gameState.ascensionPoints = gameState.ascensionPoints.sub(cost);
         gameState.automationCategoryUnlocked = true;
+        updateUI();
         showNotification("Catégorie d'automatisation débloquée !", 'success');
     } else {
         showNotification("Pas assez de PA pour débloquer l'automatisation.", 'error');
@@ -393,13 +454,10 @@ export function unlockAutomationCategory() {
 }
 
 // =============================================================================
-// 7. Système d'Automatisation
+// 6. Automatisation
 // =============================================================================
 
-/**
- * Active/désactive l'automatisation des élèves.
- */
-export function toggleAutoEleve() {
+function toggleAutoEleve() {
     const cost = new Decimal(100);
     if (!gameState.autoEleveActive) {
         if (gameState.ascensionPoints.gte(cost)) {
@@ -413,12 +471,10 @@ export function toggleAutoEleve() {
         gameState.autoEleveActive = false;
         showNotification('Automatisation des élèves désactivée.', 'info');
     }
+    updateUI();
 }
 
-/**
- * Active/désactive l'automatisation des images.
- */
-export function toggleAutoImage() {
+function toggleAutoImage() {
     const cost = new Decimal(10000);
     if (!gameState.autoImageActive) {
         if (gameState.ascensionPoints.gte(cost)) {
@@ -432,12 +488,10 @@ export function toggleAutoImage() {
         gameState.autoImageActive = false;
         showNotification('Automatisation des images désactivée.', 'info');
     }
+    updateUI();
 }
 
-/**
- * Active/désactive l'automatisation des professeurs.
- */
-export function toggleAutoProfesseur() {
+function toggleAutoProfesseur() {
     const cost = new Decimal(100000);
     if (!gameState.autoProfesseurActive) {
         if (gameState.ascensionPoints.gte(cost)) {
@@ -451,173 +505,173 @@ export function toggleAutoProfesseur() {
         gameState.autoProfesseurActive = false;
         showNotification('Automatisation des professeurs désactivée.', 'info');
     }
+    updateUI();
 }
 
 // =============================================================================
-// 8. Autres Fonctions
+// 7. Paramètres
 // =============================================================================
 
-/**
- * Réinitialise la progression du jeu.
- */
-export function resetProgression() {
+function resetProgression() {
     const cost = new Decimal(10);
     if (gameState.images.gte(cost)) {
-        if (confirm("Êtes-vous sûr de vouloir réinitialiser votre progression ? Cela coûtera 10 Images.")) {
-            gameState.images = gameState.images.sub(cost);
-            localStorage.removeItem(SAVE_KEY);
+        showModal('confirmResetModal');
+        document.getElementById('confirmResetYes').onclick = () => {
+            hideModal('confirmResetModal');
+            
+            const flagsToKeep = {
+                disableEleveWarning: gameState.disableEleveWarning,
+                disableAscensionWarning: gameState.disableAscensionWarning,
+                themeOptionUnlocked: gameState.themeOptionUnlocked,
+                currentTheme: gameState.currentTheme,
+                multiPurchaseOptionUnlocked: gameState.multiPurchaseOptionUnlocked,
+                maxPurchaseOptionUnlocked: gameState.maxPurchaseOptionUnlocked,
+                newSettingsUnlocked: gameState.newSettingsUnlocked,
+                automationCategoryUnlocked: gameState.automationCategoryUnlocked,
+                autoEleveActive: gameState.autoEleveActive,
+                autoImageActive: gameState.autoImageActive,
+                autoProfesseurActive: gameState.autoProfesseurActive,
+            };
+
+            const newState = getInitialGameState();
+            newState.images = newState.images.sub(cost);
+
+            for (const key in flagsToKeep) {
+                newState[key] = flagsToKeep[key];
+            }
+
+            resetGameState(newState);
+            saveGame();
             location.reload();
-        }
+        };
+        document.getElementById('confirmResetNo').onclick = () => {
+            hideModal('confirmResetModal');
+        };
     } else {
         showNotification("Pas assez d'Images pour réinitialiser la progression.", 'error');
     }
 }
 
-/**
- * Change le multiplicateur d'achat.
- */
-export function setPurchaseMultiplier(multiplier) {
+function setPurchaseMultiplier(multiplier) {
     gameState.currentPurchaseMultiplier = multiplier;
+    
+    document.querySelectorAll('#purchaseMultiplierSelection button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (multiplier === Infinity) {
+        document.getElementById('setMultiplierXMax')?.classList.add('active');
+    } else {
+        document.getElementById(`setMultiplierX${multiplier}`)?.classList.add('active');
+    }
+    
     updateUI();
 }
 
 // =============================================================================
-// 9. Boucle de Jeu Principal
+// 8. Boucle de Jeu
 // =============================================================================
 
-let lastAutomationTick = 0;
-const AUTOMATION_INTERVAL = 1000; // 1 seconde
-
-/**
- * La boucle principale du jeu.
- */
 function gameLoop(timestamp) {
     const deltaTime = (timestamp - gameState.lastTickTime) / 1000;
     gameState.lastTickTime = timestamp;
 
-    // Production de Bons Points
+    // Calcul de la production de Bons Points
     const totalBps = gameState.bonsPointsParSecondeEleves
         .add(gameState.bonsPointsParSecondeClasses)
         .mul(gameState.ascensionBonusMultiplier)
         .mul(gameState.schoolMultiplier);
-    
     gameState.bonsPoints = gameState.bonsPoints.add(totalBps.mul(deltaTime));
 
-    // Automatisation (limitée à 1 fois par seconde)
-    if (timestamp - lastAutomationTick >= AUTOMATION_INTERVAL) {
-        lastAutomationTick = timestamp;
-        
-        if (gameState.autoEleveActive && gameState.bonsPoints.gte(gameState.coutEleveActuel)) {
-            buyEleve(new Decimal(1), true);
+    // Logique d'automatisation
+    if (gameState.automationCategoryUnlocked) {
+        if (gameState.autoEleveActive) {
+            const currentCost = gameState.coutEleveActuel;
+            if (gameState.bonsPoints.gte(currentCost)) {
+                const numToBuy = (gameState.currentPurchaseMultiplier === Infinity) ?
+                    gameState.bonsPoints.div(currentCost).floor() :
+                    new Decimal(gameState.currentPurchaseMultiplier);
+                buyEleve(numToBuy, true);
+            }
         }
         
-        if (gameState.autoImageActive && gameState.bonsPoints.gte(gameState.coutImage)) {
-            buyImage(new Decimal(1), true);
+        if (gameState.autoImageActive) {
+            const currentCost = gameState.coutImage;
+            if (gameState.bonsPoints.gte(currentCost)) {
+                const numToBuy = (gameState.currentPurchaseMultiplier === Infinity) ?
+                    gameState.bonsPoints.div(currentCost).floor() :
+                    new Decimal(gameState.currentPurchaseMultiplier);
+                buyImage(numToBuy, true);
+            }
         }
         
-        if (gameState.autoProfesseurActive && gameState.images.gte(gameState.coutProfesseur)) {
-            buyProfesseur(new Decimal(1), true);
+        if (gameState.autoProfesseurActive) {
+            const currentCost = gameState.coutProfesseur;
+            if (gameState.images.gte(currentCost)) {
+                const numToBuy = (gameState.currentPurchaseMultiplier === Infinity) ?
+                    gameState.images.div(currentCost).floor() :
+                    new Decimal(gameState.currentPurchaseMultiplier);
+                buyProfesseur(numToBuy, true);
+            }
         }
     }
 
     recalculateGameValues();
     updateUI();
-    
     requestAnimationFrame(gameLoop);
 }
 
-// =============================================================================
-// 10. Initialisation et Event Listeners
-// =============================================================================
-
-/**
- * Initialise le jeu au chargement de la page.
- */
-function initGame() {
-    // Charger la sauvegarde
-    loadGame();
-    
-    // Générer l'arbre de compétences
-    generateSkillTreeUI();
-    
-    // Initialiser l'UI
-    recalculateGameValues();
-    updateUI();
-    
-    // Démarrer la boucle de jeu
+function startGameLoop() {
     requestAnimationFrame(gameLoop);
-    
-    // Démarrer la sauvegarde automatique
     setInterval(saveGame, AUTOSAVE_INTERVAL);
-    
-    // Initialiser les event listeners
-    initEventListeners();
 }
 
-/**
- * Initialise tous les event listeners.
- */
-function initEventListeners() {
-    // Bouton principal
-    document.getElementById('etudierButton')?.addEventListener('click', () => {
-        gameState.bonsPoints = gameState.bonsPoints.add(1);
-        updateUI();
-    });
+// =============================================================================
+// 9. Gestion des Événements
+// =============================================================================
 
-    // Boutons d'achat
-    document.getElementById('acheterEleveButton')?.addEventListener('click', () => buyEleve());
+function setupEventListeners() {
+    // Boutons d'action
+    document.getElementById('etudierButton')?.addEventListener('click', etudierSagement);
+    document.getElementById('acheterEleveButton')?.addEventListener('click', () => buyEleve(new Decimal(1)));
     document.getElementById('acheterClasseButton')?.addEventListener('click', buyClasse);
-    document.getElementById('acheterImageButton')?.addEventListener('click', () => buyImage());
-    document.getElementById('acheterProfesseurButton')?.addEventListener('click', () => buyProfesseur());
-    document.getElementById('acheterEcoleButton')?.addEventListener('click', buySchool);
+    document.getElementById('acheterImageButton')?.addEventListener('click', () => buyImage(new Decimal(1)));
+    document.getElementById('acheterProfesseurButton')?.addEventListener('click', () => buyProfesseur(new Decimal(1)));
 
-    // Navigation
+    // Boutons de navigation
     document.getElementById('skillsButton')?.addEventListener('click', () => showMainContainer('skillTreeContainer'));
     document.getElementById('settingsButton')?.addEventListener('click', () => showMainContainer('settingsContainer'));
+    document.getElementById('ascensionButton')?.addEventListener('click', ascend);
     document.getElementById('ascensionMenuButton')?.addEventListener('click', () => showMainContainer('ascensionMenuContainer'));
 
-    // Bouton d'ascension
-    document.getElementById('ascensionButton')?.addEventListener('click', () => {
-        showModal('confirmAscensionModal');
-        document.getElementById('paGainedDisplay').textContent = formatNumber(calculatePotentialPA());
+    // Boutons de retour
+    document.querySelectorAll('.back-button').forEach(button => {
+        button.addEventListener('click', () => showMainContainer('main-content'));
     });
 
-    // Confirmation d'ascension
-    document.getElementById('confirmAscensionYes')?.addEventListener('click', () => {
-        hideModal('confirmAscensionModal');
-        performAscension();
+    // Gestion des modales
+    document.querySelectorAll('.modal .close').forEach(button => {
+        button.addEventListener('click', (event) => {
+            hideModal(event.target.closest('.modal').id);
+        });
     });
 
-    document.getElementById('confirmAscensionNo')?.addEventListener('click', () => {
-        hideModal('confirmAscensionModal');
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                hideModal(modal.id);
+            }
+        });
     });
 
-    // Confirmation d'achat d'élève
-    document.getElementById('confirmElevePurchaseYes')?.addEventListener('click', () => {
-        hideModal('confirmElevePurchaseModal');
-        if (window.pendingElevePurchase) {
-            const { quantity, cost } = window.pendingElevePurchase;
-            gameState.bonsPoints = gameState.bonsPoints.sub(cost);
-            gameState.nombreEleves = gameState.nombreEleves.add(quantity);
-            recalculateGameValues();
-            showNotification(`Acheté ${formatNumber(quantity)} élève(s) !`, 'success');
-            window.pendingElevePurchase = null;
-        }
-    });
-
-    document.getElementById('confirmElevePurchaseNo')?.addEventListener('click', () => {
-        hideModal('confirmElevePurchaseModal');
-        window.pendingElevePurchase = null;
-    });
-
-    // Checkbox d'avertissement
-    document.getElementById('disableEleveWarningCheckbox')?.addEventListener('change', (e) => {
-        gameState.disableEleveWarning = e.target.checked;
+    // Checkboxes
+    document.getElementById('disableEleveWarningCheckbox')?.addEventListener('change', (event) => {
+        gameState.disableEleveWarning = event.target.checked;
         saveGame();
     });
 
-    document.getElementById('disableAscensionWarningCheckbox')?.addEventListener('change', (e) => {
-        gameState.disableAscensionWarning = e.target.checked;
+    document.getElementById('disableAscensionWarningCheckbox')?.addEventListener('change', (event) => {
+        gameState.disableAscensionWarning = event.target.checked;
         saveGame();
     });
 
@@ -625,9 +679,11 @@ function initEventListeners() {
     document.getElementById('themeToggleButton')?.addEventListener('click', () => toggleTheme(saveGame));
     document.getElementById('resetProgressionButton')?.addEventListener('click', resetProgression);
 
-    // Améliorations d'ascension
+    // Menu Ascension
+    document.getElementById('acheterEcoleButton')?.addEventListener('click', buySchool);
     document.getElementById('unlockMultiPurchaseButton')?.addEventListener('click', unlockMultiPurchase);
     document.getElementById('unlockMaxPurchaseButton')?.addEventListener('click', unlockMaxPurchase);
+    document.getElementById('unlockNewSettingsButton')?.addEventListener('click', unlockNewSettings);
     document.getElementById('unlockAutomationCategoryButton')?.addEventListener('click', unlockAutomationCategory);
 
     // Automatisation
@@ -641,35 +697,31 @@ function initEventListeners() {
     document.getElementById('setMultiplierX100')?.addEventListener('click', () => setPurchaseMultiplier(100));
     document.getElementById('setMultiplierXMax')?.addEventListener('click', () => setPurchaseMultiplier(Infinity));
 
-    // Réinitialisation des compétences
-    document.getElementById('resetSkillsButton')?.addEventListener('click', () => {
-        resetSkills(saveGame, updateUI, recalculateGameValues);
-    });
-
-    // Fermeture des modales
-    document.querySelectorAll('.modal .close').forEach(button => {
-        button.addEventListener('click', (e) => {
-            hideModal(e.target.closest('.modal').id);
-        });
-    });
-
-    // Clic en dehors des modales
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                hideModal(modal.id);
-            }
-        });
-    });
+    // Compétences
+    document.getElementById('resetSkillsButton')?.addEventListener('click', () => 
+        resetSkills(saveGame, updateUI, recalculateGameValues)
+    );
 }
 
 // =============================================================================
-// 11. Démarrage du Jeu
+// 10. Initialisation
 // =============================================================================
 
-// Attendre que le DOM soit chargé
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGame);
-} else {
-    initGame();
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // Charger la partie
+    loadGame();
+    recalculateGameValues();
+    updateUI();
+
+    // Générer l'arbre de compétences
+    generateSkillTreeUI();
+
+    // Configurer les événements
+    setupEventListeners();
+
+    // Démarrer la boucle de jeu
+    startGameLoop();
+
+    // Afficher le conteneur principal
+    showMainContainer('main-content');
+});
