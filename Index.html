@@ -2,155 +2,176 @@
 <html lang="fr">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mon Jeu Incrémental</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="js/break_infinity.min.js"></script>
-  <script type="module" src="js/main.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Jeu Incrémental</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/break_infinity.min.js"></script>
+    <script type="module" src="js/main.js"></script>
 </head>
 
 <body>
-  <div id="container">
-    <div id="side-menu">
-      <section id="ressources">
-        <div>Bons Points: <span id="bonsPoints">0</span></div>
-        <div id="imagesDisplay" class="hidden">Images: <span id="imagesCount">0</span></div>
-        <div id="professeursDisplay" class="hidden">Professeurs: <span id="professeurs">0</span></div>
-        <div>Total BP/s: <span id="totalBpsInline">0</span></div>
-      </section>
-      <section id="achatEleveSection">
-        <h2>Élèves</h2>
-        <button id="etudierButton">Étudier (+1 BP)</button>
-        <div>Nombre d'élèves: <span id="nombreEleves">0</span></div>
-        <div>Coût élève: <span id="coutEleve">10</span> BP</div>
-        <button id="acheterEleveButton">Acheter Élève</button>
-      </section>
-      <section id="achatClasseSection" class="hidden">
-        <h2>Salles de Classe</h2>
-        <div>Nombre de classes: <span id="nombreClasses">0</span></div>
-        <div>Coût classe: <span id="coutClasse">30</span> Élèves</div>
-        <button id="acheterClasseButton">Acheter Classe</button>
-      </section>
-      <section id="achatImageSection" class="hidden">
-        <h2>Images</h2>
-        <div>Coût image: <span id="coutImage">1000</span> BP</div>
-        <button id="acheterImageButton">Acheter Image</button>
-      </section>
-      <section id="achatProfesseurSection" class="hidden">
-        <h2>Professeurs</h2>
-        <div>Coût professeur: <span id="coutProfesseur">2</span> Images</div>
-        <button id="acheterProfesseurButton">Acheter Professeur</button>
-      </section>
-    </div >
+    <div id="game-container">
+        <aside id="side-menu">
+            <section id="ressources">
+                <h2>Ressources</h2>
+                <div class="ressource-display">
+                    <span>Bons Points:</span>
+                    <span id="bonsPoints">0</span>
+                </div>
+                <div class="ressource-display" id="imagesDisplay" style="display: none;">
+                    <span>Images:</span>
+                    <span id="imagesCount">0</span>
+                </div>
+                <div class="ressource-display" id="professeursDisplay" style="display: none;">
+                    <span>Professeurs:</span>
+                    <span id="professeurs">0</span>
+                </div>
+                <div class="ressource-display">
+                    <span>Total BP/s:</span>
+                    <span id="totalBpsInline">0</span>
+                </div>
+            </section>
 
-    <div id="main-content">
-      <section>
-        <h2>Bienvenue dans Mon Jeu Incrémental !</h2>
-        <p>Cliquez sur les boutons pour gagner des ressources et progresser.</p>
-      </section>
+            <section id="achatEleveSection">
+                <h2>Élèves</h2>
+                <button id="etudierButton">Étudier (+1 BP)</button>
+                <div class="info-display">Nombre d'élèves: <span id="nombreEleves">0</span></div>
+                <div class="info-display">Coût élève: <span id="coutEleve">10</span> BP</div>
+                <button id="acheterEleveButton">Acheter Élève</button>
+            </section>
+
+            <section id="achatClasseSection" style="display: none;">
+                <h2>Salles de Classe</h2>
+                <div class="info-display">Nombre de classes: <span id="nombreClasses">0</span></div>
+                <div class="info-display">Coût classe: <span id="coutClasse">30</span> Élèves</div>
+                <button id="acheterClasseButton">Acheter Classe</button>
+            </section>
+
+            <section id="achatImageSection" style="display: none;">
+                <h2>Images</h2>
+                <div class="info-display">Coût image: <span id="coutImage">1000</span> BP</div>
+                <button id="acheterImageButton">Acheter Image</button>
+            </section>
+
+            <section id="achatProfesseurSection" style="display: none;">
+                <h2>Professeurs</h2>
+                <div class="info-display">Coût professeur: <span id="coutProfesseur">2</span> Images</div>
+                <button id="acheterProfesseurButton">Acheter Professeur</button>
+            </section>
+        </aside>
+
+        <main id="main-content">
+            <section id="welcome-section">
+                <h2>Bienvenue dans Mon Jeu Incrémental !</h2>
+                <p>Cliquez sur les boutons pour gagner des ressources et progresser.</p>
+            </section>
+        </main>
+
+        <aside id="right-menu">
+            <button id="skillsButton" style="display: none;">Compétences</button>
+            <button id="settingsButton" style="display: none;">Réglages</button>
+            <button id="ascensionMenuButton" style="display: none;">Ascension</button>
+        </aside>
     </div>
 
-    <div id="right-menu">
-      <button id="skillsButton" class="hidden">Compétences</button>
-      <button id="settingsButton" class="hidden">Réglages</button>
-      <button id="ascensionMenuButton" class="hidden">Ascension</button>
+    <div id="modal-container">
+        <div id="confirmElevePurchaseModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close" onclick="hideModal('confirmElevePurchaseModal')">&times;</span>
+                <p>Avertissement : L'achat fréquent d'élèves peut entraîner une augmentation rapide des coûts.</p>
+                <label for="disableEleveWarningCheckbox">Ne plus afficher cet avertissement</label>
+                <input type="checkbox" id="disableEleveWarningCheckbox">
+                <button onclick="hideModal('confirmElevePurchaseModal')">OK</button>
+            </div>
+        </div>
+
+        <div id="confirmAscensionModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close" onclick="hideModal('confirmAscensionModal')">&times;</span>
+                <div id="firstAscensionWarning">
+                    <p>Êtes-vous sûr de vouloir effectuer une ascension ? Votre progression sera réinitialisée, mais vous gagnerez des Points d'Ascension.</p>
+                </div>
+                <div id="subsequentAscensionWarning" style="display: none;">
+                    <p>Effectuer une ascension réinitialisera votre progression. Vous gagnerez <span id="paGainedDisplay">0</span> Points d'Ascension.</p>
+                </div>
+                <label for="disableAscensionWarningCheckbox">Ne plus afficher cet avertissement</label>
+                <input type="checkbox" id="disableAscensionWarningCheckbox">
+                <button id="confirmAscensionYes">Oui, Ascension !</button>
+                <button id="confirmAscensionNo">Non, Continuer</button>
+            </div>
+        </div>
+
+        <div id="confirmResetModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close" onclick="hideModal('confirmResetModal')">&times;</span>
+                <p>Êtes-vous sûr de vouloir réinitialiser votre progression ? Cela vous coûtera 10 Images.</p>
+                <button id="confirmResetYes">Oui, Réinitialiser</button>
+                <button id="confirmResetNo">Non, Annuler</button>
+            </div>
+        </div>
+
+        <div id="confirmResetSkillsModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close" onclick="hideModal('confirmResetSkillsModal')">&times;</span>
+                <p>Êtes-vous sûr de vouloir réinitialiser vos compétences ? Cela vous coûtera 10 Images.</p>
+                <button id="confirmResetSkillsYes">Oui, Réinitialiser</button>
+                <button id="confirmResetSkillsNo">Non, Annuler</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div id="confirmElevePurchaseModal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close" onclick="hideModal('confirmElevePurchaseModal')">&times;</span>
-      <p>Avertissement : L'achat fréquent d'élèves peut entraîner une augmentation rapide des coûts.</p>
-      <label for="disableEleveWarningCheckbox">Ne plus afficher cet avertissement</label>
-      <input type="checkbox" id="disableEleveWarningCheckbox">
-      <button onclick="hideModal('confirmElevePurchaseModal')">OK</button>
+    <div id="skillTreeContainer" class="main-container hidden">
+        <h2>Arbre de Compétences</h2>
+        <div id="available-professors">Professeurs Disponibles: <span id="availableProfessorsCount">0</span></div>
+        <div id="skills-grid"></div>
+        <button onclick="showMainContainer('main-content')">Retour au Jeu</button>
     </div>
-  </div>
 
-  <div id="confirmAscensionModal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close" onclick="hideModal('confirmAscensionModal')">&times;</span>
-      <div id="firstAscensionWarning">
-        <p>Êtes-vous sûr de vouloir effectuer une ascension ? Votre progression sera réinitialisée, mais vous gagnerez des Points d'Ascension.</p>
-      </div>
-      <div id="subsequentAscensionWarning" class="hidden">
-        <p>Effectuer une ascension réinitialisera votre progression. Vous gagnerez <span id="paGainedDisplay">0</span> Points d'Ascension.</p>
-      </div>
-      <label for="disableAscensionWarningCheckbox">Ne plus afficher cet avertissement</label>
-      <input type="checkbox" id="disableAscensionWarningCheckbox">
-      <button id="confirmAscensionYes">Oui, Ascension !</button>
-      <button id="confirmAscensionNo">Non, Continuer</button>
+    <div id="settingsContainer" class="main-container hidden">
+        <h2>Réglages</h2>
+        <button id="themeToggleButton">Changer de Thème</button>
+        <button id="resetProgressionButton">Réinitialiser la Progression</button>
+        <button id="resetSkillsButton">Réinitialiser les Compétences</button>
+        <button id="unlockNewSettingsButton" style="display: none;">Débloquer Nouveaux Réglages (10 PA)</button>
+        <button onclick="showMainContainer('main-content')">Retour au Jeu</button>
     </div>
-  </div>
 
-  <div id="confirmResetModal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close" onclick="hideModal('confirmResetModal')">&times;</span>
-      <p>Êtes-vous sûr de vouloir réinitialiser votre progression ? Cela vous coûtera 10 Images.</p>
-      <button id="confirmResetYes">Oui, Réinitialiser</button>
-      <button id="confirmResetNo">Non, Annuler</button>
+    <div id="ascensionMenuContainer" class="main-container hidden">
+        <h2>Menu d'Ascension</h2>
+        <div class="ascension-info">Points d'Ascension Disponibles: <span id="ascensionMenuPACount">0</span></div>
+        <div class="ascension-info">Total PA Gagnés: <span id="totalPAEarnedSpanInline">0</span></div>
+        <div class="ascension-info">Nombre d'Ascensions: <span id="ascensionCountSpan">0</span></div>
+        <div class="ascension-info">Bonus d'Ascension: +<span id="ascensionBonusValue">0</span>%</div>
+        <section id="purchaseMultiplierSelection" style="display: none;">
+            <h3>Multiplicateur d'Achat</h3>
+            <div class="multiplier-buttons">
+                <button id="setMultiplierX1" class="multiplier-button">x1</button>
+                <button id="setMultiplierX10" class="multiplier-button">x10</button>
+                <button id="setMultiplierX100" class="multiplier-button">x100</button>
+                <button id="setMultiplierXMax" class="multiplier-button">Max</button>
+            </div>
+        </section>
+        <button id="unlockMultiPurchaseButton" style="display: none;">Débloquer Multiplicateur d'Achat (10 PA)</button>
+        <button id="unlockMaxPurchaseButton" style="display: none;">Débloquer Achat Max (100 PA)</button>
+        <section id="automationSection" style="display: none;">
+            <h3>Automatisation</h3>
+            <button id="autoEleveButton">Automatiser Élèves (100 PA)</button>
+            <button id="autoImageButton">Automatiser Images (10000 PA)</button>
+            <button id="autoProfesseurButton">Automatiser Professeurs (100000 PA)</button>
+        </section>
+        <button id="unlockAutomationCategoryButton" style="display: none;">Débloquer Automatisation (1000 PA)</button>
+        <section id="ecoleSection">
+            <h3>Écoles</h3>
+            <div class="ecole-info">Nombre d'Écoles : <span id="nombreEcoles">0</span></div>
+            <div class="ecole-info">Coût École : <span id="coutEcole">15</span> PA</div>
+            <div class="ecole-info">Multiplicateur École : +<span id="ecoleMultiplier">0</span>%</div>
+            <button id="acheterEcoleButton">Acheter École</button>
+        </section>
+        <button onclick="showMainContainer('main-content')">Retour au Jeu</button>
     </div>
-  </div>
 
-  <div id="confirmResetSkillsModal" class="modal hidden">
-    <div class="modal-content">
-      <span class="close" onclick="hideModal('confirmResetSkillsModal')">&times;</span>
-      <p>Êtes-vous sûr de vouloir réinitialiser vos compétences ? Cela vous coûtera 10 Images.</p>
-      <button id="confirmResetSkillsYes">Oui, Réinitialiser</button>
-      <button id="confirmResetSkillsNo">Non, Annuler</button>
-    </div>
-  </div>
-
-  <div id="skillTreeContainer" class="main-container hidden">
-    <h2>Arbre de Compétences</h2>
-    <div>Professeurs Disponibles: <span id="availableProfessorsCount">0</span></div>
-    <div id="skills-grid"></div>
-    <button onclick="showMainContainer('main-content')">Retour au Jeu</button>
-  </div>
-
-  <div id="settingsContainer" class="main-container hidden">
-    <h2>Réglages</h2>
-    <button id="themeToggleButton">Changer de Thème</button>
-    <button id="resetProgressionButton">Réinitialiser la Progression</button>
-    <button id="resetSkillsButton">Réinitialiser les Compétences</button>
-    <button id="unlockNewSettingsButton" class="hidden">Débloquer Nouveaux Réglages (10 PA)</button>
-    <button onclick="showMainContainer('main-content')">Retour au Jeu</button>
-  </div>
-
-  <div id="ascensionMenuContainer" class="main-container hidden">
-    <h2>Menu d'Ascension</h2>
-    <div>Points d'Ascension Disponibles: <span id="ascensionMenuPACount">0</span></div>
-    <div>Total PA Gagnés: <span id="totalPAEarnedSpanInline">0</span></div>
-    <div>Nombre d'Ascensions: <span id="ascensionCountSpan">0</span></div>
-    <div>Bonus d'Ascension: +<span id="ascensionBonusValue">0</span>%</div>
-    <section id="purchaseMultiplierSelection" class="hidden">
-      <h3>Multiplicateur d'Achat</h3>
-      <button id="setMultiplierX1">x1</button>
-      <button id="setMultiplierX10">x10</button>
-      <button id="setMultiplierX100">x100</button>
-      <button id="setMultiplierXMax">Max</button>
-    </section>
-    <button id="unlockMultiPurchaseButton" class="hidden">Débloquer Multiplicateur d'Achat (10 PA)</button>
-    <button id="unlockMaxPurchaseButton" class="hidden">Débloquer Achat Max (100 PA)</button>
-    <section id="automationSection" class="hidden">
-      <h3>Automatisation</h3>
-      <button id="autoEleveButton">Automatiser Élèves (100 PA)</button>
-      <button id="autoImageButton">Automatiser Images (10000 PA)</button>
-      <button id="autoProfesseurButton">Automatiser Professeurs (100000 PA)</button>
-    </section>
-    <button id="unlockAutomationCategoryButton" class="hidden">Débloquer Automatisation (1000 PA)</button>
-    <section>
-      <h3>Écoles</h3>
-      <div>Nombre d'Écoles : <span id="nombreEcoles">0</span></div>
-      <div>Coût École : <span id="coutEcole">15</span> PA</div>
-      <div>Multiplicateur École : +<span id="ecoleMultiplier">0</span>%</div>
-      <button id="acheterEcoleButton">Acheter École</button>
-    </section>
-    <button onclick="showMainContainer('main-content')">Retour au Jeu</button>
-  </div>
-
-  <div id="notifications-container"></div>
+    <div id="notifications-container"></div>
 
 </body>
 
