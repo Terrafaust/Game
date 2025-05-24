@@ -25,6 +25,7 @@
         body.dark-theme .container,
         body.dark-theme #skillTreeContainer,
         body.dark-theme #settingsContainer,
+        body.dark-theme #ascensionMenuContainer, /* Nouveau */
         body.dark-theme .modal-content,
         body.dark-theme .achat-section {
             background-color: #3a3a3a;
@@ -35,6 +36,7 @@
         body.dark-theme #side-menu h2,
         body.dark-theme #skillTreeContainer h1,
         body.dark-theme #settingsContainer h1,
+        body.dark-theme #ascensionMenuContainer h1, /* Nouveau */
         body.dark-theme .skill-branch h3 {
             color: #76FF03; /* Vert clair pour les titres en mode nuit */
         }
@@ -253,6 +255,15 @@
             color: #0000FF; /* Bleu */
             font-weight: bold;
         }
+        .warning-color {
+            color: #FF6347; /* Rouge/Orange pour les avertissements */
+            font-weight: bold;
+        }
+        .info-color {
+            color: #007BFF; /* Bleu pour les informations */
+            font-weight: bold;
+        }
+
 
         /* Styles pour la modale de confirmation */
         #confirmElevePurchaseModal, #confirmResetModal, #confirmAscensionModal { /* Ajout de #confirmAscensionModal */
@@ -318,7 +329,7 @@
         }
 
         /* --- Styles de l'arbre de compétences --- */
-        #skillTreeContainer, #settingsContainer {
+        #skillTreeContainer, #settingsContainer, #ascensionMenuContainer { /* Nouveau */
             width: 100%;
             max-width: 1200px;
             margin-top: 30px;
@@ -331,7 +342,7 @@
             align-items: center;
         }
 
-        #skillTreeContainer h1, #settingsContainer h1 {
+        #skillTreeContainer h1, #settingsContainer h1, #ascensionMenuContainer h1 { /* Nouveau */
             color: #4CAF50;
             margin-bottom: 20px;
         }
@@ -511,12 +522,12 @@
         </div>
         <div id="achatClasseSection" class="achat-section" style="display: none;">
             <button id="acheterClasseButton">Salle de classe : <span class="eleves-color">30 Élèves</span></button>
+            <p class="info-message" style="font-size: 0.9em; color: #777; margin-top: 5px;">L'achat d'une classe augmente le prix des élèves.</p>
             <p>Quantité : <span id="nombreClasses">0</span></p>
             <p class="production" title="Production de bons points par seconde par classe : 25">bp/s classes : <span id="classesBpsPerItem">0</span></p>
         </div>
         <div id="achatImageSection" class="achat-section" style="display: none;">
             <button id="acheterImageButton">Image : <span class="bons-points-color">1000 BP</span></button>
-            <p>Quantité : <span id="images">0</span></p>
         </div>
         <div id="achatProfesseurSection" class="achat-section" style="display: none;">
             <button id="acheterProfesseurButton">Professeur : <span class="images-color">2 I</span></button>
@@ -524,6 +535,7 @@
         </div>
         <button id="skillsButton" style="display: none;">Compétences</button>
         <button id="settingsButton" style="display: none;">Paramètres</button>
+        <button id="ascensionMenuButton" style="display: none; background-color: #0000FF; color: white;">Menu Ascension</button>
         <button id="ascensionButton" style="display: none; background-color: #0000FF; color: white;">Ascension</button>
         <button id="resetSkillsButton" style="display: none; background-color: #f44336; color: white;">Réinitialiser Compétences</button>
     </div>
@@ -555,8 +567,27 @@
             <div class="achat-section">
                 <button id="themeToggleButton">Débloquer option Thème (10 I)</button>
             </div>
+            <div id="multiPurchaseSetting" class="achat-section" style="display: none;">
+                <button id="buyMultiPurchaseButton">Achat multiple (100 I)</button>
+            </div>
             <div class="achat-section">
                 <button id="resetProgressionButton" style="background-color: #FF6347; color: white;">Réinitialiser la Progression (10 I)</button>
+            </div>
+        </div>
+
+        <div id="ascensionMenuContainer">
+            <h1>Menu Ascension</h1>
+            <p>Points d'Ascension disponibles : <span id="ascensionMenuPACount" class="ascension-points-color">0</span></p>
+            <div class="achat-section">
+                <button id="acheterEcoleButton">Acheter une école : <span id="coutEcole" class="ascension-points-color">15 PA</span></button>
+                <p>Quantité : <span id="nombreEcoles">0</span></p>
+                <p class="production">Multiplicateur actuel : <span id="ecoleMultiplier">1.0x</span></p>
+            </div>
+            <div class="achat-section">
+                <button id="unlockNewSettingsButton">Débloquer de nouveaux réglages : <span class="ascension-points-color">10 PA</span></button>
+            </div>
+            <div class="achat-section">
+                <button id="automatisationButton" class="cannot-afford" disabled>Automatisation : <span class="ascension-points-color">1000 PA</span> (Prochaine mise à jour)</button>
             </div>
         </div>
     </div>
@@ -565,7 +596,7 @@
 
     <div id="confirmElevePurchaseModal">
         <div class="modal-content">
-            <h3>Attention !</h3>
+            <h3 class="warning-color">Attention !</h3>
             <p>Le prochain élève coûtera 10 fois le prix normal car c'est le premier d'un nouveau groupe de 30.</p>
             <p>Voulez-vous vraiment continuer ?</p>
             <div class="modal-buttons">
@@ -581,7 +612,7 @@
 
     <div id="confirmResetModal">
         <div class="modal-content">
-            <h3>Réinitialiser la progression ?</h3>
+            <h3 class="warning-color">Réinitialiser la progression ?</h3>
             <p>Cela réinitialisera tout votre jeu et coûtera 10 images. Êtes-vous sûr ?</p>
             <div class="modal-buttons">
                 <button id="confirmResetYes" class="can-afford">Oui</button>
@@ -592,15 +623,15 @@
 
     <div id="confirmAscensionModal">
         <div class="modal-content">
-            <h3 id="ascensionModalTitle">Ascensionner ?</h3>
+            <h3 id="ascensionModalTitle" class="warning-color">Ascensionner ?</h3>
             <div id="firstAscensionWarning" style="display: none;">
-                <p>C'est votre première Ascension ! Voici ce que cela implique :</p>
+                <p><span class="info-color">C'est votre première Ascension !</span> Voici ce que cela implique :</p>
                 <ul>
-                    <li>Vous perdrez toutes vos constructions (élèves, classes, professeurs).</li>
-                    <li>Vous perdrez toutes les compétences débloquées.</li>
-                    <li>Vous perdrez toutes vos monnaies (Bons Points, Images).</li>
-                    <li>Vous conserverez la monnaie <span class="ascension-points-color">PA (Points d'Ascension)</span>.</li>
-                    <li>Vous obtiendrez des <span class="ascension-points-color">PA</span> basés sur le nombre de professeurs que vous avez au moment de l'Ascension. Le calcul est le suivant :
+                    <li><span class="warning-color">Vous perdrez toutes vos constructions</span> (élèves, classes, professeurs).</li>
+                    <li><span class="warning-color">Vous perdrez toutes les compétences</span> débloquées.</li>
+                    <li><span class="warning-color">Vous perdrez toutes vos monnaies</span> (Bons Points, Images).</li>
+                    <li><span class="info-color">Vous conserverez la monnaie <span class="ascension-points-color">PA (Points d'Ascension)</span>.</span></li>
+                    <li><span class="info-color">Vous obtiendrez des <span class="ascension-points-color">PA</span> basés sur le nombre de professeurs que vous avez au moment de l'Ascension.</span> Le calcul est le suivant :
                         <ul>
                             <li>1 professeur = 2 PA</li>
                             <li>2 professeurs = 3 PA</li>
@@ -614,10 +645,11 @@
                             <li>... et ainsi de suite pour les nombres premiers suivants.</li>
                         </ul>
                     </li>
-                    <li>Vous débloquerez un <span class="ascension-points-color">Bonus d'Ascension</span> permanent qui augmentera votre production totale de Bons Points par seconde. Ce bonus est calculé comme suit :<br>
-                        <span style="font-weight: bold;">(Nombre total d'ascensions) x (PA totaux gagnés) x 1.01</span>.
+                    <li><span class="info-color">Vous débloquerez un <span class="ascension-points-color">Bonus d'Ascension</span> permanent</span> qui augmentera votre production totale de Bons Points par seconde. Ce bonus est calculé comme suit :<br>
+                        <span style="font-weight: bold;">(Nombre total d'ascensions) x (PA totaux gagnés) x 1.001</span>.
                     </li>
                 </ul>
+                <p><span class="info-color">Il est recommandé de faire votre première Ascension à environ <span class="ascension-points-color">35 PA</span> pour un bon départ !</span></p>
                 <div class="modal-checkbox">
                     <input type="checkbox" id="disableAscensionWarningCheckbox">
                     <label for="disableAscensionWarningCheckbox">Ne plus afficher cet avertissement pour les prochaines Ascensions</label>
@@ -651,6 +683,15 @@
         let totalPAEarned = 0; // Total des PA gagnés au fil des ascensions
         let ascensionUnlocked = false; // Drapeau pour le bouton Ascension
         let disableAscensionWarning = false; // Nouveau: pour désactiver l'avertissement d'ascension
+        let firstAscensionPerformed = false; // Nouveau: pour savoir si une ascension a déjà eu lieu
+
+        // Variables du menu Ascension
+        let schoolCount = 0;
+        let coutEcoleBase = 15;
+        let coutEcoleActuel;
+        let schoolMultiplier = 1; // Multiplicateur des écoles
+        let newSettingsUnlocked = false; // Drapeau pour "Débloquer de nouveaux réglages"
+        let multiPurchaseOptionUnlocked = false; // Drapeau pour l'option "Achat multiple" dans les réglages
 
         // Drapeaux pour le déblocage des sections d'achat
         let elevesUnlocked = false;
@@ -659,6 +700,7 @@
         let professeursUnlocked = false;
         let skillsButtonUnlocked = false;
         let settingsButtonUnlocked = false;
+        let ascensionMenuButtonUnlocked = false; // Nouveau
 
         // Variables pour le système de confirmation d'achat d'élève
         let disableEleveWarning = false;
@@ -721,6 +763,7 @@
         const skillsButton = document.getElementById('skillsButton');
         const settingsButton = document.getElementById('settingsButton');
         const ascensionButton = document.getElementById('ascensionButton');
+        const ascensionMenuButton = document.getElementById('ascensionMenuButton'); // Nouveau
         const resetSkillsButton = document.getElementById('resetSkillsButton');
         const currentAscensionPointsDisplay = document.getElementById('currentAscensionPointsDisplay');
         const ascensionPointsCountSpan = document.getElementById('ascensionPointsCount');
@@ -728,8 +771,8 @@
         const ascensionCountSpan = document.getElementById('ascensionCountSpan');
         const totalPAEarnedDisplay = document.getElementById('totalPAEarnedDisplay');
         const totalPAEarnedSpan = document.getElementById('totalPAEarnedSpan');
-        const ascensionBonusDisplay = document.getElementById('ascensionBonusDisplay'); // Nouveau
-        const ascensionBonusValueSpan = document.getElementById('ascensionBonusValue'); // Nouveau
+        const ascensionBonusDisplay = document.getElementById('ascensionBonusDisplay');
+        const ascensionBonusValueSpan = document.getElementById('ascensionBonusValue');
 
         // Récupération des sections d'achat pour la visibilité dynamique
         const achatEleveSection = document.getElementById('achatEleveSection');
@@ -753,6 +796,8 @@
         const settingsContainer = document.getElementById('settingsContainer');
         const themeToggleButton = document.getElementById('themeToggleButton');
         const resetProgressionButton = document.getElementById('resetProgressionButton');
+        const multiPurchaseSetting = document.getElementById('multiPurchaseSetting'); // Nouveau
+        const buyMultiPurchaseButton = document.getElementById('buyMultiPurchaseButton'); // Nouveau
 
         // Éléments de la modale de confirmation de réinitialisation
         const confirmResetModal = document.getElementById('confirmResetModal');
@@ -763,10 +808,20 @@
         const confirmAscensionModal = document.getElementById('confirmAscensionModal');
         const confirmAscensionYesBtn = document.getElementById('confirmAscensionYes');
         const confirmAscensionNoBtn = document.getElementById('confirmAscensionNo');
-        const ascensionModalTitle = document.getElementById('ascensionModalTitle'); // Nouveau
-        const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning'); // Nouveau
-        const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning'); // Nouveau
-        const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox'); // Nouveau, renommé pour éviter conflit
+        const ascensionModalTitle = document.getElementById('ascensionModalTitle');
+        const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning');
+        const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning');
+        const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox');
+
+        // Éléments du menu Ascension (Nouveau)
+        const ascensionMenuContainer = document.getElementById('ascensionMenuContainer');
+        const ascensionMenuPACountSpan = document.getElementById('ascensionMenuPACount');
+        const acheterEcoleButton = document.getElementById('acheterEcoleButton');
+        const coutEcoleSpan = document.getElementById('coutEcole');
+        const nombreEcolesSpan = document.getElementById('nombreEcoles');
+        const ecoleMultiplierSpan = document.getElementById('ecoleMultiplier');
+        const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
+        const automatisationButton = document.getElementById('automatisationButton');
 
 
         // --- Fonctions de sauvegarde et de chargement de l'état du jeu ---
@@ -794,7 +849,13 @@
                 ascensionPoints,
                 ascensionCount,
                 totalPAEarned,
-                disableAscensionWarning // Sauvegarde du nouveau drapeau
+                disableAscensionWarning,
+                firstAscensionPerformed, // Nouveau
+                schoolCount, // Nouveau
+                coutEcoleActuel, // Nouveau (sauve le coût actuel)
+                schoolMultiplier, // Nouveau
+                newSettingsUnlocked, // Nouveau
+                multiPurchaseOptionUnlocked // Nouveau
             };
             localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
         }
@@ -821,7 +882,13 @@
                 ascensionPoints = gameState.ascensionPoints || 0;
                 ascensionCount = gameState.ascensionCount || 0;
                 totalPAEarned = gameState.totalPAEarned || 0;
-                disableAscensionWarning = gameState.disableAscensionWarning || false; // Chargement du nouveau drapeau
+                disableAscensionWarning = gameState.disableAscensionWarning || false;
+                firstAscensionPerformed = gameState.firstAscensionPerformed || false; // Chargement
+                schoolCount = gameState.schoolCount || 0; // Chargement
+                schoolMultiplier = gameState.schoolMultiplier || 1; // Chargement
+                newSettingsUnlocked = gameState.newSettingsUnlocked || false; // Chargement
+                multiPurchaseOptionUnlocked = gameState.multiPurchaseOptionUnlocked || false; // Chargement
+
 
                 unlockedSkills = {};
                 if (gameState.unlockedSkills) {
@@ -864,14 +931,14 @@
             { id: 'P7', name: 'Inclusion Scolaire', family: 'Pédagogie', description: 'Augmente la production des classes de 7%.', flavorText: 'Création d\'un environnement où chaque élève, quelle que soit sa différence, peut réussir.', effect: { type: 'classeMultiplierBonus', value: 0.07 }, prerequisites: ['P6'], row: 6, col: 0 },
             { id: 'P8', name: 'Compétences Transversales', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Développement de capacités comme la pensée critique et la résolution de problèmes.', effect: { type: 'totalBpsMultiplierBonus', value: 0.05 }, prerequisites: ['P7'], row: 7, col: 0 },
             { id: 'P9', name: 'Apprentissage par Projet', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.25 BP/s par élève.', flavorText: 'Les élèves apprennent en réalisant des projets concrets, stimulant l\'autonomie.', effect: { type: 'eleveBpsBonus', value: 0.25 }, prerequisites: ['P8'], row: 8, col: 0 },
-            { id: 'P10', name: 'Mentorats Pédagogiques', family: 'Pédagogie', description: 'Augmente la production des classes de 12%.', flavorText: 'Les élèves plus avancés aident leurs pairs, renforçant la compréhension de tous.', effect: { type: 'classeMultiplierBonus', value: 0.12 }, prerequisites: ['P9'], row: 9, col: 0 },
+            { id: 'P10', name: 'Mentorats Pédagogiques', family: 'Pédagogie', description: 'Augmente la production des classes de 12%.', flavorText: 'Les élèves plus avancés aident leurs peers, renforçant la compréhension de tous.', effect: { type: 'classeMultiplierBonus', value: 0.12 }, prerequisites: ['P9'], row: 9, col: 0 },
             { id: 'P11', name: 'Curriculum Adaptatif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.3 BP/s par élève.', flavorText: 'Un programme scolaire qui s\'ajuste aux progrès et aux besoins individuels.', effect: { type: 'eleveBpsBonus', value: 0.3 }, prerequisites: ['P10'], row: 10, col: 0 },
             { id: 'P12', name: 'Neurosciences Éducatives', family: 'Pédagogie', description: 'Augmente la production des classes de 15%.', flavorText: 'Appliquer les découvertes sur le cerveau pour optimiser les stratégies d\'enseignement.', effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['P11'], row: 11, col: 0 },
             { id: 'P13', name: 'Gamification de l\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 7%.', flavorText: 'Intégration d\'éléments de jeu pour rendre l\'apprentissage plus engageant et amusant.', effect: { type: 'totalBpsMultiplierBonus', value: 0.07 }, prerequisites: ['P12'], row: 12, col: 0 },
             { id: 'P14', name: 'Pédagogie Inversée', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.35 BP/s par élève.', flavorText: 'Les élèves apprennent à la maison et pratiquent en classe, maximisant l\'interaction.', effect: { type: 'eleveBpsBonus', value: 0.35 }, prerequisites: ['P13'], row: 13, col: 0 },
             { id: 'P15', name: 'Apprentissage par le Service', family: 'Pédagogie', description: 'Augmente la production des classes de 18%.', flavorText: 'Les élèves s\'engagent dans des projets communautaires, développant des compétences civiques.', effect: { type: 'classeMultiplierBonus', value: 0.18 }, prerequisites: ['P14'], row: 14, col: 0 },
             { id: 'P16', name: 'Maîtrise des Émotions', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Enseigner aux élèves à gérer leurs émotions pour un apprentissage plus serein.', effect: { type: 'eleveBpsBonus', value: 0.4 }, prerequisites: ['P15'], row: 15, col: 0 },
-            { id: 'P17', name: 'Leadership Éducatif', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Former les élèves à prendre des initiatives et à guider leurs pairs.', effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['P16'], row: 16, col: 0 },
+            { id: 'P17', name: 'Leadership Éducatif', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Former les élèves à prendre des initiatives et à guider leurs peers.', effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['P16'], row: 16, col: 0 },
             { id: 'P18', name: 'Citoyenneté Numérique', family: 'Pédagogie', description: 'Augmente la production des classes de 20%.', flavorText: 'Préparer les élèves à naviguer de manière responsable et éthique dans le monde numérique.', effect: { type: 'classeMultiplierBonus', value: 0.20 }, prerequisites: ['P17'], row: 17, col: 0 },
             { id: 'P19', name: 'Innovation Pédagogique', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.5 BP/s par élève.', flavorText: 'Recherche et implémentation de nouvelles approches révolutionnaires en éducation.', effect: { type: 'eleveBpsBonus', value: 0.5 }, prerequisites: ['P18'], row: 18, col: 0 },
             { id: 'P20', name: 'Écosystème d\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Création d\'un environnement d\'apprentissage holistique et interconnecté.', effect: { type: 'totalBpsMultiplierBonus', value: 0.15 }, prerequisites: ['P19'], row: 19, col: 0 },
@@ -971,6 +1038,7 @@
             });
             // Recalculer les productions et coûts après application des effets
             bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
+            // School multiplier is applied after the sum of eleves and classes bps
             bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
             coutEleveActuel = calculateNextEleveCost(); // Recalculer le coût de l'élève avec la réduction
         }
@@ -997,14 +1065,23 @@
                 baseCostForNextEleve = 10;
             } else if (elevesInCurrentCycle < 20) {
                 baseCostForNextEleve = 12;
-            } else {
+            } else { // elevesInCurrentCycle >= 20
                 baseCostForNextEleve = 15;
             }
 
-            let finalCost = baseCostForNextEleve * (nombreClasses + 1);
+            let finalCost = baseCostForNextEleve;
 
-            if (nombreEleves > 0 && elevesInCurrentCycle === 0) {
-                finalCost *= 10;
+            // Apply the class multiplier if classes exist
+            if (nombreClasses > 0) {
+                finalCost *= (nombreClasses + 1);
+            } else { // If no classes purchased
+                // Check for the specific 100th student penalty
+                if (nombreEleves === 99) { // About to buy the 100th student
+                    finalCost *= 100; // Apply the x100 penalty
+                } else if (nombreEleves > 0 && elevesInCurrentCycle === 0) {
+                    // Apply the existing x10 penalty for every 30th student (if not the 100th and no classes)
+                    finalCost *= 10;
+                }
             }
 
             // Appliquer la réduction de coût des compétences
@@ -1071,6 +1148,36 @@
             } else {
                 ascensionButton.classList.remove('can-afford');
                 ascensionButton.classList.add('cannot-afford');
+            }
+
+            // Ascension Menu Button (visible if ascensionUnlocked)
+            if (ascensionUnlocked) {
+                ascensionMenuButton.classList.remove('cannot-afford');
+                ascensionMenuButton.classList.add('can-afford');
+            } else {
+                ascensionMenuButton.classList.remove('can-afford');
+                ascensionMenuButton.classList.add('cannot-afford');
+            }
+
+            // Acheter Ecole Button (in Ascension Menu)
+            if (ascensionPoints >= coutEcoleActuel) {
+                acheterEcoleButton.classList.remove('cannot-afford');
+                acheterEcoleButton.classList.add('can-afford');
+            } else {
+                acheterEcoleButton.classList.remove('can-afford');
+                acheterEcoleButton.classList.add('cannot-afford');
+            }
+            coutEcoleSpan.textContent = `${Math.floor(coutEcoleActuel)} PA`;
+
+            // Unlock New Settings Button (in Ascension Menu)
+            if (newSettingsUnlocked) {
+                unlockNewSettingsButton.style.display = 'none'; // Hide if already unlocked
+            } else if (ascensionPoints >= 10) {
+                unlockNewSettingsButton.classList.remove('cannot-afford');
+                unlockNewSettingsButton.classList.add('can-afford');
+            } else {
+                unlockNewSettingsButton.classList.remove('can-afford');
+                unlockNewSettingsButton.classList.add('cannot-afford');
             }
 
             updateSettingsButtonStates(); // Mettre à jour les états des boutons de paramètres
@@ -1271,6 +1378,7 @@
                 skillTreeContainer.style.display = 'flex';
                 resetSkillsButton.style.display = 'block'; // Afficher le bouton de reset quand l'arbre est visible
                 settingsContainer.style.display = 'none'; // Cacher les paramètres si ouverts
+                ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension si ouvert
             }
         });
 
@@ -1283,7 +1391,22 @@
                 // Cacher les autres menus si ouverts
                 skillTreeContainer.style.display = 'none';
                 resetSkillsButton.style.display = 'none';
+                ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension si ouvert
                 updateSettingsButtonStates(); // Mettre à jour le texte du bouton de thème
+            }
+        });
+
+        // Événement pour le bouton "Menu Ascension" (Nouveau)
+        ascensionMenuButton.addEventListener('click', () => {
+            if (ascensionMenuContainer.style.display === 'flex') {
+                ascensionMenuContainer.style.display = 'none';
+            } else {
+                ascensionMenuContainer.style.display = 'flex';
+                // Cacher les autres menus si ouverts
+                skillTreeContainer.style.display = 'none';
+                resetSkillsButton.style.display = 'none';
+                settingsContainer.style.display = 'none';
+                mettreAJourAffichage(); // Mettre à jour l'affichage du menu ascension
             }
         });
 
@@ -1462,6 +1585,24 @@
             }
         });
 
+        buyMultiPurchaseButton.addEventListener('click', () => {
+            if (multiPurchaseOptionUnlocked) {
+                showNotification("L'achat multiple est déjà débloqué !");
+                return;
+            }
+            if (images >= 100) {
+                images -= 100;
+                multiPurchaseOptionUnlocked = true;
+                showNotification("Option 'Achat multiple' débloquée !");
+                mettreAJourAffichage();
+                updateButtonStates();
+                saveGameState();
+            } else {
+                showNotification("Pas assez d'images pour débloquer l'achat multiple (coût : 100 I) !");
+            }
+        });
+
+
         resetProgressionButton.addEventListener('click', () => {
             if (images >= 10) {
                 confirmResetModal.style.display = 'flex';
@@ -1486,6 +1627,40 @@
             showNotification("Réinitialisation annulée.");
         });
 
+        // --- Fonctions du menu Ascension ---
+        acheterEcoleButton.addEventListener('click', () => {
+            if (ascensionPoints >= coutEcoleActuel) {
+                ascensionPoints -= coutEcoleActuel;
+                schoolCount++;
+                schoolMultiplier = 1 + (0.5 * schoolCount);
+                coutEcoleActuel = Math.floor(coutEcoleBase * (1.5 ** schoolCount));
+                showNotification(`Une école a été achetée ! Multiplicateur total : ${schoolMultiplier.toFixed(1)}x`);
+                mettreAJourAffichage();
+                updateButtonStates();
+                saveGameState();
+            } else {
+                showNotification(`Pas assez de PA (${ascensionPoints}/${coutEcoleActuel}) pour acheter une école !`);
+            }
+        });
+
+        unlockNewSettingsButton.addEventListener('click', () => {
+            if (newSettingsUnlocked) {
+                showNotification("Les nouveaux réglages sont déjà débloqués !");
+                return;
+            }
+            if (ascensionPoints >= 10) {
+                ascensionPoints -= 10;
+                newSettingsUnlocked = true;
+                showNotification("Nouveaux réglages débloqués !");
+                mettreAJourAffichage();
+                updateButtonStates();
+                saveGameState();
+            } else {
+                showNotification("Pas assez de PA pour débloquer de nouveaux réglages (coût : 10 PA) !");
+            }
+        });
+
+
         // Fonction pour effectuer l'Ascension
         function performAscension() {
             if (nombreProfesseurs >= 1) { // L'ascension est possible à partir de 1 professeur
@@ -1502,6 +1677,7 @@
                 ascensionPoints += paGained; // Ajoute aux PA disponibles
                 totalPAEarned += paGained; // Ajoute aux PA totaux gagnés
                 ascensionCount++; // Incrémente le nombre d'ascensions
+                firstAscensionPerformed = true; // Marque qu'une ascension a eu lieu
 
                 showNotification(`Ascension réussie ! Vous avez gagné ${paGained} Points d'Ascension !`);
                 
@@ -1531,6 +1707,8 @@
             professeursUnlocked = false;
             skillsButtonUnlocked = false;
             settingsButtonUnlocked = false;
+            ascensionUnlocked = false; // Le bouton ascension redevient caché
+            ascensionMenuButtonUnlocked = false; // Le bouton menu ascension redevient caché
             disableEleveWarning = false; // Réinitialisé à false pour les avertissements d'élève
             unlockedSkills = {};
             bonusPointsClaimed = {
@@ -1539,12 +1717,7 @@
             };
             // isDayTheme et themeOptionUnlocked ne sont PAS réinitialisés ici
             // disableAscensionWarning N'EST PAS réinitialisé ici pour persister
-
-            document.body.classList.remove('dark-theme'); // Réinitialiser le thème visuellement au thème jour par défaut
-            if (!isDayTheme) { // Si le thème était nuit, le remettre à jour pour refléter isDayTheme
-                document.body.classList.add('dark-theme');
-            }
-
+            // firstAscensionPerformed N'EST PAS réinitialisé ici pour persister
 
             // Cacher toutes les sections qui sont débloquées dynamiquement
             achatEleveSection.style.display = 'none';
@@ -1555,8 +1728,15 @@
             resetSkillsButton.style.display = 'none';
             settingsButton.style.display = 'none';
             ascensionButton.style.display = 'none'; // Cacher le bouton Ascension
+            ascensionMenuButton.style.display = 'none'; // Cacher le bouton Menu Ascension
             skillTreeContainer.style.display = 'none';
             settingsContainer.style.display = 'none';
+            ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension
+
+            document.body.classList.remove('dark-theme'); // Réinitialiser le thème visuellement au thème jour par défaut
+            if (!isDayTheme) { // Si le thème était nuit, le remettre à jour pour refléter isDayTheme
+                document.body.classList.add('dark-theme');
+            }
 
             mettreAJourAffichage();
             saveGameState(); // Sauvegarder l'état après la réinitialisation
@@ -1572,6 +1752,13 @@
             isDayTheme = true; // Réinitialise le thème par défaut
             themeOptionUnlocked = false; // Réinitialise l'état de l'option de thème
             disableAscensionWarning = false; // Réinitialise le drapeau d'avertissement d'ascension
+            firstAscensionPerformed = false; // Réinitialise le drapeau de première ascension
+            schoolCount = 0; // Réinitialise les écoles
+            coutEcoleActuel = 15; // Réinitialise le coût des écoles
+            schoolMultiplier = 1; // Réinitialise le multiplicateur des écoles
+            newSettingsUnlocked = false; // Réinitialise le déblocage des nouveaux réglages
+            multiPurchaseOptionUnlocked = false; // Réinitialise l'option d'achat multiple
+
             document.body.classList.remove('dark-theme'); // S'assurer que le thème est réinitialisé visuellement
             saveGameState();
         }
@@ -1599,6 +1786,27 @@
                 resetProgressionButton.classList.remove('can-afford');
                 resetProgressionButton.classList.add('cannot-afford');
             }
+
+            // Visibilité de l'option "Achat multiple"
+            if (newSettingsUnlocked) {
+                multiPurchaseSetting.style.display = 'block';
+                if (multiPurchaseOptionUnlocked) {
+                    buyMultiPurchaseButton.textContent = "Achat multiple (Débloqué)";
+                    buyMultiPurchaseButton.classList.remove('cannot-afford');
+                    buyMultiPurchaseButton.classList.add('can-afford');
+                    buyMultiPurchaseButton.disabled = true;
+                } else if (images >= 100) {
+                    buyMultiPurchaseButton.classList.remove('cannot-afford');
+                    buyMultiPurchaseButton.classList.add('can-afford');
+                    buyMultiPurchaseButton.disabled = false;
+                } else {
+                    buyMultiPurchaseButton.classList.remove('can-afford');
+                    buyMultiPurchaseButton.classList.add('cannot-afford');
+                    buyMultiPurchaseButton.disabled = false;
+                }
+            } else {
+                multiPurchaseSetting.style.display = 'none';
+            }
         }
 
         // Fonction pour mettre à jour l'affichage des ressources et productions
@@ -1606,12 +1814,13 @@
             // Calcul du multiplicateur d'Ascension
             let ascensionMultiplier = 1;
             if (ascensionCount > 0 && totalPAEarned > 0) {
-                ascensionMultiplier = ascensionCount * totalPAEarned * 1.01;
+                ascensionMultiplier = ascensionCount * totalPAEarned * 1.001;
             } else if (ascensionCount > 0) { // Si des ascensions mais 0 PA (cas rare, ex: reset partiel)
-                ascensionMultiplier = 1 + (ascensionCount * 0.01); // Un petit bonus si pas de PA
+                ascensionMultiplier = 1 + (ascensionCount * 0.001);
             }
             
-            totalBonsPointsParSeconde = (bonsPointsParSecondeEleves + bonsPointsParSecondeClasses) * (1 + skillEffects.totalBpsMultiplierBonus) * ascensionMultiplier;
+            // Appliquer le multiplicateur des écoles en dernier sur la production totale
+            totalBonsPointsParSeconde = (bonsPointsParSecondeEleves + bonsPointsParSecondeClasses) * (1 + skillEffects.totalBpsMultiplierBonus) * ascensionMultiplier * schoolMultiplier;
 
             bonsPointsSpan.textContent = Math.floor(bonsPoints);
             totalBpsSpan.textContent = totalBonsPointsParSeconde.toFixed(1);
@@ -1624,6 +1833,11 @@
             ascensionPointsCountSpan.textContent = ascensionPoints; // Mettre à jour l'affichage des PA disponibles
             ascensionCountSpan.textContent = ascensionCount; // Mettre à jour l'affichage du nombre d'ascensions
             totalPAEarnedSpan.textContent = totalPAEarned; // Mettre à jour l'affichage des PA totaux
+
+            // Affichage du menu Ascension
+            ascensionMenuPACountSpan.textContent = ascensionPoints;
+            nombreEcolesSpan.textContent = schoolCount;
+            ecoleMultiplierSpan.textContent = `${schoolMultiplier.toFixed(1)}x`;
 
             // Afficher le bonus d'ascension
             if (ascensionCount > 0) {
@@ -1706,6 +1920,12 @@
                 showNotification("Nouvelle option débloquée : Ascension !");
             }
 
+            // Déblocage du bouton Menu Ascension (après la première ascension)
+            if (!ascensionMenuButtonUnlocked && ascensionCount >= 1) {
+                ascensionMenuButtonUnlocked = true;
+                showNotification("Nouveau menu débloqué : Ascension !");
+            }
+
             // Mettre à jour la visibilité des sections après avoir potentiellement débloqué de nouvelles sections
             updateSectionVisibility();
 
@@ -1757,6 +1977,9 @@
             if (ascensionUnlocked) {
                 ascensionButton.style.display = 'block';
             }
+            if (ascensionMenuButtonUnlocked) { // Nouveau
+                ascensionMenuButton.style.display = 'block';
+            }
         }
 
         // Boucle de production automatique (toutes les secondes)
@@ -1770,11 +1993,15 @@
 
         // Initialisation de l'affichage au chargement de la page
         loadGameState();
+        // Initialisation des coûts qui dépendent de l'état chargé
         coutEleveActuel = calculateNextEleveCost();
+        coutEcoleActuel = Math.floor(coutEcoleBase * (1.5 ** schoolCount)); // Initialiser le coût de l'école
+        
         acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${Math.floor(coutEleveActuel)} BP</span>`;
         acheterClasseButton.innerHTML = `Salle de classe : <span class="eleves-color">30 Élèves</span>`;
         acheterImageButton.innerHTML = `Image : <span class="bons-points-color">1000 BP</span>`;
         acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${Math.floor(calculateNextProfessorCost())} I</span>`; // Initialiser le coût du professeur
+        
         mettreAJourAffichage();
         checkUnlockConditions();
         disableEleveWarningCheckbox.checked = disableEleveWarning;
