@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jeu Incrémental - Cahier d'Étude</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.3.1/decimal.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif; /* Utilisation de la police Inter */
@@ -26,6 +27,8 @@
         body.dark-theme #skillTreeContainer,
         body.dark-theme #settingsContainer,
         body.dark-theme #ascensionMenuContainer,
+        body.dark-theme #automationContainer, /* Added automationContainer */
+        body.dark-theme #questsContainer, /* Added questsContainer */
         body.dark-theme .modal-content,
         body.dark-theme .achat-section {
             background-color: #3a3a3a;
@@ -37,8 +40,12 @@
         body.dark-theme #skillTreeContainer h1,
         body.dark-theme #settingsContainer h1,
         body.dark-theme #ascensionMenuContainer h1,
+        body.dark-theme #automationContainer h1, /* Added automationContainer */
+        body.dark-theme #questsContainer h1, /* Added questsContainer */
         body.dark-theme .skill-branch h3,
-        body.dark-theme #automationSection h3 { /* Added for automation section title */
+        body.dark-theme #automationSection h3, /* Added for automation section title */
+        body.dark-theme #activeQuests h3, /* Added for quests section title */
+        body.dark-theme #completedQuests h3 { /* Added for quests section title */
             color: #76FF03; /* Vert clair pour les titres en mode nuit */
         }
 
@@ -72,34 +79,18 @@
         body.dark-theme .eleves-color {
             color: #f0f0f0; /* Blanc */
         }
-
-        body.dark-theme .skill-node.locked {
-            background-color: #555;
-            border-color: #888;
-            color: #aaa;
+        
+        body.dark-theme .ascension-points-color { /* Nouvelle couleur pour les PA */
+            color: #0000FF; /* Bleu */
+            font-weight: bold;
         }
-
-        body.dark-theme .skill-node.unlocked {
-            background-color: #4CAF50; /* Vert foncé pour les compétences débloquées en mode nuit */
-            border-color: #76FF03;
-            color: #f0f0f0;
+        body.dark-theme .warning-color {
+            color: #FF6347; /* Rouge/Orange pour les avertissements */
+            font-weight: bold;
         }
-        body.dark-theme .skill-branch.pedagogie .skill-node.unlocked {
-            background-color: #4CAF50; border-color: #76FF03; color: #f0f0f0;
-        }
-        body.dark-theme .skill-branch.rationnalisme .skill-node.unlocked {
-            background-color: #007BFF; border-color: #66B2FF; color: #f0f0f0;
-        }
-        body.dark-theme .skill-branch.science .skill-node.unlocked {
-            background-color: #FFC107; border-color: #FFD700; color: #333;
-        }
-
-        body.dark-theme .skill-node .tooltip-text {
-            background-color: #666;
-            color: #eee;
-        }
-        body.dark-theme .skill-node .tooltip-text::after {
-            border-color: #666 transparent transparent transparent;
+        body.dark-theme .info-color {
+            color: #007BFF; /* Bleu pour les informations */
+            font-weight: bold;
         }
 
 
@@ -353,7 +344,7 @@
         }
 
         /* --- Styles de l'arbre de compétences --- */
-        #skillTreeContainer, #settingsContainer, #ascensionMenuContainer, #automationContainer { /* Added automationContainer */
+        #skillTreeContainer, #settingsContainer, #ascensionMenuContainer, #automationContainer, #questsContainer { /* Added automationContainer, questsContainer */
             width: 100%;
             max-width: 1200px;
             margin-top: 30px;
@@ -366,7 +357,7 @@
             align-items: center;
         }
 
-        #skillTreeContainer h1, #settingsContainer h1, #ascensionMenuContainer h1, #automationContainer h1 { /* Added automationContainer */
+        #skillTreeContainer h1, #settingsContainer h1, #ascensionMenuContainer h1, #automationContainer h1, #questsContainer h1 { /* Added automationContainer, questsContainer */
             color: #4CAF50;
             margin-bottom: 20px;
         }
@@ -587,7 +578,7 @@
         <button id="settingsButton" style="display: none;">Paramètres</button>
         <button id="ascensionMenuButton" style="display: none; background-color: #0000FF; color: white;">Menu Ascension</button>
         <button id="ascensionButton" style="display: none; background-color: #0000FF; color: white;">Ascension</button>
-        <button id="resetSkillsButton" style="display: none; background-color: #f44336; color: white;">Réinitialiser Compétences</button>
+        <button id="questsButton" style="display: none;">Quêtes</button> <button id="resetSkillsButton" style="display: none; background-color: #f44336; color: white;">Réinitialiser Compétences</button>
     </div>
 
     <div id="main-content">
@@ -632,6 +623,10 @@
                 <p>Quantité : <span id="nombreEcoles">0</span></p>
                 <p class="production">Multiplicateur actuel : <span id="ecoleMultiplier">1.0x</span></p>
             </div>
+            <div id="achatLyceeSection" class="achat-section" style="display: none;"> <button id="acheterLyceeButton">Lycée : <span class="ascension-points-color">50 PA</span></button>
+                <p>Quantité : <span id="nombreLyceesDisplay">0</span></p>
+                <p class="production">Multiplicateur actuel des écoles : <span id="lyceeMultiplierDisplay">1.0x</span></p>
+            </div>
             <div class="achat-section">
                 <button id="unlockMultiPurchaseButton">Débloquer Achat Multiple : <span class="ascension-points-color">10 PA</span></button>
             </div>
@@ -642,6 +637,17 @@
             </div>
             <div class="achat-section">
                 <button id="unlockAutomationCategoryButton">Débloquer Automatisation : <span class="ascension-points-color">1000 PA</span></button> </div>
+        </div>
+
+        <div id="questsContainer" style="display: none;"> <h1>Quêtes</h1>
+            <div id="activeQuests" class="achat-section">
+                <h3>Quêtes Actives</h3>
+                <div id="questsList"></div>
+            </div>
+            <div id="completedQuests" class="achat-section">
+                <h3>Quêtes Terminées</h3>
+                <div id="completedQuestsList"></div>
+            </div>
         </div>
     </div>
 
@@ -707,18 +713,20 @@
         /**
          * Formats a number for display, using scientific notation for very large numbers,
          * locale-specific formatting for large numbers, and fixed decimals for smaller numbers.
-         * @param {number} num The number to format.
+         * Works with Decimal.js objects.
+         * @param {Decimal} num The Decimal.js object to format.
          * @param {number} [decimalPlaces=0] The number of decimal places to show for smaller numbers.
          * @returns {string} The formatted number string.
          */
         function formatNumber(num, decimalPlaces = 0) {
-            // Use scientific notation for numbers >= 1 billion (1e9)
-            if (Math.abs(num) >= 1e9) {
+            // Use scientific notation for numbers >= 10,000 (1e4)
+            if (num.abs().gte('1e4')) { // Changed threshold to 1e4
                 return num.toExponential(2); // e.g., 1.23e+9
             }
-            // For numbers between 1,000 and 1 billion, use locale string for thousands separators
-            else if (Math.abs(num) >= 1000) {
-                return num.toLocaleString('fr-FR', {
+            // For numbers between 1,000 and 10,000, use locale string for thousands separators
+            else if (num.abs().gte(1000)) {
+                // Convert to Number for toLocaleString, acknowledging potential minor precision loss for display only
+                return num.toFixed(decimalPlaces).toLocaleString('fr-FR', {
                     minimumFractionDigits: decimalPlaces,
                     maximumFractionDigits: decimalPlaces
                 });
@@ -729,36 +737,42 @@
             }
         }
 
-        // Variables du jeu
-        let bonsPoints = 0;
-        let bonsPointsParSecondeEleves = 0;
-        let bonsPointsParSecondeClasses = 0;
-        let totalBonsPointsParSeconde = 0;
-        let nombreEleves = 0;
-        let coutEleveBase = 10;
+        // Variables du jeu - Initialisées avec Decimal(0)
+        let bonsPoints = new Decimal(0);
+        let bonsPointsParSecondeEleves = new Decimal(0);
+        let bonsPointsParSecondeClasses = new Decimal(0);
+        let totalBonsPointsParSeconde = new Decimal(0);
+        let nombreEleves = new Decimal(0);
+        const coutEleveBase = new Decimal(10);
         let coutEleveActuel;
-        let nombreClasses = 0;
-        let images = 0;
-        let nombreProfesseurs = 0;
-        let professorsUsedForSkills = 0;
-        let multiplicateurProfesseur = 1;
-        let s15Clicks = 0; // Compteur pour la compétence "Clonage des connaissances"
-        let ascensionPoints = 0; // Points d'Ascension disponibles
-        let ascensionCount = 0; // Nombre total d'ascensions effectuées
-        let totalPAEarned = 0; // Total des PA gagnés au fil des ascensions
+        let nombreClasses = new Decimal(0);
+        let images = new Decimal(0);
+        let nombreProfesseurs = new Decimal(0);
+        let professorsUsedForSkills = new Decimal(0);
+        let multiplicateurProfesseur = new Decimal(1);
+        let s15Clicks = new Decimal(0); // Compteur pour la compétence "Clonage des connaissances"
+        let ascensionPoints = new Decimal(0); // Points d'Ascension disponibles
+        let ascensionCount = new Decimal(0); // Nombre total d'ascensions effectuées
+        let totalPAEarned = new Decimal(0); // Total des PA gagnés au fil des ascensions
         let ascensionUnlocked = false; // Drapeau pour le bouton Ascension
         let disableAscensionWarning = false; // Nouveau: pour désactiver l'avertissement d'ascension
         let firstAscensionPerformed = false; // Nouveau: pour savoir si une ascension a déjà eu lieu
 
         // Variables du menu Ascension
-        let schoolCount = 0;
-        let coutEcoleBase = 15;
+        let schoolCount = new Decimal(0);
+        const coutEcoleBase = new Decimal(15);
         let coutEcoleActuel;
-        let schoolMultiplier = 1; // Multiplicateur des écoles
+        let schoolMultiplier = new Decimal(1); // Multiplicateur des écoles (inclut maintenant l'effet des lycées)
         let newSettingsUnlocked = false; // Drapeau pour "Débloquer de nouveaux réglages"
         let multiPurchaseOptionUnlocked = false; // Drapeau pour l'option "Achat multiple" dans les réglages (x1, x10, x100)
         let maxPurchaseOptionUnlocked = false; // Nouveau: Drapeau pour l'option "Achat multiple max" (xMax)
         let currentPurchaseMultiplier = 1; // Nouveau: multiplicateur d'achat actuel (peut être 1, 10, 100, ou 'max')
+
+        // Variables Lycées (Nouvelle fonctionnalité)
+        let lyceesUnlocked = false;
+        let nombreLycees = new Decimal(0);
+        const coutLyceeBase = new Decimal(50);
+        let coutLyceeActuel;
 
         // Variables d'Automatisation
         let automationCategoryUnlocked = false; // Nouveau: Drapeau pour débloquer la catégorie Automatisation
@@ -775,6 +789,7 @@
         let skillsButtonUnlocked = false;
         let settingsButtonUnlocked = false;
         let ascensionMenuButtonUnlocked = false; // Nouveau
+        let questsUnlocked = false; // Nouveau: Drapeau pour le bouton Quêtes
 
         // Variables pour le système de confirmation d'achat d'élève
         let disableEleveWarning = false;
@@ -798,25 +813,41 @@
 
         // Effets des compétences (pour être appliqués au chargement)
         let skillEffects = {
-            eleveBpsBonus: 0,
-            classeMultiplierBonus: 0,
-            eleveCostReduction: 0,
-            classeCostReduction: 0,
-            imageCostReduction: 0,
-            professeurCostReduction: 0,
-            totalBpsMultiplierBonus: 0
+            eleveBpsBonus: new Decimal(0),
+            classeMultiplierBonus: new Decimal(0),
+            eleveCostReduction: new Decimal(0),
+            classeCostReduction: new Decimal(0),
+            imageCostReduction: new Decimal(0),
+            professeurCostReduction: new Decimal(0),
+            totalBpsMultiplierBonus: new Decimal(0)
         };
 
         // Variables de thème
         let isDayTheme = true;
         let themeOptionUnlocked = false;
 
-        // Séquence de Fibonacci pré-calculée pour le coût des professeurs
-        const fibonacciSequence = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040, 1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 63245986, 102334155, 165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903, 2971215073, 4807526976, 7778742049, 12586269025, 20365011074];
+        // Séquence de Fibonacci pré-calculée pour le coût des professeurs (convertie en Decimal)
+        const fibonacciSequence = [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181, 6765, 10946, 17711, 28657, 46368, 75025, 121393, 196418, 317811, 514229, 832040, 1346269, 2178309, 3524578, 5702887, 9227465, 14930352, 24157817, 39088169, 63245986, 102334155, 165580141, 267914296, 433494437, 701408733, 1134903170, 1836311903, 2971215073, 4807526976, 7778742049, 12586269025, 20365011074].map(num => new Decimal(num));
 
-        // Séquence de nombres premiers pour les Points d'Ascension (PA)
+        // Séquence de nombres premiers pour les Points d'Ascension (PA) (convertie en Decimal)
         // Index 0 est un placeholder, nombreProfesseurs 1 donne prime_PA[1]
-        const prime_PA = [0, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113];
+        const prime_PA = [0, 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113].map(num => new Decimal(num));
+
+        // Données des quêtes (Nouvelle fonctionnalité)
+        const questsData = [
+            {
+                id: 'Q1_Schools',
+                name: 'Maître des Écoles',
+                description: 'Construisez 6 Écoles pour prouver votre dévouement à l\'éducation.',
+                targetType: 'schoolCount',
+                targetValue: new Decimal(6),
+                reward: { type: 'unlockPurchase', itemId: 'lycee' },
+                rewardMessage: 'Vous avez débloqué les Lycées !',
+                unlocked: true, // Quests are visible from the start if the tab is unlocked
+                completed: false
+            }
+            // Ajoutez d'autres quêtes ici
+        ];
 
 
         // Récupération des éléments HTML
@@ -839,6 +870,7 @@
         const settingsButton = document.getElementById('settingsButton');
         const ascensionButton = document.getElementById('ascensionButton');
         const ascensionMenuButton = document.getElementById('ascensionMenuButton');
+        const questsButton = document.getElementById('questsButton'); // New Quests Button
         const resetSkillsButton = document.getElementById('resetSkillsButton');
         const currentAscensionPointsDisplay = document.getElementById('currentAscensionPointsDisplay');
         const ascensionPointsCountSpan = document.getElementById('ascensionPointsCount');
@@ -900,6 +932,12 @@
         const unlockMaxPurchaseButton = document.getElementById('unlockMaxPurchaseButton'); // Nouveau
         const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton'); // Ancien automatisationButton
 
+        // Éléments Lycées (Nouveau)
+        const achatLyceeSection = document.getElementById('achatLyceeSection');
+        const acheterLyceeButton = document.getElementById('acheterLyceeButton');
+        const nombreLyceesDisplay = document.getElementById('nombreLyceesDisplay');
+        const lyceeMultiplierDisplay = document.getElementById('lyceeMultiplierDisplay');
+
         // Éléments du multiplicateur d'achat
         const purchaseMultiplierSelection = document.getElementById('purchaseMultiplierSelection');
         const setMultiplierX1 = document.getElementById('setMultiplierX1');
@@ -913,16 +951,22 @@
         const autoImageButton = document.getElementById('autoImageButton'); // Nouveau
         const autoProfesseurButton = document.getElementById('autoProfesseurButton'); // Nouveau
 
+        // Éléments des Quêtes (Nouveau)
+        const questsContainer = document.getElementById('questsContainer');
+        const questsListDiv = document.getElementById('questsList');
+        const completedQuestsListDiv = document.getElementById('completedQuestsList');
+
 
         // --- Fonctions de sauvegarde et de chargement de l'état du jeu ---
         function saveGameState() {
             const gameState = {
-                bonsPoints,
-                nombreEleves,
-                nombreClasses,
-                images,
-                nombreProfesseurs,
-                professorsUsedForSkills,
+                // Convert Decimal objects to strings for saving
+                bonsPoints: bonsPoints.toString(),
+                nombreEleves: nombreEleves.toString(),
+                nombreClasses: nombreClasses.toString(),
+                images: images.toString(),
+                nombreProfesseurs: nombreProfesseurs.toString(),
+                professorsUsedForSkills: professorsUsedForSkills.toString(),
                 disableEleveWarning,
                 unlockedSkills: Object.keys(unlockedSkills),
                 elevesUnlocked,
@@ -932,18 +976,18 @@
                 skillsButtonUnlocked,
                 settingsButtonUnlocked,
                 ascensionUnlocked,
-                s15Clicks,
+                s15Clicks: s15Clicks.toString(),
                 bonusPointsClaimed: bonusPointsClaimed,
                 isDayTheme,
                 themeOptionUnlocked,
-                ascensionPoints,
-                ascensionCount,
-                totalPAEarned,
+                ascensionPoints: ascensionPoints.toString(),
+                ascensionCount: ascensionCount.toString(),
+                totalPAEarned: totalPAEarned.toString(),
                 disableAscensionWarning,
                 firstAscensionPerformed,
-                schoolCount,
-                coutEcoleActuel,
-                schoolMultiplier,
+                schoolCount: schoolCount.toString(),
+                // coutEcoleActuel is derived, no need to save
+                schoolMultiplier: schoolMultiplier.toString(), // schoolMultiplier now includes lycee effect
                 newSettingsUnlocked,
                 multiPurchaseOptionUnlocked,
                 maxPurchaseOptionUnlocked, // Sauvegarde du nouveau drapeau
@@ -951,7 +995,11 @@
                 automationCategoryUnlocked, // Sauvegarde du nouveau drapeau
                 autoEleveActive, // Sauvegarde du nouveau drapeau
                 autoImageActive, // Sauvegarde du nouveau drapeau
-                autoProfesseurActive // Sauvegarde du nouveau drapeau
+                autoProfesseurActive, // Sauvegarde du nouveau drapeau
+                lyceesUnlocked, // Sauvegarde du nouveau drapeau Lycées
+                nombreLycees: nombreLycees.toString(), // Sauvegarde du nombre de Lycées
+                questsUnlocked, // Sauvegarde du drapeau Quêtes
+                questsData: questsData.map(q => ({ id: q.id, unlocked: q.unlocked, completed: q.completed })) // Sauvegarde de l'état des quêtes
             };
             localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
         }
@@ -960,12 +1008,13 @@
             const savedState = localStorage.getItem('incrementalGameSave');
             if (savedState) {
                 const gameState = JSON.parse(savedState);
-                bonsPoints = gameState.bonsPoints || 0;
-                nombreEleves = gameState.nombreEleves || 0;
-                nombreClasses = gameState.nombreClasses || 0;
-                images = gameState.images || 0;
-                nombreProfesseurs = gameState.nombreProfesseurs || 0;
-                professorsUsedForSkills = gameState.professorsUsedForSkills || 0;
+                // Convert strings back to Decimal objects
+                bonsPoints = new Decimal(gameState.bonsPoints || 0);
+                nombreEleves = new Decimal(gameState.nombreEleves || 0);
+                nombreClasses = new Decimal(gameState.nombreClasses || 0);
+                images = new Decimal(gameState.images || 0);
+                nombreProfesseurs = new Decimal(gameState.nombreProfesseurs || 0);
+                professorsUsedForSkills = new Decimal(gameState.professorsUsedForSkills || 0);
                 disableEleveWarning = gameState.disableEleveWarning || false;
                 elevesUnlocked = gameState.elevesUnlocked || false;
                 classesUnlocked = gameState.classesUnlocked || false;
@@ -974,14 +1023,14 @@
                 skillsButtonUnlocked = gameState.skillsButtonUnlocked || false;
                 settingsButtonUnlocked = gameState.settingsButtonUnlocked || false;
                 ascensionUnlocked = gameState.ascensionUnlocked || false;
-                s15Clicks = gameState.s15Clicks || 0;
-                ascensionPoints = gameState.ascensionPoints || 0;
-                ascensionCount = gameState.ascensionCount || 0;
-                totalPAEarned = gameState.totalPAEarned || 0;
+                s15Clicks = new Decimal(gameState.s15Clicks || 0);
+                ascensionPoints = new Decimal(gameState.ascensionPoints || 0);
+                ascensionCount = new Decimal(gameState.ascensionCount || 0);
+                totalPAEarned = new Decimal(gameState.totalPAEarned || 0);
                 disableAscensionWarning = gameState.disableAscensionWarning || false;
                 firstAscensionPerformed = gameState.firstAscensionPerformed || false;
-                schoolCount = gameState.schoolCount || 0;
-                schoolMultiplier = gameState.schoolMultiplier || 1;
+                schoolCount = new Decimal(gameState.schoolCount || 0);
+                schoolMultiplier = new Decimal(gameState.schoolMultiplier || 1);
                 newSettingsUnlocked = gameState.newSettingsUnlocked || false;
                 multiPurchaseOptionUnlocked = gameState.multiPurchaseOptionUnlocked || false;
                 maxPurchaseOptionUnlocked = gameState.maxPurchaseOptionUnlocked || false; // Chargement du nouveau drapeau
@@ -990,6 +1039,9 @@
                 autoEleveActive = gameState.autoEleveActive || false; // Chargement du nouveau drapeau
                 autoImageActive = gameState.autoImageActive || false; // Chargement du nouveau drapeau
                 autoProfesseurActive = gameState.autoProfesseurActive || false; // Chargement du nouveau drapeau
+                lyceesUnlocked = gameState.lyceesUnlocked || false; // Chargement du drapeau Lycées
+                nombreLycees = new Decimal(gameState.nombreLycees || 0); // Chargement du nombre de Lycées
+                questsUnlocked = gameState.questsUnlocked || false; // Chargement du drapeau Quêtes
 
 
                 unlockedSkills = {};
@@ -1015,95 +1067,101 @@
                     themeOptionUnlocked = gameState.themeOptionUnlocked;
                 }
 
+                if (gameState.questsData) {
+                    gameState.questsData.forEach(savedQuest => {
+                        const quest = questsData.find(q => q.id === savedQuest.id);
+                        if (quest) {
+                            quest.unlocked = savedQuest.unlocked;
+                            quest.completed = savedQuest.completed;
+                        }
+                    });
+                }
+
                 applyAllSkillEffects(); // Appliquer les effets des compétences débloquées au chargement
             }
             // Assurer que la visibilité des sections est mise à jour après le chargement de l'état
             updateSectionVisibility();
+            renderQuests(); // Render quests after loading state
         }
 
         // --- Définition des données des compétences (20 par famille) ---
         const skillsData = [
             // Pédagogie Branch (20 compétences)
-            { id: 'P1', name: 'Méthodes Actives', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Techniques d\'enseignement engageantes qui stimulent l\'apprentissage.', effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: [], row: 0, col: 0 },
-            { id: 'P2', name: 'Apprentissage Collaboratif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Les élèves apprennent mieux en interagissant et en s\'aidant mutuellement.', effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: ['P1'], row: 1, col: 0 },
-            { id: 'P3', name: 'Gestion de Classe Optimale', family: 'Pédagogie', description: 'Augmente la production des classes de 5%.', flavorText: 'Optimisation de l\'environnement d\'apprentissage pour minimiser les distractions.', effect: { type: 'classeMultiplierBonus', value: 0.05 }, prerequisites: ['P2'], row: 2, col: 0 },
-            { id: 'P4', name: 'Motivation Intrinsèque', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.2 BP/s par élève.', flavorText: 'Développe l\'envie naturelle d\'apprendre chez les élèves, au-delà des récompenses.', effect: { type: 'eleveBpsBonus', value: 0.2 }, prerequisites: ['P3'], row: 3, col: 0 },
-            { id: 'P5', name: 'Pédagogie Différenciée', family: 'Pédagogie', description: 'Augmente la production des classes de 10%.', flavorText: 'Adapte les méthodes d\'enseignement aux besoins et rythmes de chaque élève.', effect: { type: 'classeMultiplierBonus', value: 0.10 }, prerequisites: ['P4'], row: 4, col: 0 },
-            { id: 'P6', name: 'Évaluation Formative', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.15 BP/s par élève.', flavorText: 'Des retours constants pour guider l\'apprentissage et identifier les lacunes.', effect: { type: 'eleveBpsBonus', value: 0.15 }, prerequisites: ['P5'], row: 5, col: 0 },
-            { id: 'P7', name: 'Inclusion Scolaire', family: 'Pédagogie', description: 'Augmente la production des classes de 7%.', flavorText: 'Création d\'un environnement où chaque élève, quelle que soit sa différence, peut réussir.', effect: { type: 'classeMultiplierBonus', value: 0.07 }, prerequisites: ['P6'], row: 6, col: 0 },
-            { id: 'P8', name: 'Compétences Transversales', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Développement de capacités comme la pensée critique et la résolution de problèmes.', effect: { type: 'totalBpsMultiplierBonus', value: 0.05 }, prerequisites: ['P7'], row: 7, col: 0 },
-            { id: 'P9', name: 'Apprentissage par Projet', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.25 BP/s par élève.', flavorText: 'Les élèves apprennent en réalisant des projets concrets, stimulant l\'autonomie.', effect: { type: 'eleveBpsBonus', value: 0.25 }, prerequisites: ['P8'], row: 8, col: 0 },
-            { id: 'P10', name: 'Mentorats Pédagogiques', family: 'Pédagogie', description: 'Augmente la production des classes de 12%.', flavorText: 'Les élèves plus avancés aident leurs peers, renforçant la compréhension de tous.', effect: { type: 'classeMultiplierBonus', value: 0.12 }, prerequisites: ['P9'], row: 9, col: 0 },
-            { id: 'P11', name: 'Curriculum Adaptatif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.3 BP/s par élève.', flavorText: 'Un programme scolaire qui s\'ajuste aux progrès et aux besoins individuels.', effect: { type: 'eleveBpsBonus', value: 0.3 }, prerequisites: ['P10'], row: 10, col: 0 },
-            { id: 'P12', name: 'Neurosciences Éducatives', family: 'Pédagogie', description: 'Augmente la production des classes de 15%.', flavorText: 'Appliquer les découvertes sur le cerveau pour optimiser les stratégies d\'enseignement.', effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['P11'], row: 11, col: 0 },
-            { id: 'P13', name: 'Gamification de l\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 7%.', flavorText: 'Intégration d\'éléments de jeu pour rendre l\'apprentissage plus engageant et amusant.', effect: { type: 'totalBpsMultiplierBonus', value: 0.07 }, prerequisites: ['P12'], row: 12, col: 0 },
-            { id: 'P14', name: 'Pédagogie Inversée', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.35 BP/s par élève.', flavorText: 'Les élèves apprennent à la maison et pratiquent en classe, maximisant l\'interaction.', effect: { type: 'eleveBpsBonus', value: 0.35 }, prerequisites: ['P13'], row: 13, col: 0 },
-            { id: 'P15', name: 'Apprentissage par le Service', family: 'Pédagogie', description: 'Augmente la production des classes de 18%.', flavorText: 'Les élèves s\'engagent dans des projets communautaires, développant des compétences civiques.', effect: { type: 'classeMultiplierBonus', value: 0.18 }, prerequisites: ['P14'], row: 14, col: 0 },
-            { id: 'P16', name: 'Maîtrise des Émotions', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Enseigner aux élèves à gérer leurs émotions pour un apprentissage plus serein.', effect: { type: 'eleveBpsBonus', value: 0.4 }, prerequisites: ['P15'], row: 15, col: 0 },
-            { id: 'P17', name: 'Leadership Éducatif', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Former les élèves à prendre des initiatives et à guider leurs peers.', effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['P16'], row: 16, col: 0 },
-            { id: 'P18', name: 'Citoyenneté Numérique', family: 'Pédagogie', description: 'Augmente la production des classes de 20%.', flavorText: 'Préparer les élèves à naviguer de manière responsable et éthique dans le monde numérique.', effect: { type: 'classeMultiplierBonus', value: 0.20 }, prerequisites: ['P17'], row: 17, col: 0 },
-            { id: 'P19', name: 'Innovation Pédagogique', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.5 BP/s par élève.', flavorText: 'Recherche et implémentation de nouvelles approches révolutionnaires en éducation.', effect: { type: 'eleveBpsBonus', value: 0.5 }, prerequisites: ['P18'], row: 18, col: 0 },
-            { id: 'P20', name: 'Écosystème d\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Création d\'un environnement d\'apprentissage holistique et interconnecté.', effect: { type: 'totalBpsMultiplierBonus', value: 0.15 }, prerequisites: ['P19'], row: 19, col: 0 },
+            { id: 'P1', name: 'Méthodes Actives', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Techniques d\'enseignement engageantes qui stimulent l\'apprentissage.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.1) }, prerequisites: [], row: 0, col: 0 },
+            { id: 'P2', name: 'Apprentissage Collaboratif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Les élèves apprennent mieux en interagissant et en s\'aidant mutuellement.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.1) }, prerequisites: ['P1'], row: 1, col: 0 },
+            { id: 'P3', name: 'Gestion de Classe Optimale', family: 'Pédagogie', description: 'Augmente la production des classes de 5%.', flavorText: 'Optimisation de l\'environnement d\'apprentissage pour minimiser les distractions.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.05) }, prerequisites: ['P2'], row: 2, col: 0 },
+            { id: 'P4', name: 'Motivation Intrinsèque', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.2 BP/s par élève.', flavorText: 'Développe l\'envie naturelle d\'apprendre chez les élèves, au-delà des récompenses.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.2) }, prerequisites: ['P3'], row: 3, col: 0 },
+            { id: 'P5', name: 'Pédagogie Différenciée', family: 'Pédagogie', description: 'Adapte les méthodes d\'enseignement aux besoins et rythmes de chaque élève. Augmente la production des classes de 10%.', flavorText: 'Adapte les méthodes d\'enseignement aux besoins et rythmes de chaque élève.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.10) }, prerequisites: ['P4'], row: 4, col: 0 },
+            { id: 'P6', name: 'Évaluation Formative', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.15 BP/s par élève.', flavorText: 'Des retours constants pour guider l\'apprentissage et identifier les lacunes.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.15) }, prerequisites: ['P5'], row: 5, col: 0 },
+            { id: 'P7', name: 'Inclusion Scolaire', family: 'Pédagogie', description: 'Augmente la production des classes de 7%.', flavorText: 'Création d\'un environnement où chaque élève, quelle que soit sa différence, peut réussir.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.07) }, prerequisites: ['P6'], row: 6, col: 0 },
+            { id: 'P8', name: 'Compétences Transversales', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Développement de capacités comme la pensée critique et la résolution de problèmes.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.05) }, prerequisites: ['P7'], row: 7, col: 0 },
+            { id: 'P9', name: 'Apprentissage par Projet', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.25 BP/s par élève.', flavorText: 'Les élèves apprennent en réalisant des projets concrets, stimulant l\'autonomie.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.25) }, prerequisites: ['P8'], row: 8, col: 0 },
+            { id: 'P10', name: 'Mentorats Pédagogiques', family: 'Pédagogie', description: 'Augmente la production des classes de 12%.', flavorText: 'Les élèves plus avancés aident leurs peers, renforçant la compréhension de tous.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.12) }, prerequisites: ['P9'], row: 9, col: 0 },
+            { id: 'P11', name: 'Curriculum Adaptatif', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.3 BP/s par élève.', flavorText: 'Un programme scolaire qui s\'ajuste aux progrès et aux besoins individuels.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.3) }, prerequisites: ['P10'], row: 10, col: 0 },
+            { id: 'P12', name: 'Neurosciences Éducatives', family: 'Pédagogie', description: 'Augmente la production des classes de 15%.', flavorText: 'Appliquer les découvertes sur le cerveau pour optimiser les stratégies d\'enseignement.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.15) }, prerequisites: ['P11'], row: 11, col: 0 },
+            { id: 'P13', name: 'Gamification de l\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 7%.', flavorText: 'Intégration d\'éléments de jeu pour rendre l\'apprentissage plus engageant et amusant.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.07) }, prerequisites: ['P12'], row: 12, col: 0 },
+            { id: 'P14', name: 'Pédagogie Inversée', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.35 BP/s par élève.', flavorText: 'Les élèves apprennent à la maison et pratiquent en classe, maximisant l\'interaction.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.35) }, prerequisites: ['P13'], row: 13, col: 0 },
+            { id: 'P15', name: 'Apprentissage par le Service', family: 'Pédagogie', description: 'Augmente la production des classes de 18%.', flavorText: 'Les élèves s\'engagent dans des projets communautaires, développant des compétences civiques.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.18) }, prerequisites: ['P14'], row: 14, col: 0 },
+            { id: 'P16', name: 'Maîtrise des Émotions', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Enseigner aux élèves à gérer leurs émotions pour un apprentissage plus serein.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.4) }, prerequisites: ['P15'], row: 15, col: 0 },
+            { id: 'P17', name: 'Leadership Éducatif', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Former les élèves à prendre des initiatives et à guider leurs peers.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.10) }, prerequisites: ['P16'], row: 16, col: 0 },
+            { id: 'P18', name: 'Citoyenneté Numérique', family: 'Pédagogie', description: 'Augmente la production des classes de 20%.', flavorText: 'Préparer les élèves à naviguer de manière responsable et éthique dans le monde numérique.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.20) }, prerequisites: ['P17'], row: 17, col: 0 },
+            { id: 'P19', name: 'Innovation Pédagogique', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.5 BP/s par élève.', flavorText: 'Recherche et implémentation de nouvelles approches révolutionnaires en éducation.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.5) }, prerequisites: ['P18'], row: 18, col: 0 },
+            { id: 'P20', name: 'Écosystème d\'Apprentissage', family: 'Pédagogie', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Création d\'un environnement d\'apprentissage holistique et interconnecté.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.15) }, prerequisites: ['P19'], row: 19, col: 0 },
 
             // Rationnalisme Branch (20 compétences)
-            { id: 'R1', name: 'Analyse des Données', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 10%.', flavorText: 'Utilisation des statistiques pour identifier les goulots d\'étranglement et améliorer l\'efficacité.', effect: { type: 'eleveCostReduction', value: 0.10 }, prerequisites: [], row: 0, col: 1 },
-            { id: 'R2', name: 'Optimisation des Processus', family: 'Rationnalisme', description: 'Réduit le coût des classes de 5%.', flavorText: 'Rationalisation des flux de travail pour une meilleure utilisation des ressources.', effect: { type: 'classeCostReduction', value: 0.05 }, prerequisites: ['R1'], row: 1, col: 1 },
-            { id: 'R3', name: 'Planification Stratégique', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Élaboration de plans à long terme pour une croissance durable et prévisible.', effect: { type: 'totalBpsMultiplierBonus', value: 0.05 }, prerequisites: ['R2'], row: 2, col: 1 },
-            { id: 'R4', name: 'Efficacité Logistique', family: 'Rationnalisme', description: 'Réduit le coût des images de 5%.', flavorText: 'Amélioration de la chaîne d\'approvisionnement pour les ressources rares.', effect: { type: 'imageCostReduction', value: 0.05 }, prerequisites: ['R3'], row: 3, col: 1 },
-            { id: 'R5', name: 'Gestion des Risques', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 10%.', flavorText: 'Anticipation et atténuation des problèmes potentiels pour une progression fluide.', effect: { type: 'professeurCostReduction', value: 0.10 }, prerequisites: ['R4'], row: 4, col: 1 },
-            { id: 'R6', name: 'Audit Financier', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 15%.', flavorText: 'Examen minutieux des dépenses pour maximiser l\'investissement dans l\'éducation.', effect: { type: 'eleveCostReduction', value: 0.15 }, prerequisites: ['R5'], row: 5, col: 1 },
-            { id: 'R7', name: 'Standardisation des Procédures', family: 'Rationnalisme', description: 'Réduit le coût des classes de 7%.', flavorText: 'Mise en place de méthodes uniformes pour une efficacité accrue.', effect: { type: 'classeCostReduction', value: 0.07 }, prerequisites: ['R6'], row: 6, col: 1 },
-            { id: 'R8', name: 'Automatisation Administrative', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 7%.', flavorText: 'Utilisation de la technologie pour réduire les tâches répétitives et libérer des ressources.', effect: { type: 'totalBpsMultiplierBonus', value: 0.07 }, prerequisites: ['R7'], row: 7, col: 1 },
-            { id: 'R9', name: 'Gestion de Projet Agile', family: 'Rationnalisme', description: 'Réduit le coût des images de 10%.', flavorText: 'Approche flexible et itérative pour la réalisation de projets éducatifs.', effect: { type: 'imageCostReduction', value: 0.10 }, prerequisites: ['R8'], row: 8, col: 1 },
-            { id: 'R10', name: 'Benchmarking Éducatif', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 15%.', flavorText: 'Comparaison des performances avec les meilleures pratiques pour identifier les axes d\'amélioration.', effect: { type: 'professeurCostReduction', value: 0.15 }, prerequisites: ['R9'], row: 9, col: 1 },
-            { id: 'R11', name: 'Modélisation Prédictive', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 20%.', flavorText: 'Utilisation de modèles statistiques pour anticiper les besoins futurs et optimiser les allocations.', effect: { type: 'eleveCostReduction', value: 0.20 }, prerequisites: ['R10'], row: 10, col: 1 },
-            { id: 'R12', name: 'Optimisation des Ressources', family: 'Rationnalisme', description: 'Réduit le coût des classes de 10%.', flavorText: 'Maximisation de l\'utilisation de chaque ressource disponible pour l\'éducation.', effect: { type: 'classeCostReduction', value: 0.10 }, prerequisites: ['R11'], row: 11, col: 1 },
-            { id: 'R13', name: 'Chaîne de Valeur Éducative', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Analyse de toutes les étapes du processus éducatif pour trouver des gains d\'efficacité.', effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['R12'], row: 12, col: 1 },
-            { id: 'R14', name: 'Contrôle Qualité', family: 'Rationnalisme', description: 'Réduit le coût des images de 15%.', flavorText: 'Assurance que les standards d\'excellence sont maintenus à chaque niveau de l\'enseignement.', effect: { type: 'imageCostReduction', value: 0.15 }, prerequisites: ['R13'], row: 13, col: 1 },
-            { id: 'R15', name: 'Gestion de Crise', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 20%.', flavorText: 'Préparation et réponse efficaces aux défis imprévus qui pourraient affecter l\'éducation.', effect: { type: 'professeurCostReduction', value: 0.20 }, prerequisites: ['R14'], row: 14, col: 1 },
-            { id: 'R16', name: 'Ingénierie des Coûts', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 25%.', flavorText: 'Conception de systèmes éducatifs pour minimiser les dépenses sans compromettre la qualité.', effect: { type: 'eleveCostReduction', value: 0.25 }, prerequisites: ['R15'], row: 15, col: 1 },
-            { id: 'R17', name: 'Optimisation Fiscale', family: 'Rationnalisme', description: 'Réduit le coût des classes de 12%.', flavorText: 'Gestion intelligente des fonds pour maximiser les investissements dans les infrastructures éducatives.', effect: { type: 'classeCostReduction', value: 0.12 }, prerequisites: ['R16'], row: 16, col: 1 },
-            { id: 'R18', name: 'Synergies Opérationnelles', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 12%.', flavorText: 'Identification et exploitation des complémentarités entre les différentes composantes du système éducatif.', effect: { type: 'totalBpsMultiplierBonus', value: 0.12 }, prerequisites: ['R17'], row: 17, col: 1 },
-            { id: 'R19', name: 'Modèle Économique Scalable', family: 'Rationnalisme', description: 'Réduit le coût des images de 20%.', flavorText: 'Conception d\'un modèle financier permettant une croissance rapide et durable de l\'impact éducatif.', effect: { type: 'imageCostReduction', value: 0.20 }, prerequisites: ['R18'], row: 18, col: 1 },
-            { id: 'R20', name: 'Rationnalisme Absolu', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 25%.', flavorText: 'Atteinte de l\'efficacité et de la logique maximales dans toutes les facettes de l\'éducation.', effect: { type: 'professeurCostReduction', value: 0.25 }, prerequisites: ['R19'], row: 19, col: 1 },
+            { id: 'R1', name: 'Analyse des Données', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 10%.', flavorText: 'Utilisation des statistiques pour identifier les goulots d\'étranglement et améliorer l\'efficacité.', effect: { type: 'eleveCostReduction', value: new Decimal(0.10) }, prerequisites: [], row: 0, col: 1 },
+            { id: 'R2', name: 'Optimisation des Processus', family: 'Rationnalisme', description: 'Réduit le coût des classes de 5%.', flavorText: 'Rationalisation des flux de travail pour une meilleure utilisation des ressources.', effect: { type: 'classeCostReduction', value: new Decimal(0.05) }, prerequisites: ['R1'], row: 1, col: 1 },
+            { id: 'R3', name: 'Planification Stratégique', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 5%.', flavorText: 'Élaboration de plans à long terme pour une croissance durable et prévisible.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.05) }, prerequisites: ['R2'], row: 2, col: 1 },
+            { id: 'R4', name: 'Efficacité Logistique', family: 'Rationnalisme', description: 'Réduit le coût des images de 5%.', flavorText: 'Amélioration de la chaîne d\'approvisionnement pour les ressources rares.', effect: { type: 'imageCostReduction', value: new Decimal(0.05) }, prerequisites: ['R3'], row: 3, col: 1 },
+            { id: 'R5', name: 'Gestion des Risques', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 10%.', flavorText: 'Anticipation et atténuation des problèmes potentiels pour une progression fluide.', effect: { type: 'professeurCostReduction', value: new Decimal(0.10) }, prerequisites: ['R4'], row: 4, col: 1 },
+            { id: 'R6', name: 'Audit Financier', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 15%.', flavorText: 'Examen minutieux des dépenses pour maximiser l\'investissement dans l\'éducation.', effect: { type: 'eleveCostReduction', value: new Decimal(0.15) }, prerequisites: ['R5'], row: 5, col: 1 },
+            { id: 'R7', name: 'Standardisation des Procédures', family: 'Rationnalisme', description: 'Réduit le coût des classes de 7%.', flavorText: 'Mise en place de méthodes uniformes pour une efficacité accrue.', effect: { type: 'classeCostReduction', value: new Decimal(0.07) }, prerequisites: ['R6'], row: 6, col: 1 },
+            { id: 'R8', name: 'Automatisation Administrative', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 7%.', flavorText: 'Utilisation de la technologie pour réduire les tâches répétitives et libérer des ressources.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.07) }, prerequisites: ['R7'], row: 7, col: 1 },
+            { id: 'R9', name: 'Gestion de Projet Agile', family: 'Rationnalisme', description: 'Réduit le coût des images de 10%.', flavorText: 'Approche flexible et itérative pour la réalisation de projets éducatifs.', effect: { type: 'imageCostReduction', value: new Decimal(0.10) }, prerequisites: ['R8'], row: 8, col: 1 },
+            { id: 'R10', name: 'Benchmarking Éducatif', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 15%.', flavorText: 'Comparaison des performances avec les meilleures pratiques pour identifier les axes d\'amélioration.', effect: { type: 'professeurCostReduction', value: new Decimal(0.15) }, prerequisites: ['R9'], row: 9, col: 1 },
+            { id: 'R11', name: 'Modélisation Prédictive', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 20%.', flavorText: 'Utilisation de modèles statistiques pour anticiper les besoins futurs et optimiser les allocations.', effect: { type: 'eleveCostReduction', value: new Decimal(0.20) }, prerequisites: ['R10'], row: 10, col: 1 },
+            { id: 'R12', name: 'Optimisation des Ressources', family: 'Rationnalisme', description: 'Réduit le coût des classes de 10%.', flavorText: 'Maximisation de l\'utilisation de chaque ressource disponible pour l\'éducation.', effect: { type: 'classeCostReduction', value: new Decimal(0.10) }, prerequisites: ['R11'], row: 11, col: 1 },
+            { id: 'R13', name: 'Chaîne de Valeur Éducative', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Analyse de toutes les étapes du processus éducatif pour trouver des gains d\'efficacité.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.10) }, prerequisites: ['R12'], row: 12, col: 1 },
+            { id: 'R14', name: 'Contrôle Qualité', family: 'Rationnalisme', description: 'Réduit le coût des images de 15%.', flavorText: 'Assurance que les standards d\'excellence sont maintenus à chaque niveau de l\'enseignement.', effect: { type: 'imageCostReduction', value: new Decimal(0.15) }, prerequisites: ['R13'], row: 13, col: 1 },
+            { id: 'R15', name: 'Gestion de Crise', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 20%.', flavorText: 'Préparation et réponse efficaces aux défis imprévus qui pourraient affecter l\'éducation.', effect: { type: 'professeurCostReduction', value: new Decimal(0.20) }, prerequisites: ['R14'], row: 14, col: 1 },
+            { id: 'R16', name: 'Ingénierie des Coûts', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 25%.', flavorText: 'Conception de systèmes éducatifs pour minimiser les dépenses sans compromettre la qualité.', effect: { type: 'eleveCostReduction', value: new Decimal(0.25) }, prerequisites: ['R15'], row: 15, col: 1 },
+            { id: 'R17', name: 'Optimisation Fiscale', family: 'Rationnalisme', description: 'Réduit le coût des classes de 12%.', flavorText: 'Gestion intelligente des fonds pour maximiser les investissements dans les infrastructures éducatives.', effect: { type: 'classeCostReduction', value: new Decimal(0.12) }, prerequisites: ['R16'], row: 16, col: 1 },
+            { id: 'R18', name: 'Synergies Opérationnelles', family: 'Rationnalisme', description: 'Augmente la production totale de BP/s de 12%.', flavorText: 'Identification et exploitation des complémentarités entre les différentes composantes du système éducatif.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.12) }, prerequisites: ['R17'], row: 17, col: 1 },
+            { id: 'R19', name: 'Modèle Économique Scalable', family: 'Rationnalisme', description: 'Réduit le coût des images de 20%.', flavorText: 'Conception d\'un modèle financier permettant une croissance rapide et durable de l\'impact éducatif.', effect: { type: 'imageCostReduction', value: new Decimal(0.20) }, prerequisites: ['R18'], row: 18, col: 1 },
+            { id: 'R20', name: 'Rationnalisme Absolu', family: 'Rationnalisme', description: 'Réduit le coût des professeurs de 25%.', flavorText: 'Atteinte de l\'efficacité et de la logique maximales dans toutes les facettes de l\'éducation.', effect: { type: 'professeurCostReduction', value: new Decimal(0.25) }, prerequisites: ['R19'], row: 19, col: 1 },
 
             // Science Branch (20 compétences)
-            { id: 'S1', name: 'Recherche Fondamentale', family: 'Science', description: 'Augmente la production des élèves de 0.05 BP/s par élève.', flavorText: 'Exploration des principes de base de l\'apprentissage et de la cognition.', effect: { type: 'eleveBpsBonus', value: 0.05 }, prerequisites: [], row: 0, col: 2 },
-            { id: 'S2', name: 'Développement Expérimental', family: 'Science', description: 'Augmente la production des classes de 5%.', flavorText: 'Application pratique des découvertes pour créer de nouvelles méthodes pédagogiques.', effect: { type: 'classeMultiplierBonus', value: 0.05 }, prerequisites: ['S1'], row: 1, col: 2 },
-            { id: 'S3', name: 'Laboratoire d\'Innovation', family: 'Science', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Un espace dédié à la conception et au test de nouvelles approches éducatives.', effect: { type: 'eleveBpsBonus', value: 0.1 }, prerequisites: ['S2'], row: 2, col: 2 },
-            { id: 'S4', name: 'Théorie du Chaos Appliquée', family: 'Science', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Comprendre les systèmes complexes pour prédire et influencer les résultats d\'apprentissage.', effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['S3'], row: 3, col: 2 },
-            { id: 'S5', name: 'Neuro-Pédagogie', family: 'Science', description: 'Augmente la production des classes de 15%.', flavorText: 'Fusion de la science du cerveau et des méthodes d\'enseignement pour un apprentissage optimisé.', effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['S4'], row: 4, col: 2 },
-            { id: 'S6', name: 'Bio-Ingénierie Cognitive', family: 'Science', description: 'Augmente la production des élèves de 0.2 BP/s par élève.', flavorText: 'Application des principes biologiques pour améliorer les fonctions cérébrales liées à l\'apprentissage.', effect: { type: 'eleveBpsBonus', value: 0.2 }, prerequisites: ['S5'], row: 5, col: 2 },
-            { id: 'S7', name: 'Modélisation Comportementale', family: 'Science', description: 'Augmente la production des classes de 8%.', flavorText: 'Prédiction des réactions des élèves face à différentes méthodes pédagogiques.', effect: { type: 'classeMultiplierBonus', value: 0.08 }, prerequisites: ['S6'], row: 6, col: 2 },
-            { id: 'S8', name: 'Psychologie Expérimentale', family: 'Science', description: 'Augmente la production totale de BP/s de 6%.', flavorText: 'Étude des processus mentaux et des comportements pour optimiser l\'environnement d\'apprentissage.', effect: { type: 'totalBpsMultiplierBonus', value: 0.06 }, prerequisites: ['S7'], row: 7, col: 2 },
-            { id: 'S9', name: 'Intelligence Artificielle Éducative', family: 'Science', description: 'Augmente la production des élèves de 0.3 BP/s par élève.', flavorText: 'Développement de systèmes IA pour personnaliser l\'enseignement et le tutorat.', effect: { type: 'eleveBpsBonus', value: 0.3 }, prerequisites: ['S8'], row: 8, col: 2 },
-            { id: 'S10', name: 'Génétique de l\'Apprentissage', family: 'Science', description: 'Augmente la production des classes de 18%.', flavorText: 'Comprendre l\'influence des facteurs génétiques sur les capacités d\'apprentissage.', effect: { type: 'classeMultiplierBonus', value: 0.18 }, prerequisites: ['S9'], row: 9, col: 2 },
-            { id: 'S11', name: 'Nanotechnologie Éducative', family: 'Science', description: 'Augmente la production des élèves de 0.35 BP/s par élève.', flavorText: 'Utilisation de la nanotechnologie pour créer des outils d\'apprentissage avancés.', effect: { type: 'eleveBpsBonus', value: 0.35 }, prerequisites: ['S10'], row: 10, col: 2 },
-            { id: 'S12', name: 'Réalité Virtuelle Pédagogique', family: 'Science', description: 'Augmente la production des classes de 20%.', flavorText: 'Création d\'environnements d\'apprentissage immersifs pour une meilleure rétention.', effect: { type: 'classeMultiplierBonus', value: 0.20 }, prerequisites: ['S11'], row: 11, col: 2 },
-            { id: 'S13', name: 'Robotique Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 8%.', flavorText: 'Développement de robots assistants pour l\'enseignement et l\'interaction avec les élèves.', effect: { type: 'totalBpsMultiplierBonus', value: 0.08 }, prerequisites: ['S12'], row: 12, col: 2 },
-            { id: 'S14', name: 'Interface Cerveau-Machine', family: 'Science', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Connexion directe entre le cerveau et les systèmes d\'apprentissage pour une acquisition de connaissances accélérée.', effect: { type: 'eleveBpsBonus', value: 0.4 }, prerequisites: ['S13'], row: 13, col: 2 },
-            { id: 'S15', name: 'Clonage des Connaissances', family: 'Science', description: 'Augmente la production des classes de 22%. (Bonus spécial au 10ème clic)', flavorText: 'Techniques avancées pour dupliquer et transférer des connaissances entre les entités éducatives.', effect: { type: 'classeMultiplierBonus', value: 0.22 }, prerequisites: ['S14'], row: 14, col: 2 },
-            { id: 'S16', name: 'Synthèse de l\'Expérience', family: 'Science', description: 'Augmente la production des élèves de 0.45 BP/s par élève.', flavorText: 'Création artificielle d\'expériences d\'apprentissage pour une immersion totale et rapide.', effect: { type: 'eleveBpsBonus', value: 0.45 }, prerequisites: ['S15'], row: 15, col: 2 },
-            { id: 'S17', name: 'Théorie Unifiée de l\'Apprentissage', family: 'Science', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Une théorie englobante qui explique tous les aspects de l\'acquisition des connaissances.', effect: { type: 'totalBpsMultiplierBonus', value: 0.10 }, prerequisites: ['S16'], row: 16, col: 2 },
-            { id: 'S18', name: 'Manipulation Quantique Pédagogique', family: 'Science', description: 'Augmente la production des classes de 25%.', flavorText: 'Exploitation des principes quantiques pour des avancées sans précédent en éducation.', effect: { type: 'classeMultiplierBonus', value: 0.25 }, prerequisites: ['S17'], row: 17, col: 2 },
-            { id: 'S19', name: 'Conscience Artificielle', family: 'Science', description: 'Développement d\'entités conscientes capables d\'apprendre et d\'enseigner de manière autonome.', effect: { type: 'eleveBpsBonus', value: 0.5 }, prerequisites: ['S18'], row: 18, col: 2 },
-            { id: 'S20', name: 'Singularité Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Le point où l\'intelligence éducative dépasse l\'entendement humain, transformant l\'apprentissage pour toujours.', effect: { type: 'totalBpsMultiplierBonus', value: 0.15 }, prerequisites: ['S19'], row: 19, col: 0 },
-
-            // Compétences inter-branches (Exemples, à étendre)
-            { id: 'PS1', name: 'Didactique Avancée', family: 'Pédagogie', description: 'Augmente la production des élèves de 0.15 BP/s par élève.', flavorText: 'L\'art et la science de l\'enseignement, affinés par la recherche cognitive.', effect: { type: 'eleveBpsBonus', value: 0.15 }, prerequisites: ['P5', 'S5'], row: 6, col: 0 },
-            { id: 'RS1', name: 'Ingénierie Éducative', family: 'Rationnalisme', description: 'Augmente la production des classes de 15%.', flavorText: 'Application rigoureuse des principes scientifiques à la conception de systèmes éducatifs.', effect: { type: 'classeMultiplierBonus', value: 0.15 }, prerequisites: ['R5', 'S5'], row: 6, col: 1 },
-            { id: 'PR1', name: 'Gestion des Talents Scolaires', family: 'Rationnalisme', description: 'Réduit le coût des élèves de 15%.', flavorText: 'Approche systématique pour identifier et développer le potentiel de chaque élève.', effect: { type: 'eleveCostReduction', value: 0.15 }, prerequisites: ['P5', 'R5'], row: 6, col: 2 }
+            { id: 'S1', name: 'Recherche Fondamentale', family: 'Science', description: 'Augmente la production des élèves de 0.05 BP/s par élève.', flavorText: 'Exploration des principes de base de l\'apprentissage et de la cognition.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.05) }, prerequisites: [], row: 0, col: 2 },
+            { id: 'S2', name: 'Développement Expérimental', family: 'Science', description: 'Augmente la production des classes de 5%.', flavorText: 'Application pratique des découvertes pour créer de nouvelles méthodes pédagogiques.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.05) }, prerequisites: ['S1'], row: 1, col: 2 },
+            { id: 'S3', name: 'Laboratoire d\'Innovation', family: 'Science', description: 'Augmente la production des élèves de 0.1 BP/s par élève.', flavorText: 'Un espace dédié à la conception et au test de nouvelles approches éducatives.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.1) }, prerequisites: ['S2'], row: 2, col: 2 },
+            { id: 'S4', name: 'Théorie du Chaos Appliquée', family: 'Science', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Comprendre les systèmes complexes pour prédire et influencer les résultats d\'apprentissage.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.10) }, prerequisites: ['S3'], row: 3, col: 2 },
+            { id: 'S5', name: 'Neuro-Pédagogie', family: 'Science', description: 'Augmente la production des classes de 15%.', flavorText: 'Fusion de la science du cerveau et des méthodes d\'enseignement pour un apprentissage optimisé.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.15) }, prerequisites: ['S4'], row: 4, col: 2 },
+            { id: 'S6', name: 'Bio-Ingénierie Cognitive', family: 'Science', description: 'Augmente la production des élèves de 0.2 BP/s par élève.', flavorText: 'Application des principes biologiques pour améliorer les fonctions cérébrales liées à l\'apprentissage.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.2) }, prerequisites: ['S5'], row: 5, col: 2 },
+            { id: 'S7', name: 'Modélisation Comportementale', family: 'Science', description: 'Augmente la production des classes de 8%.', flavorText: 'Prédiction des réactions des élèves face à différentes méthodes pédagogiques.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.08) }, prerequisites: ['S6'], row: 6, col: 2 },
+            { id: 'S8', name: 'Psychologie Expérimentale', family: 'Science', description: 'Augmente la production totale de BP/s de 6%.', flavorText: 'Étude des processus mentaux et des comportements pour optimiser l\'environnement d\'apprentissage.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.06) }, prerequisites: ['S7'], row: 7, col: 2 },
+            { id: 'S9', name: 'Intelligence Artificielle Éducative', family: 'Science', description: 'Augmente la production des élèves de 0.3 BP/s par élève.', flavorText: 'Développement de systèmes IA pour personnaliser l\'enseignement et le tutorat.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.3) }, prerequisites: ['S8'], row: 8, col: 2 },
+            { id: 'S10', name: 'Génétique de l\'Apprentissage', family: 'Science', description: 'Augmente la production des classes de 18%.', flavorText: 'Comprendre l\'influence des facteurs génétiques sur les capacités d\'apprentissage.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.18) }, prerequisites: ['S9'], row: 9, col: 2 },
+            { id: 'S11', name: 'Nanotechnologie Éducative', family: 'Science', description: 'Augmente la production des élèves de 0.35 BP/s par élève.', flavorText: 'Utilisation de la nanotechnologie pour créer des outils d\'apprentissage avancés.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.35) }, prerequisites: ['S10'], row: 10, col: 2 },
+            { id: 'S12', name: 'Réalité Virtuelle Pédagogique', family: 'Science', description: 'Augmente la production des classes de 20%.', flavorText: 'Création d\'environnements d\'apprentissage immersifs pour une meilleure rétention.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.20) }, prerequisites: ['S11'], row: 11, col: 2 },
+            { id: 'S13', name: 'Robotique Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 8%.', flavorText: 'Développement de robots assistants pour l\'enseignement et l\'interaction avec les élèves.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.08) }, prerequisites: ['S12'], row: 12, col: 2 },
+            { id: 'S14', name: 'Interface Cerveau-Machine', family: 'Science', description: 'Augmente la production des élèves de 0.4 BP/s par élève.', flavorText: 'Connexion directe entre le cerveau et les systèmes d\'apprentissage pour une acquisition de connaissances accélérée.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.4) }, prerequisites: ['S13'], row: 13, col: 2 },
+            { id: 'S15', name: 'Clonage des Connaissances', family: 'Science', description: 'Augmente la production des classes de 22%. (Bonus spécial au 10ème clic)', flavorText: 'Techniques avancées pour dupliquer et transférer des connaissances entre les entités éducatives.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.22) }, prerequisites: ['S14'], row: 14, col: 2 },
+            { id: 'S16', name: 'Synthèse de l\'Expérience', family: 'Science', description: 'Augmente la production des élèves de 0.45 BP/s par élève.', flavorText: 'Création artificielle d\'expériences d\'apprentissage pour une immersion totale et rapide.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.45) }, prerequisites: ['S15'], row: 15, col: 2 },
+            { id: 'S17', name: 'Théorie Unifiée de l\'Apprentissage', family: 'Science', description: 'Augmente la production totale de BP/s de 10%.', flavorText: 'Une théorie englobante qui explique tous les aspects de l\'acquisition des connaissances.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.10) }, prerequisites: ['S16'], row: 16, col: 2 },
+            { id: 'S18', name: 'Manipulation Quantique Pédagogique', family: 'Science', description: 'Augmente la production des classes de 25%.', flavorText: 'Exploitation des principes quantiques pour des avancées sans précédent en éducation.', effect: { type: 'classeMultiplierBonus', value: new Decimal(0.25) }, prerequisites: ['S17'], row: 17, col: 2 },
+            { id: 'S19', name: 'Conscience Artificielle', family: 'Science', description: 'Développement d\'entités conscientes capables d\'apprendre et d\'enseigner de manière autonome.', effect: { type: 'eleveBpsBonus', value: new Decimal(0.5) }, prerequisites: ['S18'], row: 18, col: 2 },
+            { id: 'S20', name: 'Singularité Éducative', family: 'Science', description: 'Augmente la production totale de BP/s de 15%.', flavorText: 'Le point où l\'intelligence éducative dépasse l\'entendement humain, transformant l\'apprentissage pour toujours.', effect: { type: 'totalBpsMultiplierBonus', value: new Decimal(0.15) }, prerequisites: ['S19'], row: 19, col: 2 }
         ];
 
         function resetSkillEffects() {
             skillEffects = {
-                eleveBpsBonus: 0,
-                classeMultiplierBonus: 0,
-                eleveCostReduction: 0,
-                classeCostReduction: 0,
-                imageCostReduction: 0,
-                professeurCostReduction: 0,
-                totalBpsMultiplierBonus: 0
+                eleveBpsBonus: new Decimal(0),
+                classeMultiplierBonus: new Decimal(0),
+                eleveCostReduction: new Decimal(0),
+                classeCostReduction: new Decimal(0),
+                imageCostReduction: new Decimal(0),
+                professeurCostReduction: new Decimal(0),
+                totalBpsMultiplierBonus: new Decimal(0)
             };
         }
 
@@ -1114,34 +1172,34 @@
                     if (skill.effect) {
                         switch (skill.effect.type) {
                             case 'eleveBpsBonus':
-                                skillEffects.eleveBpsBonus += skill.effect.value;
+                                skillEffects.eleveBpsBonus = skillEffects.eleveBpsBonus.add(skill.effect.value);
                                 break;
                             case 'classeMultiplierBonus':
-                                skillEffects.classeMultiplierBonus += skill.effect.value;
+                                skillEffects.classeMultiplierBonus = skillEffects.classeMultiplierBonus.add(skill.effect.value);
                                 break;
                             case 'eleveCostReduction':
-                                skillEffects.eleveCostReduction += skill.effect.value;
+                                skillEffects.eleveCostReduction = skillEffects.eleveCostReduction.add(skill.effect.value);
                                 break;
                             case 'classeCostReduction':
-                                skillEffects.classeCostReduction += skill.effect.value;
+                                skillEffects.classeCostReduction = skillEffects.classeCostReduction.add(skill.effect.value);
                                 break;
                             case 'imageCostReduction':
-                                skillEffects.imageCostReduction += skill.effect.value;
+                                skillEffects.imageCostReduction = skillEffects.imageCostReduction.add(skill.effect.value);
                                 break;
                             case 'professeurCostReduction':
-                                skillEffects.professeurCostReduction += skill.effect.value;
+                                skillEffects.professeurCostReduction = skillEffects.professeurCostReduction.add(skill.effect.value);
                                 break;
                             case 'totalBpsMultiplierBonus':
-                                skillEffects.totalBpsMultiplierBonus += skill.effect.value;
+                                skillEffects.totalBpsMultiplierBonus = skillEffects.totalBpsMultiplierBonus.add(skill.effect.value);
                                 break;
                         }
                     }
                 }
             });
             // Recalculer les productions et coûts après application des effets
-            bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
+            bonsPointsParSecondeEleves = nombreEleves.mul(new Decimal(0.5).add(skillEffects.eleveBpsBonus));
             // School multiplier is applied after the sum of eleves and classes bps
-            bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
+            bonsPointsParSecondeClasses = nombreClasses.mul(25).mul(multiplicateurProfesseur).mul(new Decimal(1).add(skillEffects.classeMultiplierBonus));
             coutEleveActuel = calculateNextEleveCost(); // Recalculer le coût de l'élève avec la réduction
         }
 
@@ -1160,54 +1218,66 @@
 
         // Fonction pour calculer le coût du prochain élève
         function calculateNextEleveCost() {
-            let baseCostForNextEleve = 0;
-            let elevesInCurrentCycle = nombreEleves % 30;
+            let baseCostForNextEleve = new Decimal(0);
+            // Use .mod() for modulo operation with Decimal.js
+            let elevesInCurrentCycle = nombreEleves.mod(30);
 
-            if (elevesInCurrentCycle < 10) {
-                baseCostForNextEleve = 10;
-            } else if (elevesInCurrentCycle < 20) {
-                baseCostForNextEleve = 12;
+            if (elevesInCurrentCycle.lt(10)) {
+                baseCostForNextEleve = new Decimal(10);
+            } else if (elevesInCurrentCycle.lt(20)) {
+                baseCostForNextEleve = new Decimal(12);
             } else { // elevesInCurrentCycle >= 20
-                baseCostForNextEleve = 15;
+                baseCostForNextEleve = new Decimal(15);
             }
 
             let finalCost = baseCostForNextEleve;
 
             // Apply the class multiplier if classes exist
-            if (nombreClasses > 0) {
-                finalCost *= (nombreClasses + 1);
+            if (nombreClasses.gt(0)) {
+                finalCost = finalCost.mul(nombreClasses.add(1));
             } else { // If no classes purchased
                 // Check for the specific 100th student penalty (every 100th student)
-                if ((nombreEleves + 1) % 100 === 0) { // This means the *next* student is the 100th, 200th, etc.
-                    finalCost *= 100; // Apply the x100 penalty
-                } else if (elevesInCurrentCycle === 0 && nombreEleves > 0) { // Every 30th student (if not 100th and no classes)
-                    finalCost *= 10;
+                if (nombreEleves.add(1).mod(100).eq(0)) { // This means the *next* student is the 100th, 200th, etc.
+                    finalCost = finalCost.mul(100); // Apply the x100 penalty
+                } else if (elevesInCurrentCycle.eq(0) && nombreEleves.gt(0)) { // Every 30th student (if not 100th and no classes)
+                    finalCost = finalCost.mul(10);
                 }
             }
 
             // Appliquer la réduction de coût des compétences
-            finalCost *= (1 - skillEffects.eleveCostReduction);
+            finalCost = finalCost.mul(new Decimal(1).sub(skillEffects.eleveCostReduction));
 
-            return Math.max(1, finalCost);
+            return Decimal.max(1, finalCost);
         }
 
         // Fonction pour calculer le coût du prochain professeur (Fibonacci)
         function calculateNextProfessorCost() {
-            let nextProfIndex = nombreProfesseurs + 1;
+            let nextProfIndex = nombreProfesseurs.add(1);
+            let cost;
             // Utilise la séquence pré-calculée. Si l'index dépasse la taille, utilise la dernière valeur.
-            const cost = fibonacciSequence[nextProfIndex] || fibonacciSequence[fibonacciSequence.length - 1];
-            return Math.max(1, cost * (1 - skillEffects.professeurCostReduction)); // Appliquer la réduction de coût
+            if (nextProfIndex.lt(fibonacciSequence.length)) {
+                cost = fibonacciSequence[nextProfIndex.toNumber()];
+            } else {
+                cost = fibonacciSequence[fibonacciSequence.length - 1];
+            }
+            return Decimal.max(1, cost.mul(new Decimal(1).sub(skillEffects.professeurCostReduction))); // Appliquer la réduction de coût
         }
 
         // Fonction pour calculer le coût de la prochaine école
         function calculateNextEcoleCost() {
-            return Math.floor(coutEcoleBase * (1.5 ** schoolCount));
+            // Use .pow() for exponentiation with Decimal.js
+            return coutEcoleBase.mul(new Decimal(1.5).pow(schoolCount)).floor();
+        }
+
+        // Fonction pour calculer le coût du prochain lycée (Nouveau)
+        function calculateNextLyceeCost() {
+            return coutLyceeBase.mul(new Decimal(1.2).pow(nombreLycees)).floor();
         }
 
         // Fonction pour mettre à jour l'état visuel des boutons d'achat (couleur de bordure)
         function updateButtonStates() {
             // Élève
-            if (bonsPoints >= calculateNextEleveCost()) {
+            if (bonsPoints.gte(calculateNextEleveCost())) {
                 acheterEleveButton.classList.remove('cannot-afford');
                 acheterEleveButton.classList.add('can-afford');
             } else {
@@ -1216,8 +1286,8 @@
             }
 
             // Salle de classe
-            let classeCostEleves = 30;
-            if (nombreEleves >= classeElevesCost()) { // Use a function for class cost
+            let classeCostEleves = new Decimal(30);
+            if (nombreEleves.gte(classeElevesCost())) { // Use a function for class cost
                 acheterClasseButton.classList.remove('cannot-afford');
                 acheterClasseButton.classList.add('can-afford');
             } else {
@@ -1226,8 +1296,8 @@
             }
 
             // Image
-            let imageCost = 1000 * (1 - skillEffects.imageCostReduction);
-            if (bonsPoints >= imageCost) {
+            let imageCost = new Decimal(1000).mul(new Decimal(1).sub(skillEffects.imageCostReduction));
+            if (bonsPoints.gte(imageCost)) {
                 acheterImageButton.classList.remove('cannot-afford');
                 acheterImageButton.classList.add('can-afford');
             } else {
@@ -1237,7 +1307,7 @@
 
             // Professeur
             let professeurCost = calculateNextProfessorCost();
-            if (images >= professeurCost) {
+            if (images.gte(professeurCost)) {
                 acheterProfesseurButton.classList.remove('cannot-afford');
                 acheterProfesseurButton.classList.add('can-afford');
             } else {
@@ -1266,7 +1336,7 @@
             }
 
             // Acheter Ecole Button (in Ascension Menu)
-            if (ascensionPoints >= calculateNextEcoleCost()) {
+            if (ascensionPoints.gte(calculateNextEcoleCost())) {
                 acheterEcoleButton.classList.remove('cannot-afford');
                 acheterEcoleButton.classList.add('can-afford');
             } else {
@@ -1275,11 +1345,23 @@
             }
             coutEcoleSpan.textContent = `${formatNumber(calculateNextEcoleCost(), 0)} PA`;
 
+            // Acheter Lycee Button (in Ascension Menu, new)
+            if (lyceesUnlocked) {
+                if (ascensionPoints.gte(calculateNextLyceeCost())) {
+                    acheterLyceeButton.classList.remove('cannot-afford');
+                    acheterLyceeButton.classList.add('can-afford');
+                } else {
+                    acheterLyceeButton.classList.remove('can-afford');
+                    acheterLyceeButton.classList.add('cannot-afford');
+                }
+                acheterLyceeButton.innerHTML = `Lycée : <span class="ascension-points-color">${formatNumber(calculateNextLyceeCost(), 0)} PA</span>`;
+            }
+
             // Unlock Multi Purchase Button (in Ascension Menu)
             if (multiPurchaseOptionUnlocked) {
                 unlockMultiPurchaseButton.style.display = 'none';
                 // purchaseMultiplierSelection.style.display = 'block'; // This is handled by updateSectionVisibility
-            } else if (ascensionPoints >= 10) {
+            } else if (ascensionPoints.gte(10)) {
                 unlockMultiPurchaseButton.classList.remove('cannot-afford');
                 unlockMultiPurchaseButton.classList.add('can-afford');
             } else {
@@ -1291,7 +1373,7 @@
             if (maxPurchaseOptionUnlocked) {
                 unlockMaxPurchaseButton.style.display = 'none';
                 setMultiplierXMax.style.display = 'block'; // Show xMax button if unlocked
-            } else if (ascensionPoints >= 100) {
+            } else if (ascensionPoints.gte(100)) {
                 unlockMaxPurchaseButton.classList.remove('cannot-afford');
                 unlockMaxPurchaseButton.classList.add('can-afford');
             } else {
@@ -1302,7 +1384,7 @@
             // Unlock New Settings Button (in Ascension Menu)
             if (newSettingsUnlocked) {
                 unlockNewSettingsButton.style.display = 'none'; // Hide if already unlocked
-            } else if (ascensionPoints >= 10) {
+            } else if (ascensionPoints.gte(10)) {
                 unlockNewSettingsButton.classList.remove('cannot-afford');
                 unlockNewSettingsButton.classList.add('can-afford');
             } else {
@@ -1314,7 +1396,7 @@
             if (automationCategoryUnlocked) {
                 unlockAutomationCategoryButton.style.display = 'none';
                 // automationSection.style.display = 'block'; // Handled by updateSectionVisibility
-            } else if (ascensionPoints >= 1000) {
+            } else if (ascensionPoints.gte(1000)) {
                 unlockAutomationCategoryButton.classList.remove('cannot-afford');
                 unlockAutomationCategoryButton.classList.add('can-afford');
             } else {
@@ -1331,7 +1413,7 @@
 
         // Helper function for class cost (moved here for consistency)
         function classeElevesCost() {
-            return 30 * (1 - skillEffects.classeCostReduction);
+            return new Decimal(30).mul(new Decimal(1).sub(skillEffects.classeCostReduction));
         }
 
         // Fonction pour mettre à jour l'état visuel des boutons du multiplicateur
@@ -1359,9 +1441,9 @@
                 autoEleveButton.textContent = "Désactiver Automatisation Élèves";
                 autoEleveButton.classList.add('automation-active');
             } else {
-                autoEleveButton.textContent = `Automatiser Élèves : ${formatNumber(100, 0)} PA`;
+                autoEleveButton.textContent = `Automatiser Élèves : ${formatNumber(new Decimal(100), 0)} PA`;
                 autoEleveButton.classList.remove('automation-active');
-                if (ascensionPoints >= 100) {
+                if (ascensionPoints.gte(100)) {
                     autoEleveButton.classList.remove('cannot-afford');
                     autoEleveButton.classList.add('can-afford');
                 } else {
@@ -1375,9 +1457,9 @@
                 autoImageButton.textContent = "Désactiver Automatisation Images";
                 autoImageButton.classList.add('automation-active');
             } else {
-                autoImageButton.textContent = `Automatiser Images : ${formatNumber(10000, 0)} PA`;
+                autoImageButton.textContent = `Automatiser Images : ${formatNumber(new Decimal(10000), 0)} PA`;
                 autoImageButton.classList.remove('automation-active');
-                if (ascensionPoints >= 10000) {
+                if (ascensionPoints.gte(10000)) {
                     autoImageButton.classList.remove('cannot-afford');
                     autoImageButton.classList.add('can-afford');
                 } else {
@@ -1391,9 +1473,9 @@
                 autoProfesseurButton.textContent = "Désactiver Automatisation Professeurs";
                 autoProfesseurButton.classList.add('automation-active');
             } else {
-                autoProfesseurButton.textContent = `Automatiser Professeurs : ${formatNumber(100000, 0)} PA`;
+                autoProfesseurButton.textContent = `Automatiser Professeurs : ${formatNumber(new Decimal(100000), 0)} PA`;
                 autoProfesseurButton.classList.remove('automation-active');
-                if (ascensionPoints >= 100000) {
+                if (ascensionPoints.gte(100000)) {
                     autoProfesseurButton.classList.remove('cannot-afford');
                     autoProfesseurButton.classList.add('can-afford');
                 } else {
@@ -1415,17 +1497,20 @@
 
         // Logique d'achat générique
         function performPurchase(itemType, quantityRequested, isAutomated = false) {
-            let quantityToBuy = 0;
-            let totalCost = 0;
-            let tempResource = 0;
-            let tempItemCount = 0;
-            let costPerItem = 0;
+            let quantityToBuy = new Decimal(0);
+            let totalCost = new Decimal(0);
+            let tempResource = new Decimal(0);
+            let tempItemCount = new Decimal(0);
+            let costPerItem = new Decimal(0);
+
+            // Define a threshold for approximation (e.g., 1 million)
+            const APPROXIMATION_THRESHOLD = new Decimal('1e6'); 
 
             if (itemType === 'eleve') {
                 tempResource = bonsPoints;
                 tempItemCount = nombreEleves;
             } else if (itemType === 'classe') {
-                tempResource = nombreEleves;
+                tempResource = nombreEleves; // Cost in students
                 tempItemCount = nombreClasses;
             } else if (itemType === 'image') {
                 tempResource = bonsPoints;
@@ -1436,52 +1521,85 @@
             } else if (itemType === 'ecole') {
                 tempResource = ascensionPoints;
                 tempItemCount = schoolCount;
+            } else if (itemType === 'lycee') { // New item type
+                tempResource = ascensionPoints;
+                tempItemCount = nombreLycees;
             }
 
             if (quantityRequested === 'max') {
-                let currentTempItemCount = tempItemCount;
-                while (true) {
+                // If resource is very large, use approximation
+                if (tempResource.gte(APPROXIMATION_THRESHOLD)) {
+                    // Calculate cost of the next item for approximation
                     if (itemType === 'eleve') {
-                        costPerItem = calculateNextEleveCostForSimulation(currentTempItemCount);
+                        costPerItem = calculateNextEleveCostForSimulation(tempItemCount);
                     } else if (itemType === 'classe') {
-                        costPerItem = classeElevesCost(); // Fixed cost for classes
+                        costPerItem = classeElevesCost();
                     } else if (itemType === 'image') {
-                        costPerItem = 1000 * (1 - skillEffects.imageCostReduction);
+                        costPerItem = new Decimal(1000).mul(new Decimal(1).sub(skillEffects.imageCostReduction));
                     } else if (itemType === 'professeur') {
-                        costPerItem = calculateNextProfessorCostForSimulation(currentTempItemCount);
+                        costPerItem = calculateNextProfessorCostForSimulation(tempItemCount);
                     } else if (itemType === 'ecole') {
-                        costPerItem = calculateNextEcoleCostForSimulation(currentTempItemCount);
+                        costPerItem = calculateNextEcoleCostForSimulation(tempItemCount);
+                    } else if (itemType === 'lycee') { // New lycée cost
+                        costPerItem = calculateNextLyceeCostForSimulation(tempItemCount);
                     }
 
-                    if (tempResource >= costPerItem) {
-                        tempResource -= costPerItem;
-                        totalCost += costPerItem;
-                        quantityToBuy++;
-                        currentTempItemCount++;
+                    if (costPerItem.gt(0)) { // Avoid division by zero
+                        quantityToBuy = tempResource.div(costPerItem).floor();
+                        totalCost = quantityToBuy.mul(costPerItem);
                     } else {
-                        break;
+                        quantityToBuy = new Decimal(0);
+                        totalCost = new Decimal(0);
+                    }
+                } else { // For smaller numbers, use iterative calculation for precision
+                    let currentTempItemCount = tempItemCount;
+                    while (true) {
+                        if (itemType === 'eleve') {
+                            costPerItem = calculateNextEleveCostForSimulation(currentTempItemCount);
+                        } else if (itemType === 'classe') {
+                            costPerItem = classeElevesCost();
+                        } else if (itemType === 'image') {
+                            costPerItem = new Decimal(1000).mul(new Decimal(1).sub(skillEffects.imageCostReduction));
+                        } else if (itemType === 'professeur') {
+                            costPerItem = calculateNextProfessorCostForSimulation(currentTempItemCount);
+                        } else if (itemType === 'ecole') {
+                            costPerItem = calculateNextEcoleCostForSimulation(currentTempItemCount);
+                        } else if (itemType === 'lycee') { // New item type
+                            costPerItem = calculateNextLyceeCostForSimulation(currentTempItemCount);
+                        }
+
+                        if (tempResource.gte(costPerItem)) {
+                            tempResource = tempResource.sub(costPerItem);
+                            totalCost = totalCost.add(costPerItem);
+                            quantityToBuy = quantityToBuy.add(1);
+                            currentTempItemCount = currentTempItemCount.add(1);
+                        } else {
+                            break;
+                        }
                     }
                 }
-            } else {
-                quantityToBuy = quantityRequested;
+            } else { // Specific quantity purchase (x1, x10, x100)
+                quantityToBuy = new Decimal(quantityRequested);
                 let currentTempItemCount = tempItemCount;
-                for (let i = 0; i < quantityToBuy; i++) {
+                for (let i = new Decimal(0); i.lt(quantityToBuy); i = i.add(1)) {
                     if (itemType === 'eleve') {
                         costPerItem = calculateNextEleveCostForSimulation(currentTempItemCount);
                     } else if (itemType === 'classe') {
                         costPerItem = classeElevesCost();
                     } else if (itemType === 'image') {
-                        costPerItem = 1000 * (1 - skillEffects.imageCostReduction);
+                        costPerItem = new Decimal(1000).mul(new Decimal(1).sub(skillEffects.imageCostReduction));
                     } else if (itemType === 'professeur') {
                         costPerItem = calculateNextProfessorCostForSimulation(currentTempItemCount);
                     } else if (itemType === 'ecole') {
                         costPerItem = calculateNextEcoleCostForSimulation(currentTempItemCount);
+                    } else if (itemType === 'lycee') { // New item type
+                        costPerItem = calculateNextLyceeCostForSimulation(currentTempItemCount);
                     }
 
-                    if (tempResource >= costPerItem) {
-                        tempResource -= costPerItem;
-                        totalCost += costPerItem;
-                        currentTempItemCount++;
+                    if (tempResource.gte(costPerItem)) {
+                        tempResource = tempResource.sub(costPerItem);
+                        totalCost = totalCost.add(costPerItem);
+                        currentTempItemCount = currentTempItemCount.add(1);
                     } else {
                         // If not enough for the full requested quantity, buy what's affordable
                         quantityToBuy = i;
@@ -1490,37 +1608,44 @@
                 }
             }
 
-            if (quantityToBuy > 0) {
+            if (quantityToBuy.gt(0)) {
                 if (itemType === 'eleve') {
-                    bonsPoints -= totalCost;
-                    nombreEleves += quantityToBuy;
-                    bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
+                    bonsPoints = bonsPoints.sub(totalCost);
+                    nombreEleves = nombreEleves.add(quantityToBuy);
+                    bonsPointsParSecondeEleves = nombreEleves.mul(new Decimal(0.5).add(skillEffects.eleveBpsBonus));
                     coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
                     acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
                 } else if (itemType === 'classe') {
-                    nombreEleves -= totalCost;
-                    nombreClasses += quantityToBuy;
-                    bonsPointsParSecondeEleves = nombreEleves * (0.5 + skillEffects.eleveBpsBonus);
-                    bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
+                    nombreEleves = nombreEleves.sub(totalCost);
+                    nombreClasses = nombreClasses.add(quantityToBuy);
+                    bonsPointsParSecondeEleves = nombreEleves.mul(new Decimal(0.5).add(skillEffects.eleveBpsBonus));
+                    bonsPointsParSecondeClasses = nombreClasses.mul(25).mul(multiplicateurProfesseur).mul(new Decimal(1).add(skillEffects.classeMultiplierBonus));
                     coutEleveActuel = calculateNextEleveCost(); // Recalculate for display
                     acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
                 } else if (itemType === 'image') {
-                    bonsPoints -= totalCost;
-                    images += quantityToBuy;
+                    bonsPoints = bonsPoints.sub(totalCost);
+                    images = images.add(quantityToBuy);
                 } else if (itemType === 'professeur') {
-                    images -= totalCost;
-                    nombreProfesseurs += quantityToBuy;
-                    multiplicateurProfesseur = 1 + (0.25 * nombreProfesseurs);
-                    bonsPointsParSecondeClasses = nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus);
+                    images = images.sub(totalCost);
+                    nombreProfesseurs = nombreProfesseurs.add(quantityToBuy);
+                    multiplicateurProfesseur = new Decimal(1).add(new Decimal(0.25).mul(nombreProfesseurs));
+                    bonsPointsParSecondeClasses = nombreClasses.mul(25).mul(multiplicateurProfesseur).mul(new Decimal(1).add(skillEffects.classeMultiplierBonus));
                 } else if (itemType === 'ecole') {
-                    ascensionPoints -= totalCost;
-                    schoolCount += quantityToBuy;
-                    schoolMultiplier = 1 + (0.5 * schoolCount);
+                    ascensionPoints = ascensionPoints.sub(totalCost);
+                    schoolCount = schoolCount.add(quantityToBuy);
+                    // Recalculate schoolMultiplier as it now depends on Lycees
+                    schoolMultiplier = (new Decimal(1).add(new Decimal(0.5).mul(schoolCount))).mul(new Decimal(1).add(new Decimal(0.2).mul(nombreLycees)));
                     coutEcoleActuel = calculateNextEcoleCost(); // Update for display
+                } else if (itemType === 'lycee') { // New item type: Lycée
+                    ascensionPoints = ascensionPoints.sub(totalCost);
+                    nombreLycees = nombreLycees.add(quantityToBuy);
+                    // Recalculate schoolMultiplier as Lycees affect it
+                    schoolMultiplier = (new Decimal(1).add(new Decimal(0.5).mul(schoolCount))).mul(new Decimal(1).add(new Decimal(0.2).mul(nombreLycees)));
+                    coutLyceeActuel = calculateNextLyceeCost(); // Update for display
                 }
 
                 if (!isAutomated) {
-                    showNotification(`Acheté ${quantityToBuy} ${itemType}(s) !`);
+                    showNotification(`Acheté ${formatNumber(quantityToBuy, 0)} ${itemType}(s) !`);
                 }
                 mettreAJourAffichage();
                 checkUnlockConditions();
@@ -1533,42 +1658,52 @@
 
         // Helper function to calculate cost for simulation (avoids modifying global state)
         function calculateNextEleveCostForSimulation(currentEleves) {
-            let baseCostForNextEleve = 0;
-            let elevesInCurrentCycle = currentEleves % 30;
+            let baseCostForNextEleve = new Decimal(0);
+            let elevesInCurrentCycle = currentEleves.mod(30);
 
-            if (elevesInCurrentCycle < 10) {
-                baseCostForNextEleve = 10;
-            } else if (elevesInCurrentCycle < 20) {
-                baseCostForNextEleve = 12;
+            if (elevesInCurrentCycle.lt(10)) {
+                baseCostForNextEleve = new Decimal(10);
+            } else if (elevesInCurrentCycle.lt(20)) {
+                baseCostForNextEleve = new Decimal(12);
             } else {
-                baseCostForNextEleve = 15;
+                baseCostForNextEleve = new Decimal(15);
             }
 
             let finalCost = baseCostForNextEleve;
 
-            if (nombreClasses > 0) {
-                finalCost *= (nombreClasses + 1);
+            if (nombreClasses.gt(0)) {
+                finalCost = finalCost.mul(nombreClasses.add(1));
             } else {
-                if ((currentEleves + 1) % 100 === 0) {
-                    finalCost *= 100;
-                } else if (elevesInCurrentCycle === 0 && currentEleves > 0) {
-                    finalCost *= 10;
+                if (currentEleves.add(1).mod(100).eq(0)) {
+                    finalCost = finalCost.mul(100);
+                } else if (elevesInCurrentCycle.eq(0) && currentEleves.gt(0)) {
+                    finalCost = finalCost.mul(10);
                 }
             }
-            finalCost *= (1 - skillEffects.eleveCostReduction);
-            return Math.max(1, finalCost);
+            finalCost = finalCost.mul(new Decimal(1).sub(skillEffects.eleveCostReduction));
+            return Decimal.max(1, finalCost);
         }
 
         // Helper function for professor cost simulation
         function calculateNextProfessorCostForSimulation(currentProfessors) {
-            let nextProfIndex = currentProfessors + 1;
-            const cost = fibonacciSequence[nextProfIndex] || fibonacciSequence[fibonacciSequence.length - 1];
-            return Math.max(1, cost * (1 - skillEffects.professeurCostReduction));
+            let nextProfIndex = currentProfessors.add(1);
+            let cost;
+            if (nextProfIndex.lt(fibonacciSequence.length)) {
+                cost = fibonacciSequence[nextProfIndex.toNumber()];
+            } else {
+                cost = fibonacciSequence[fibonacciSequence.length - 1];
+            }
+            return Decimal.max(1, cost.mul(new Decimal(1).sub(skillEffects.professeurCostReduction)));
         }
 
         // Helper function for ecole cost simulation
         function calculateNextEcoleCostForSimulation(currentSchools) {
-            return Math.floor(coutEcoleBase * (1.5 ** currentSchools));
+            return coutEcoleBase.mul(new Decimal(1.5).pow(currentSchools)).floor();
+        }
+
+        // Helper function for lycee cost simulation (New)
+        function calculateNextLyceeCostForSimulation(currentLycees) {
+            return coutLyceeBase.mul(new Decimal(1.2).pow(currentLycees)).floor();
         }
 
 
@@ -1626,8 +1761,8 @@
                         skillNode.classList.add('skill-node');
 
                         const isUnlocked = unlockedSkills[skill.id];
-                        const availableProfessors = nombreProfesseurs - professorsUsedForSkills; // Professeurs disponibles
-                        const canActivate = availableProfessors > 0; // Coût est 1 professeur
+                        const availableProfessors = nombreProfesseurs.sub(professorsUsedForSkills); // Professeurs disponibles
+                        const canActivate = availableProfessors.gt(0); // Coût est 1 professeur
                         const prerequisitesMet = skill.prerequisites.every(prereqId => unlockedSkills[prereqId]);
 
                         // Attacher le gestionnaire de clic à toutes les compétences
@@ -1675,14 +1810,14 @@
 
             // Logique du bonus spécial pour "Clonage des Connaissances" (S15)
             if (skillId === 'S15') {
-                s15Clicks++;
-                if (s15Clicks >= 10) {
-                    bonsPoints += 10000000;
-                    images += 1000;
-                    nombreClasses += 10;
-                    nombreEleves += 200;
+                s15Clicks = s15Clicks.add(1);
+                if (s15Clicks.gte(10)) {
+                    bonsPoints = bonsPoints.add(new Decimal(10000000));
+                    images = images.add(new Decimal(1000));
+                    nombreClasses = nombreClasses.add(new Decimal(10));
+                    nombreEleves = nombreEleves.add(new Decimal(200));
                     showNotification("BONUS ÉNORME ! Clonage des connaissances a rapporté gros !");
-                    s15Clicks = 0; // Réinitialise le compteur pour pouvoir le déclencher à nouveau
+                    s15Clicks = new Decimal(0); // Réinitialise le compteur pour pouvoir le déclencher à nouveau
                     mettreAJourAffichage(); // Mettre à jour l'affichage immédiatement après le bonus
                     saveGameState(); // Sauvegarder l'état après le bonus
                     return; // Sortir de la fonction après avoir géré le bonus S15
@@ -1697,9 +1832,9 @@
                     return;
                 }
 
-                const availableProfessors = nombreProfesseurs - professorsUsedForSkills;
-                if (availableProfessors > 0) {
-                    professorsUsedForSkills++; // Utilise un professeur
+                const availableProfessors = nombreProfesseurs.sub(professorsUsedForSkills);
+                if (availableProfessors.gt(0)) {
+                    professorsUsedForSkills = professorsUsedForSkills.add(1); // Utilise un professeur
                     unlockedSkills[skill.id] = true;
                     showNotification(`Compétence débloquée : ${skill.name} !`);
                     saveGameState();
@@ -1724,7 +1859,7 @@
 
         // Met à jour l'affichage des professeurs disponibles
         function updateProfessorsDisplay() {
-            availableProfessorsCountSpan.textContent = formatNumber(nombreProfesseurs - professorsUsedForSkills, 0);
+            availableProfessorsCountSpan.textContent = formatNumber(nombreProfesseurs.sub(professorsUsedForSkills), 0);
         }
 
         // Événement pour le bouton "Compétences"
@@ -1739,6 +1874,7 @@
                 settingsContainer.style.display = 'none'; // Cacher les paramètres si ouverts
                 ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension si ouvert
                 automationSection.style.display = 'none'; // Cacher l'automatisation si ouverte
+                questsContainer.style.display = 'none'; // Cacher les quêtes si ouvertes
             }
         });
 
@@ -1753,6 +1889,7 @@
                 resetSkillsButton.style.display = 'none';
                 ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension si ouvert
                 automationSection.style.display = 'none'; // Cacher l'automatisation si ouverte
+                questsContainer.style.display = 'none'; // Cacher les quêtes si ouvertes
                 updateSettingsButtonStates(); // Mettre à jour le texte du bouton de thème
             }
         });
@@ -1768,16 +1905,34 @@
                 resetSkillsButton.style.display = 'none';
                 settingsContainer.style.display = 'none';
                 automationSection.style.display = 'none'; // Cacher l'automatisation si ouverte
+                questsContainer.style.display = 'none'; // Cacher les quêtes si ouvertes
                 mettreAJourAffichage(); // Mettre à jour l'affichage du menu ascension
             }
         });
+
+        // Événement pour le bouton "Quêtes" (Nouveau)
+        questsButton.addEventListener('click', () => {
+            if (questsContainer.style.display === 'flex') {
+                questsContainer.style.display = 'none';
+            } else {
+                questsContainer.style.display = 'flex';
+                // Cacher les autres menus
+                skillTreeContainer.style.display = 'none';
+                resetSkillsButton.style.display = 'none';
+                settingsContainer.style.display = 'none';
+                ascensionMenuContainer.style.display = 'none';
+                automationSection.style.display = 'none';
+                renderQuests(); // Render quests when opening the tab
+            }
+        });
+
 
         // Événement pour le bouton "Ascension"
         ascensionButton.addEventListener('click', () => {
             const paGained = calculatePAGained(); // Calculate PA gained for display
             paGainedDisplay.textContent = `${formatNumber(paGained, 0)} PA`; // Update the display in the modal
 
-            if (ascensionCount === 0 && !disableAscensionWarning) {
+            if (ascensionCount.eq(0) && !disableAscensionWarning) {
                 // Première ascension et avertissement non désactivé
                 ascensionModalTitle.textContent = "Première Ascension !";
                 firstAscensionWarningDiv.style.display = 'block';
@@ -1794,9 +1949,9 @@
 
         // Helper function to calculate PA gained
         function calculatePAGained() {
-            let paGained = 0;
-            if (nombreProfesseurs < prime_PA.length) {
-                paGained = prime_PA[nombreProfesseurs];
+            let paGained = new Decimal(0);
+            if (nombreProfesseurs.lt(prime_PA.length)) {
+                paGained = prime_PA[nombreProfesseurs.toNumber()];
             } else {
                 paGained = prime_PA[prime_PA.length - 1]; // Fallback to last prime if out of bounds
             }
@@ -1806,7 +1961,7 @@
         // Événement pour le bouton "Oui" de la modale de confirmation d'Ascension
         confirmAscensionYesBtn.addEventListener('click', () => {
             // Mettre à jour l'état de disableAscensionWarning avant de performAscension
-            if (ascensionCount === 0) { // Seulement si c'est la première ascension
+            if (ascensionCount.eq(0)) { // Seulement si c'est la première ascension
                 disableAscensionWarning = disableAscensionWarningCheckboxAscension.checked;
             }
             performAscension();
@@ -1841,9 +1996,9 @@
             document.body.appendChild(customConfirmModal);
 
             document.getElementById('customConfirmYes').addEventListener('click', () => {
-                professorsUsedForSkills = 0;
+                professorsUsedForSkills = new Decimal(0);
                 unlockedSkills = {};
-                s15Clicks = 0; // Réinitialise aussi le compteur de clics S15
+                s15Clicks = new Decimal(0); // Réinitialise aussi le compteur de clics S15
                 saveGameState();
                 applyAllSkillEffects();
                 renderSkillTree();
@@ -1861,7 +2016,7 @@
 
         // Événement pour le bouton "Étudier sagement"
         etudierButton.addEventListener('click', () => {
-            bonsPoints += (1 + totalBonsPointsParSeconde * 0.1); // Nouveau calcul de gain
+            bonsPoints = bonsPoints.add(new Decimal(1).add(totalBonsPointsParSeconde.mul(0.1))); // Nouveau calcul de gain
             mettreAJourAffichageBonsPoints();
             checkUnlockConditions();
             updateButtonStates();
@@ -1870,14 +2025,14 @@
 
         // Événement pour le bouton "Acheter un élève"
         acheterEleveButton.addEventListener('click', () => {
-            let elevesInCurrentCycle = nombreEleves % 30;
-            let is100thStudent = (nombreEleves + 1) % 100 === 0;
-            let is30thStudent = (nombreEleves > 0 && elevesInCurrentCycle === 0);
+            let elevesInCurrentCycle = nombreEleves.mod(30);
+            let is100thStudent = nombreEleves.add(1).mod(100).eq(0);
+            let is30thStudent = nombreEleves.gt(0) && elevesInCurrentCycle.eq(0);
 
             let needsWarning = false;
             let warningMessage = "";
 
-            if (nombreClasses === 0) { // Only show warnings if no classes are purchased
+            if (nombreClasses.eq(0)) { // Only show warnings if no classes are purchased
                 if (is100thStudent) {
                     needsWarning = true;
                     warningMessage = "Le prochain élève coûtera 100 fois le prix normal car c'est le 100ème élève sans avoir acheté de classe.";
@@ -1931,8 +2086,8 @@
         // --- Fonctions du menu Paramètres ---
         themeToggleButton.addEventListener('click', () => {
             if (!themeOptionUnlocked) {
-                if (images >= 10) {
-                    images -= 10;
+                if (images.gte(10)) {
+                    images = images.sub(10);
                     themeOptionUnlocked = true;
                     showNotification("Option Thème débloquée !");
                     // Active le thème immédiatement après l'achat
@@ -1962,7 +2117,7 @@
         });
 
         resetProgressionButton.addEventListener('click', () => {
-            if (images >= 10) {
+            if (images.gte(10)) {
                 confirmResetModal.style.display = 'flex';
             } else {
                 showNotification("Pas assez d'images pour réinitialiser la progression (coût : 10 I) !");
@@ -1970,8 +2125,8 @@
         });
 
         confirmResetYesBtn.addEventListener('click', () => {
-            if (images >= 10) {
-                images -= 10; // Déduire le coût
+            if (images.gte(10)) {
+                images = images.sub(10); // Déduire le coût
                 hardResetGame(); // Appel à la réinitialisation complète
                 showNotification("Progression réinitialisée avec succès !");
             } else {
@@ -1990,13 +2145,18 @@
             performPurchase('ecole', currentPurchaseMultiplier);
         });
 
+        // Événement pour le bouton "Acheter un Lycée" (Nouveau)
+        acheterLyceeButton.addEventListener('click', () => {
+            performPurchase('lycee', currentPurchaseMultiplier);
+        });
+
         unlockMultiPurchaseButton.addEventListener('click', () => {
             if (multiPurchaseOptionUnlocked) {
                 showNotification("L'achat multiple est déjà débloqué !");
                 return;
             }
-            if (ascensionPoints >= 10) {
-                ascensionPoints -= 10;
+            if (ascensionPoints.gte(10)) {
+                ascensionPoints = ascensionPoints.sub(10);
                 multiPurchaseOptionUnlocked = true;
                 showNotification("Option 'Achat multiple' débloquée (x1, x10, x100) !");
                 mettreAJourAffichage();
@@ -2012,8 +2172,8 @@
                 showNotification("L'achat multiple max est déjà débloqué !");
                 return;
             }
-            if (ascensionPoints >= 100) {
-                ascensionPoints -= 100;
+            if (ascensionPoints.gte(100)) {
+                ascensionPoints = ascensionPoints.sub(100);
                 maxPurchaseOptionUnlocked = true;
                 showNotification("Option 'Achat multiple Max' débloquée !");
                 mettreAJourAffichage();
@@ -2029,8 +2189,8 @@
                 showNotification("Les nouveaux réglages sont déjà débloqués !");
                 return;
             }
-            if (ascensionPoints >= 10) {
-                ascensionPoints -= 10;
+            if (ascensionPoints.gte(10)) {
+                ascensionPoints = ascensionPoints.sub(10);
                 newSettingsUnlocked = true;
                 showNotification("Nouveaux réglages débloqués !");
                 mettreAJourAffichage();
@@ -2046,8 +2206,8 @@
                 showNotification("La catégorie Automatisation est déjà débloquée !");
                 return;
             }
-            if (ascensionPoints >= 1000) {
-                ascensionPoints -= 1000;
+            if (ascensionPoints.gte(1000)) {
+                ascensionPoints = ascensionPoints.sub(1000);
                 automationCategoryUnlocked = true;
                 showNotification("Catégorie 'Automatisation' débloquée !");
                 mettreAJourAffichage();
@@ -2064,8 +2224,8 @@
                 autoEleveActive = false;
                 showNotification("Automatisation Élèves désactivée.");
             } else {
-                if (ascensionPoints >= 100) {
-                    ascensionPoints -= 100;
+                if (ascensionPoints.gte(100)) {
+                    ascensionPoints = ascensionPoints.sub(100);
                     autoEleveActive = true;
                     showNotification("Automatisation Élèves activée !");
                 } else {
@@ -2082,8 +2242,8 @@
                 autoImageActive = false;
                 showNotification("Automatisation Images désactivée.");
             } else {
-                if (ascensionPoints >= 10000) {
-                    ascensionPoints -= 10000;
+                if (ascensionPoints.gte(10000)) {
+                    ascensionPoints = ascensionPoints.sub(10000);
                     autoImageActive = true;
                     showNotification("Automatisation Images activée !");
                 } else {
@@ -2100,8 +2260,8 @@
                 autoProfesseurActive = false;
                 showNotification("Automatisation Professeurs désactivée.");
             } else {
-                if (ascensionPoints >= 100000) {
-                    ascensionPoints -= 100000;
+                if (ascensionPoints.gte(100000)) {
+                    ascensionPoints = ascensionPoints.sub(100000);
                     autoProfesseurActive = true;
                     showNotification("Automatisation Professeurs activée !");
                 } else {
@@ -2116,12 +2276,12 @@
 
         // Fonction pour effectuer l'Ascension
         function performAscension() {
-            if (nombreProfesseurs >= 1) { // L'ascension est possible à partir de 1 professeur
+            if (nombreProfesseurs.gte(1)) { // L'ascension est possible à partir de 1 professeur
                 const paGained = calculatePAGained(); // Use the helper function
 
-                ascensionPoints += paGained; // Ajoute aux PA disponibles
-                totalPAEarned += paGained; // Ajoute aux PA totaux gagnés
-                ascensionCount++; // Incrémente le nombre d'ascensions
+                ascensionPoints = ascensionPoints.add(paGained); // Ajoute aux PA disponibles
+                totalPAEarned = totalPAEarned.add(paGained); // Ajoute aux PA totaux gagnés
+                ascensionCount = ascensionCount.add(1); // Incrémente le nombre d'ascensions
                 firstAscensionPerformed = true; // Marque qu'une ascension a eu lieu
 
                 showNotification(`Ascension réussie ! Vous avez gagné ${formatNumber(paGained, 0)} Points d'Ascension !`);
@@ -2134,18 +2294,18 @@
 
         // Fonction de réinitialisation douce (pour l'Ascension)
         function softResetGame() {
-            bonsPoints = 0;
-            bonsPointsParSecondeEleves = 0;
-            bonsPointsParSecondeClasses = 0;
-            totalBonsPointsParSeconde = 0;
-            nombreEleves = 0;
-            coutEleveActuel = 10;
-            nombreClasses = 0;
-            images = 0;
-            nombreProfesseurs = 0;
-            professorsUsedForSkills = 0;
-            multiplicateurProfesseur = 1;
-            s15Clicks = 0;
+            bonsPoints = new Decimal(0);
+            bonsPointsParSecondeEleves = new Decimal(0);
+            bonsPointsParSecondeClasses = new Decimal(0);
+            totalBonsPointsParSeconde = new Decimal(0);
+            nombreEleves = new Decimal(0);
+            coutEleveActuel = new Decimal(10);
+            nombreClasses = new Decimal(0);
+            images = new Decimal(0);
+            nombreProfesseurs = new Decimal(0);
+            professorsUsedForSkills = new Decimal(0);
+            multiplicateurProfesseur = new Decimal(1);
+            s15Clicks = new Decimal(0);
             elevesUnlocked = false;
             classesUnlocked = false;
             imagesUnlocked = false;
@@ -2153,7 +2313,7 @@
             skillsButtonUnlocked = false;
             settingsButtonUnlocked = false;
             ascensionUnlocked = false; // Le bouton ascension redevient caché
-            ascensionMenuButtonUnlocked = (ascensionCount >= 1); // Reste débloqué si déjà fait une ascension
+            ascensionMenuButtonUnlocked = ascensionCount.gte(1); // Reste débloqué si déjà fait une ascension
             disableEleveWarning = false; // Réinitialisé à false pour les avertissements d'élève
             unlockedSkills = {};
             bonusPointsClaimed = {
@@ -2164,6 +2324,10 @@
             // disableAscensionWarning N'EST PAS réinitialisé ici pour persister
             // firstAscensionPerformed N'EST PAS réinitialisé ici pour persister
             // schoolCount, coutEcoleActuel, schoolMultiplier, newSettingsUnlocked, multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, currentPurchaseMultiplier, automationCategoryUnlocked, autoEleveActive, autoImageActive, autoProfesseurActive NE SONT PAS réinitialisés ici.
+            nombreLycees = new Decimal(0); // Réinitialise les lycées
+            lyceesUnlocked = false; // Réinitialise le déblocage des lycées
+            questsUnlocked = false; // Réinitialise le déblocage des quêtes
+            questsData.forEach(q => { q.completed = false; q.unlocked = true; }); // Réinitialise l'état des quêtes
 
             // Cacher toutes les sections qui sont débloquées dynamiquement
             achatEleveSection.style.display = 'none';
@@ -2179,6 +2343,8 @@
             settingsContainer.style.display = 'none';
             ascensionMenuContainer.style.display = 'none'; // Cacher le menu ascension
             automationSection.style.display = 'none'; // Cacher l'automatisation
+            achatLyceeSection.style.display = 'none'; // Cacher la section Lycées
+            questsContainer.style.display = 'none'; // Cacher le conteneur des quêtes
 
             document.body.classList.remove('dark-theme'); // Réinitialiser le thème visuellement au thème jour par défaut
             if (!isDayTheme) { // Si le thème était nuit, le remettre à jour pour refléter isDayTheme
@@ -2192,17 +2358,17 @@
         // Fonction de réinitialisation complète (pour "Réinitialiser la Progression")
         function hardResetGame() {
             softResetGame(); // Réinitialise la plupart des variables
-            ascensionPoints = 0; // Réinitialise aussi les PA
-            ascensionCount = 0; // Réinitialise le nombre d'ascensions
-            totalPAEarned = 0; // Réinitialise les PA totaux
+            ascensionPoints = new Decimal(0); // Réinitialise aussi les PA
+            ascensionCount = new Decimal(0); // Réinitialise le nombre d'ascensions
+            totalPAEarned = new Decimal(0); // Réinitialise les PA totaux
             ascensionUnlocked = false; // Réinitialise le drapeau d'Ascension
             isDayTheme = true; // Réinitialise le thème par défaut
             themeOptionUnlocked = false; // Réinitialise l'état de l'option de thème
             disableAscensionWarning = false; // Réinitialise le drapeau d'avertissement d'ascension
             firstAscensionPerformed = false; // Réinitialise le drapeau de première ascension
-            schoolCount = 0; // Réinitialise les écoles
-            coutEcoleActuel = 15; // Réinitialise le coût des écoles
-            schoolMultiplier = 1; // Réinitialise le multiplicateur des écoles
+            schoolCount = new Decimal(0); // Réinitialise les écoles
+            coutEcoleActuel = new Decimal(15); // Réinitialise le coût des écoles
+            schoolMultiplier = new Decimal(1); // Réinitialise le multiplicateur des écoles
             newSettingsUnlocked = false; // Réinitialise le déblocage des nouveaux réglages
             multiPurchaseOptionUnlocked = false; // Réinitialise l'option d'achat multiple
             maxPurchaseOptionUnlocked = false; // Réinitialise l'option d'achat multiple max
@@ -2211,7 +2377,10 @@
             autoEleveActive = false; // Réinitialise l'automatisation des élèves
             autoImageActive = false; // Réinitialise l'automatisation des images
             autoProfesseurActive = false; // Réinitialise l'automatisation des professeurs
-
+            nombreLycees = new Decimal(0); // Réinitialise les lycées
+            lyceesUnlocked = false; // Réinitialise le déblocage des lycées
+            questsUnlocked = false; // Réinitialise le déblocage des quêtes
+            questsData.forEach(q => { q.completed = false; q.unlocked = true; }); // Réinitialise l'état des quêtes
 
             document.body.classList.remove('dark-theme'); // S'assurer que le thème est réinitialisé visuellement
             saveGameState();
@@ -2224,7 +2393,7 @@
                 themeToggleButton.classList.add('can-afford');
             } else {
                 themeToggleButton.textContent = "Débloquer option Thème (10 I)";
-                if (images >= 10) {
+                if (images.gte(10)) {
                     themeToggleButton.classList.remove('cannot-afford');
                     themeToggleButton.classList.add('can-afford');
                 } else {
@@ -2233,7 +2402,7 @@
                 }
             }
 
-            if (images >= 10) {
+            if (images.gte(10)) {
                 resetProgressionButton.classList.remove('cannot-afford');
                 resetProgressionButton.classList.add('can-afford');
             } else {
@@ -2245,20 +2414,23 @@
         // Fonction pour mettre à jour l'affichage des ressources et productions
         function mettreAJourAffichage() {
             // Calcul du multiplicateur d'Ascension
-            let ascensionMultiplier = 1;
-            if (ascensionCount > 0 && totalPAEarned > 0) {
-                ascensionMultiplier = 1 + (ascensionCount * totalPAEarned * 0.05); // Updated formula
-            } else if (ascensionCount > 0) { // If ascensions but 0 PA (rare case)
-                ascensionMultiplier = 1 + (ascensionCount * 0.05); // Simplified for 0 PA
+            let ascensionMultiplier = new Decimal(1);
+            if (ascensionCount.gt(0) && totalPAEarned.gt(0)) {
+                ascensionMultiplier = new Decimal(1).add(ascensionCount.mul(totalPAEarned).mul(0.05)); // Updated formula
+            } else if (ascensionCount.gt(0)) { // If ascensions but 0 PA (rare case)
+                ascensionMultiplier = new Decimal(1).add(ascensionCount.mul(0.05)); // Simplified for 0 PA
             }
             
             // Appliquer le multiplicateur des écoles en dernier sur la production totale
-            totalBonsPointsParSeconde = (bonsPointsParSecondeEleves + bonsPointsParSecondeClasses) * (1 + skillEffects.totalBpsMultiplierBonus) * ascensionMultiplier * schoolMultiplier;
+            // schoolMultiplier inclut maintenant l'effet des lycées
+            schoolMultiplier = (new Decimal(1).add(new Decimal(0.5).mul(schoolCount))).mul(new Decimal(1).add(new Decimal(0.2).mul(nombreLycees)));
+
+            totalBonsPointsParSeconde = (bonsPointsParSecondeEleves.add(bonsPointsParSecondeClasses)).mul(new Decimal(1).add(skillEffects.totalBpsMultiplierBonus)).mul(ascensionMultiplier).mul(schoolMultiplier);
 
             bonsPointsSpan.textContent = formatNumber(bonsPoints, 0);
             totalBpsInlineSpan.textContent = formatNumber(totalBonsPointsParSeconde, 1); // Updated inline display
-            elevesBpsPerItemSpan.textContent = formatNumber(nombreEleves * (0.5 + skillEffects.eleveBpsBonus), 1);
-            classesBpsPerItemSpan.textContent = formatNumber(nombreClasses * 25 * multiplicateurProfesseur * (1 + skillEffects.classeMultiplierBonus), 1);
+            elevesBpsPerItemSpan.textContent = formatNumber(nombreEleves.mul(new Decimal(0.5).add(skillEffects.eleveBpsBonus)), 1);
+            classesBpsPerItemSpan.textContent = formatNumber(nombreClasses.mul(25).mul(multiplicateurProfesseur).mul(new Decimal(1).add(skillEffects.classeMultiplierBonus)), 1);
             nombreElevesSpan.textContent = formatNumber(nombreEleves, 0);
             nombreClassesSpan.textContent = formatNumber(nombreClasses, 0);
             imagesSpan.textContent = formatNumber(images, 0);
@@ -2270,10 +2442,15 @@
             // Affichage du menu Ascension
             ascensionMenuPACountSpan.textContent = formatNumber(ascensionPoints, 0);
             nombreEcolesSpan.textContent = formatNumber(schoolCount, 0);
-            ecoleMultiplierSpan.textContent = `${formatNumber(schoolMultiplier, 1)}x`;
+            ecoleMultiplierSpan.textContent = `${formatNumber(schoolMultiplier, 1)}x`; // schoolMultiplier already includes lycee effect
+
+            // Affichage des Lycées (Nouveau)
+            nombreLyceesDisplay.textContent = formatNumber(nombreLycees, 0);
+            lyceeMultiplierDisplay.textContent = `${formatNumber(new Decimal(1).add(new Decimal(0.2).mul(nombreLycees)), 1)}x`;
+
 
             // Afficher le bonus d'ascension
-            if (ascensionCount > 0) {
+            if (ascensionCount.gt(0)) {
                 ascensionBonusDisplay.style.display = 'block';
                 ascensionBonusValueSpan.textContent = `${formatNumber(ascensionMultiplier, 2)}x`;
             } else {
@@ -2281,19 +2458,19 @@
             }
 
             // Afficher le nombre d'images seulement si images >= 1
-            if (images >= 1) {
+            if (images.gte(1)) {
                 imagesDisplay.style.display = 'block';
             } else {
                 imagesDisplay.style.display = 'none';
             }
             // Afficher les PA disponibles seulement si ascensionPoints >= 1 ou si l'ascension est débloquée
-            if (ascensionPoints >= 1 || ascensionUnlocked) {
+            if (ascensionPoints.gte(1) || ascensionUnlocked) {
                 currentAscensionPointsDisplay.style.display = 'block';
             } else {
                 currentAscensionPointsDisplay.style.display = 'none';
             }
             // Afficher le nombre d'ascensions et les PA totaux seulement si ascensionCount > 0
-            if (ascensionCount > 0) {
+            if (ascensionCount.gt(0)) {
                 ascensionCountDisplay.style.display = 'block';
             } else {
                 ascensionCountDisplay.style.display = 'none';
@@ -2310,55 +2487,62 @@
         // Fonction pour vérifier et débloquer les sections d'achat et les boutons de menu
         function checkUnlockConditions() {
             // Déblocage de la section des élèves
-            if (!elevesUnlocked && bonsPoints >= coutEleveActuel) {
+            if (!elevesUnlocked && bonsPoints.gte(coutEleveActuel)) {
                 elevesUnlocked = true;
                 showNotification("Nouvel achat débloqué : Élèves !");
             }
 
             // Déblocage de la section des salles de classe
-            if (!classesUnlocked && nombreEleves >= 30) {
+            if (!classesUnlocked && nombreEleves.gte(30)) {
                 classesUnlocked = true;
                 showNotification("Nouvel achat débloqué : Salles de classe !");
             }
 
             // Déblocage de la section des images
-            if (!imagesUnlocked && bonsPoints >= 1000) {
+            if (!imagesUnlocked && bonsPoints.gte(1000)) {
                 imagesUnlocked = true;
                 showNotification("Nouvel achat débloqué : Images !");
             }
 
             // Déblocage de la section des professeurs
-            if (!professeursUnlocked && images >= calculateNextProfessorCost()) { // Vérifier avec le coût du premier professeur
+            if (!professeursUnlocked && images.gte(calculateNextProfessorCost())) { // Vérifier avec le coût du premier professeur
                 professeursUnlocked = true;
                 showNotification("Nouvel achat débloqué : Professeurs !");
             }
 
             // Déblocage du bouton Compétences (quand la première image est acquise)
-            if (!skillsButtonUnlocked && images >= 1) {
+            if (!skillsButtonUnlocked && images.gte(1)) {
                 skillsButtonUnlocked = true;
                 showNotification("Nouvelle section débloquée : Compétences !");
             }
 
             // Déblocage du bouton Paramètres (quand la première image est acquise, comme les compétences)
-            if (!settingsButtonUnlocked && images >= 1) {
+            if (!settingsButtonUnlocked && images.gte(1)) {
                 settingsButtonUnlocked = true;
                 showNotification("Nouvelle section débloquée : Paramètres !");
             }
 
             // Déblocage du bouton Ascension (quand 1 professeur est atteint)
-            if (!ascensionUnlocked && nombreProfesseurs >= 1) {
+            if (!ascensionUnlocked && nombreProfesseurs.gte(1)) {
                 ascensionUnlocked = true;
                 showNotification("Nouvelle option débloquée : Ascension !");
             }
 
             // Déblocage du bouton Menu Ascension (après la première ascension)
-            if (!ascensionMenuButtonUnlocked && ascensionCount >= 1) {
+            if (!ascensionMenuButtonUnlocked && ascensionCount.gte(1)) {
                 ascensionMenuButtonUnlocked = true;
                 showNotification("Nouveau menu débloqué : Ascension !");
             }
 
+            // Déblocage du bouton Quêtes (Nouveau)
+            if (!questsUnlocked && ascensionPoints.gte(100)) {
+                questsUnlocked = true;
+                showNotification("Nouvelle section débloquée : Quêtes !");
+            }
+
             // Mettre à jour la visibilité des sections après avoir potentiellement débloqué de nouvelles sections
             updateSectionVisibility();
+            renderQuests(); // Check and render quests on every update
 
             // --- Nouveaux bonus de points ---
             const bonusThresholds = [
@@ -2375,10 +2559,11 @@
             ];
 
             bonusThresholds.forEach(bonus => {
-                if (bonsPoints >= bonus.threshold && !bonusPointsClaimed[bonus.threshold]) {
-                    bonsPoints += bonus.amount;
+                // Convert bonus.threshold to Decimal for comparison
+                if (bonsPoints.gte(new Decimal(bonus.threshold)) && !bonusPointsClaimed[bonus.threshold]) {
+                    bonsPoints = bonsPoints.add(new Decimal(bonus.amount));
                     bonusPointsClaimed[bonus.threshold] = true;
-                    showNotification(`Bonus de ${formatNumber(bonus.amount, 0)} BP atteint !`);
+                    showNotification(`Bonus de ${formatNumber(new Decimal(bonus.amount), 0)} BP atteint !`);
                     mettreAJourAffichageBonsPoints(); // Mettre à jour l'affichage des BP immédiatement
                     saveGameState(); // Sauvegarder l'état après le bonus
                 }
@@ -2426,7 +2611,65 @@
             } else {
                 automationSection.style.display = 'none';
             }
+            if (lyceesUnlocked) { // New: Show Lycee purchase section
+                achatLyceeSection.style.display = 'block';
+            } else {
+                achatLyceeSection.style.display = 'none';
+            }
+            if (questsUnlocked) { // New: Show Quests button
+                questsButton.style.display = 'block';
+            } else {
+                questsButton.style.display = 'none';
+            }
         }
+
+        // Fonction pour rendre les quêtes (Nouveau)
+        function renderQuests() {
+            questsListDiv.innerHTML = '';
+            completedQuestsListDiv.innerHTML = '';
+
+            questsData.forEach(quest => {
+                // Check quest completion (only if not already completed)
+                if (!quest.completed) {
+                    let isCompleted = false;
+                    if (quest.targetType === 'schoolCount' && schoolCount.gte(quest.targetValue)) {
+                        isCompleted = true;
+                    }
+                    // Ajoutez d'autres types de cibles de quêtes ici si nécessaire
+
+                    if (isCompleted) {
+                        quest.completed = true;
+                        // Appliquer la récompense
+                        if (quest.reward.type === 'unlockPurchase' && quest.reward.itemId === 'lycee') {
+                            lyceesUnlocked = true;
+                            showNotification(quest.rewardMessage);
+                            updateSectionVisibility(); // Assurez-vous que la nouvelle section d'achat apparaît
+                        }
+                        // Ajoutez d'autres types de récompenses ici
+                        saveGameState(); // Sauvegarder l'état du jeu après la complétion de la quête
+                    }
+                }
+
+                const questDiv = document.createElement('div');
+                questDiv.classList.add('achat-section'); // Réutilise le style existant
+                questDiv.innerHTML = `
+                    <h4>${quest.name}</h4>
+                    <p>${quest.description}</p>
+                    <p>Progrès : <span class="info-color">${formatNumber(schoolCount, 0)}/${formatNumber(quest.targetValue, 0)}</span></p>
+                `;
+
+                if (quest.completed) {
+                    questDiv.style.backgroundColor = '#d4edda'; // Vert clair pour les quêtes terminées
+                    questDiv.style.borderColor = '#28a745';
+                    questDiv.innerHTML += `<p class="info-color">Complétée !</p>`;
+                    completedQuestsListDiv.appendChild(questDiv);
+                } else {
+                    questsListDiv.appendChild(questDiv);
+                }
+            });
+            mettreAJourAffichage(); // Mettre à jour l'affichage après d'éventuels déblocages
+        }
+
 
         // Event Listeners for multiplier buttons
         setMultiplierX1.addEventListener('click', () => {
@@ -2457,7 +2700,7 @@
 
         // Boucle de production automatique (toutes les secondes)
         setInterval(() => {
-            bonsPoints += totalBonsPointsParSeconde;
+            bonsPoints = bonsPoints.add(totalBonsPointsParSeconde);
             mettreAJourAffichageBonsPoints();
             checkUnlockConditions();
             updateButtonStates();
@@ -2481,6 +2724,7 @@
         // Initialisation des coûts qui dépendent de l'état chargé
         coutEleveActuel = calculateNextEleveCost();
         coutEcoleActuel = calculateNextEcoleCost(); // Initialiser le coût de l'école
+        coutLyceeActuel = calculateNextLyceeCost(); // Initialiser le coût du lycée (Nouveau)
         
         acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
         acheterClasseButton.innerHTML = `Salle de classe : <span class="eleves-color">30 Élèves</span>`;
