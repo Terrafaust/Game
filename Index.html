@@ -2845,118 +2845,153 @@
             }
         }
 
-        // --- Purchase Logic ---
-        function performPurchase(itemType, quantityRequested, isAutomated = false) {
-            let quantityToBuy = new Decimal(0);
-            let totalCostResource = new Decimal(0);
-            let totalCostPA = new Decimal(0);
-            let totalCostPP = new Decimal(0); // NEW
-            let currentResource;
-            let costFunction;
-            let itemCounter;
-            let resourceToDecrement;
+     // Purchase logic
+    function performPurchase(itemType, quantityRequested, isAutomated = false) {
+        let currentResource, costFunction, itemCounter, resourceToDecrement;
+        let totalCostPA = new Decimal(0); // Track total PA cost for automation purchases
 
-            switch (itemType) {
-                case 'eleve': currentResource = bonsPoints; costFunction = (count) => calculateNextEleveCost(count); itemCounter = nombreEleves; resourceToDecrement = 'bonsPoints'; break;
-                case 'classe': currentResource = bonsPoints; costFunction = (count) => calculateNextClasseCost(count); itemCounter = nombreClasses; resourceToDecrement = 'bonsPoints'; break;
-                case 'image': currentResource = bonsPoints; costFunction = () => calculateNextImageCost(); itemCounter = images; resourceToDecrement = 'bonsPoints'; break;
-                case 'professeur': currentResource = images; costFunction = (count) => calculateNextProfessorCost(count); itemCounter = nombreprofesseur; resourceToDecrement = 'images'; break;
-                case 'ecole': currentResource = ascensionPoints; costFunction = (count) => calculateNextEcoleCost(count); itemCounter = schoolCount; resourceToDecrement = 'ascensionPoints'; break;
-                case 'lycee': currentResource = ascensionPoints; costFunction = (count) => calculateNextLyceeCost(count); itemCounter = nombreLycees; resourceToDecrement = 'ascensionPoints'; break;
-                case 'college': currentResource = ascensionPoints; costFunction = (count) => calculateNextCollegeCost(count); itemCounter = nombreColleges; resourceToDecrement = 'ascensionPoints'; break;
-                // NEW Prestige Purchases
-                case 'licence': currentResource = prestigePoints; costFunction = () => calculateLicenceCost(); itemCounter = nombreLicences; resourceToDecrement = 'prestigePoints'; break;
-                case 'master1': currentResource = prestigePoints; costFunction = () => calculateMaster1Cost(); itemCounter = nombreMaster1; resourceToDecrement = 'prestigePoints'; break;
-                case 'master2': currentResource = prestigePoints; costFunction = () => calculateMaster2Cost(); itemCounter = nombreMaster2; resourceToDecrement = 'prestigePoints'; break;
-                case 'doctorat': currentResource = prestigePoints; costFunction = () => calculateDoctoratCost(); itemCounter = nombreDoctorat; resourceToDecrement = 'prestigePoints'; break;
-                case 'postDoctorat': currentResource = prestigePoints; costFunction = () => calculatePostDoctoratCost(); itemCounter = nombrePostDoctorat; resourceToDecrement = 'prestigePoints'; break;
-                default: return;
-            }
-
-            // Check prerequisites for prestige purchases
-            if (itemType === 'doctorat' && !prestigePurchasesData.find(p => p.id === 'doctorat').prerequisites()) {
-                showNotification("Conditions pour Doctorat non remplies (10 Prestiges nécessaires) !");
+        switch (itemType) {
+            case 'eleve':
+                currentResource = bonsPoints;
+                costFunction = () => calculateNextEleveCost(nombreEleves);
+                itemCounter = nombreEleves;
+                resourceToDecrement = 'bonsPoints';
+                break;
+            case 'classe':
+                currentResource = bonsPoints;
+                costFunction = () => calculateNextClasseCost(nombreClasses);
+                itemCounter = nombreClasses;
+                resourceToDecrement = 'bonsPoints';
+                break;
+            case 'image':
+                currentResource = bonsPoints;
+                costFunction = () => calculateNextImageCost();
+                itemCounter = images;
+                resourceToDecrement = 'bonsPoints';
+                break;
+            case 'professeur':
+                currentResource = images;
+                costFunction = () => calculateNextProfessorCost(nombreprofesseur);
+                itemCounter = nombreprofesseur;
+                resourceToDecrement = 'images';
+                break;
+            case 'licence':
+                    currentResource = prestigePoints;
+                costFunction = () => calculateLicenceCost();
+                itemCounter = nombreLicences;
+                resourceToDecrement = 'prestigePoints';
+                break;
+            case 'master1':
+                currentResource = prestigePoints;
+                costFunction = () => calculateMaster1Cost();
+                itemCounter = nombreMaster1;
+                resourceToDecrement = 'prestigePoints';
+                break;
+            case 'master2':
+                currentResource = prestigePoints;
+                costFunction = () => calculateMaster2Cost();
+                itemCounter = nombreMaster2;
+                resourceToDecrement = 'prestigePoints';
+                break;
+            case 'doctorat':
+                currentResource = prestigePoints;
+                costFunction = () => calculateDoctoratCost();
+                itemCounter = nombreDoctorat;
+                resourceToDecrement = 'prestigePoints';
+                break;
+            case 'postDoctorat':
+                currentResource = prestigePoints;
+                costFunction = () => calculatePostDoctoratCost();
+                itemCounter = nombrePostDoctorat;
+                resourceToDecrement = 'prestigePoints';
+                break;
+            default:
                 return;
-            }
-            if (itemType === 'postDoctorat' && !prestigePurchasesData.find(p => p.id === 'postDoctorat').prerequisites()) {
-                showNotification("Conditions pour Post-Doctorat non remplies (30 Prestiges, 100 Ascensions nécessaires) !");
-                return;
-            }
+        }
 
-
-            if (quantityRequested === 'max') {
+        // Check prerequisites for prestige purchases
+        if (itemType === 'doctorat' && !prestigePurchasesData.find(p => p.id === 'doctorat').prerequisites()) {
+            showNotification("Conditions pour Doctorat non remplies (10 Prestiges nécessaires) !");
+            return;
+        }
+        if (itemType === 'postDoctorat' && !prestigePurchasesData.find(p => p.id === 'postDoctorat').prerequisites()) {
+            showNotification("Conditions pour Post-Doctorat non remplies (30 Prestiges, 100 Ascensions nécessaires) !");
+            return;
+        }
+    
+        if (quantityRequested === 'max') {
+            if (itemType === 'image') {
+                // Optimized xMax purchase for images with discount
+                let baseCost = calculateNextImageCost(); // Get the base cost
+                let discount = skillEffects.imageCostReduction;  // Get the total discount
+                let effectiveCostDivisor = new Decimal(1000).mul(new Decimal(1).sub(discount));
+                
+                let imagesToAdd = currentResource.div(effectiveCostDivisor).floor();
+                itemCounter = itemCounter.add(imagesToAdd);
+                currentResource = new Decimal(0);
+                showNotification(`Acheté ${formatNumber(imagesToAdd, 0)} ${itemType}(s) !`);
+            } else {
+                // Original xMax purchase logic for other items
                 let tempItemCounter = itemCounter;
                 let canAfford = true;
                 while (canAfford) {
                     let costPerItem = costFunction(tempItemCounter);
                     if (currentResource.gte(costPerItem)) {
                         currentResource = currentResource.sub(costPerItem);
-                        if (resourceToDecrement === 'ascensionPoints') totalCostPA = totalCostPA.add(costPerItem);
-                        else if (resourceToDecrement === 'prestigePoints') totalCostPP = totalCostPP.add(costPerItem); // NEW
-                        else totalCostResource = totalCostResource.add(costPerItem);
-                        quantityToBuy = quantityToBuy.add(1);
+                        if (resourceToDecrement === 'ascensionPoints')
+                            totalCostPA = totalCostPA.add(costPerItem);
+                        else if (resourceToDecrement === 'prestigePoints')
+                            totalCostPP = totalCostPP.add(costPerItem);
                         tempItemCounter = tempItemCounter.add(1);
                     } else {
                         canAfford = false;
                     }
-                    if (quantityToBuy.gte(1000) && isAutomated) break; // Limit automated max purchases to 1000 per tick
                 }
-            } else {
-                let numQuantity = new Decimal(quantityRequested);
-                let tempItemCounter = itemCounter;
-                for (let i = 0; i < numQuantity.toNumber(); i++) {
-                    let costPerItem = costFunction(tempItemCounter);
-                    if (currentResource.gte(costPerItem)) {
-                        currentResource = currentResource.sub(costPerItem);
-                        if (resourceToDecrement === 'ascensionPoints') totalCostPA = totalCostPA.add(costPerItem);
-                        else if (resourceToDecrement === 'prestigePoints') totalCostPP = totalCostPP.add(costPerItem); // NEW
-                        else totalCostResource = totalCostResource.add(costPerItem);
-                        quantityToBuy = quantityToBuy.add(1);
-                        tempItemCounter = tempItemCounter.add(1);
-                    } else {
-                        break;
-                    }
-                }
-            }
-
-            if (quantityToBuy.gt(0)) {
-                if (resourceToDecrement === 'bonsPoints') bonsPoints = bonsPoints.sub(totalCostResource);
-                else if (resourceToDecrement === 'images') images = images.sub(totalCostResource);
-                else if (resourceToDecrement === 'ascensionPoints') ascensionPoints = ascensionPoints.sub(totalCostPA);
-                else if (resourceToDecrement === 'prestigePoints') prestigePoints = prestigePoints.sub(totalCostPP); // NEW
-
+                let quantityToBuy = tempItemCounter.sub(itemCounter);
+    
                 switch (itemType) {
-                    case 'eleve': nombreEleves = nombreEleves.add(quantityToBuy); break;
-                    case 'classe': nombreClasses = nombreClasses.add(quantityToBuy); break;
-                    case 'image': images = images.add(quantityToBuy); break;
+                    case 'eleve':
+                        nombreEleves = nombreEleves.add(quantityToBuy);
+                        break;
+                    case 'classe':
+                        nombreClasses = nombreClasses.add(quantityToBuy);
+                        break;
                     case 'professeur':
                         nombreprofesseur = nombreprofesseur.add(quantityToBuy);
-                        // Multiplier from professors is now calculated in calculateItemBPS
-                        studiesSkillPoints = studiesSkillPoints.add(quantityToBuy); // Gain studies skill points
                         break;
-                    case 'ecole': schoolCount = schoolCount.add(quantityToBuy); break;
-                    case 'lycee': nombreLycees = nombreLycees.add(quantityToBuy); break;
-                    case 'college': nombreColleges = nombreColleges.add(quantityToBuy); break;
-                    // NEW Prestige Purchases
-                    case 'licence': nombreLicences = nombreLicences.add(quantityToBuy); break;
-                    case 'master1': nombreMaster1 = nombreMaster1.add(quantityToBuy); break;
-                    case 'master2': nombreMaster2 = nombreMaster2.add(quantityToBuy); break;
-                    case 'doctorat': nombreDoctorat = nombreDoctorat.add(quantityToBuy); break;
-                    case 'postDoctorat': nombrePostDoctorat = nombrePostDoctorat.add(quantityToBuy); break;
+                    case 'licence':
+                        nombreLicences = nombreLicences.add(quantityToBuy);
+                        break;
+                    case 'master1':
+                        nombreMaster1 = nombreMaster1.add(quantityToBuy);
+                        break;
+                    case 'master2':
+                        nombreMaster2 = nombreMaster2.add(quantityToBuy);
+                        break;
+                    case 'doctorat':
+                        nombreDoctorat = nombreDoctorat.add(quantityToBuy);
+                        break;
+                    case 'postDoctorat':
+                        nombrePostDoctorat = nombrePostDoctorat.add(quantityToBuy);
+                        break;
                 }
-
+    
                 applyAllSkillEffects();
+    
                 if (!isAutomated) {
                     showNotification(`Acheté ${formatNumber(quantityToBuy, 0)} ${itemType}(s) !`);
                 }
-                mettreAJourAffichage();
-                checkUnlockConditions();
-                updateButtonStates();
-                saveGameState();
-            } else if (!isAutomated && quantityRequested !== 0) {
-                showNotification(`Pas assez de ressources pour acheter ${itemType} !`);
             }
+    
+            mettreAJourAffichage();
+            checkUnlockConditions();
+            updateButtonStates();
+            saveGameState();
+    
+        } else if (!isAutomated && quantityRequested !== 0) {
+            showNotification(`Pas assez de ressources pour acheter ${itemType} !`);
         }
+    }
 
         // --- New Skill System Functions ---
         function renderSkillsMenu() {
