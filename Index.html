@@ -1290,7 +1290,7 @@
                         </div>
                     </div>
                     <div class="studies-sections-group">
-                        <div id="achatprofesseurection" class="achat-section" style="display: none;">
+                        <div id="achatprofesseurSection" class="achat-section" style="display: none;">
                             <button id="acheterProfesseurButton">Professeur : <span class="images-color">2
                                     I</span></button>
                             <p>Quantité : <span id="professeurDisplayQuantity">0</span></p>
@@ -2013,7 +2013,7 @@
         const achatEleveSection = document.getElementById('achatEleveSection');
         const achatClasseSection = document.getElementById('achatClasseSection');
         const achatImageSection = document.getElementById('achatImageSection');
-        const achatprofesseurection = document.getElementById('achatprofesseurection');
+        const achatprofesseurSection = document.getElementById('achatprofesseurSection');
         const notificationsContainer = document.getElementById('notifications-container');
         const studiesMainContainer = document.getElementById('studiesMainContainer');
         const automationMainContainer = document.getElementById('automationMainContainer');
@@ -4118,7 +4118,7 @@
             achatEleveSection.style.display = elevesUnlocked ? 'block' : 'none';
             achatClasseSection.style.display = classesUnlocked ? 'block' : 'none';
             achatImageSection.style.display = imagesUnlocked ? 'block' : 'none';
-            achatprofesseurection.style.display = professeurUnlocked ? 'block' : 'none';
+            achatprofesseurSection.style.display = professeurUnlocked ? 'block' : 'none';
 
             // Automation section elements
             // automationSection visibility is controlled by automationMainContainer's display
