@@ -4395,28 +4395,54 @@
         setMultiplierX100.addEventListener('click', () => { currentPurchaseMultiplier = 100; updateMultiplierButtons(); saveGameState(); });
         setMultiplierXMax.addEventListener('click', () => { currentPurchaseMultiplier = 'max'; updateMultiplierButtons(); saveGameState(); });
 
-        // --- Game Loop (Interval) ---
-        setInterval(() => {
-            let productionThisTick = totalBonsPointsParSeconde.mul(new Decimal(1).add(skillEffects.offlineProductionIncrease)).div(10); // Apply offline production bonus
-            bonsPoints = bonsPoints.add(productionThisTick);
+          // --- Game Loop (Optimized Interval) ---
+    const gameTickInterval = 100; // Base game logic tick (production, automation checks)
+    const displayUpdateInterval = 200; // How often to update the main display (Bons Points, buttons)
+    const saveCheckInterval = 1000; // How often to check for unlocks and save
 
-            if (Date.now() % 1000 < 100) {
-                if (autoEleveActive) performPurchase('eleve', 'max', true);
-                if (autoClasseActive) performPurchase('classe', 'max', true);
-                if (autoImageActive) performPurchase('image', 'max', true);
-                if (autoProfesseurActive) performPurchase('professeur', 'max', true);
-            }
+    let lastDisplayUpdateTime = Date.now();
+    let lastSaveCheckTime = Date.now();
 
-            if (Date.now() % 200 < 100) {
-                mettreAJourAffichageBonsPoints();
-                updateButtonStates();
-            }
-            if (Date.now() % 1000 < 100) {
-                checkUnlockConditions();
-                mettreAJourAffichage();
-                saveGameState();
-            }
-        }, 100);
+    setInterval(() => {
+        let productionThisTick = totalBonsPointsParSeconde.mul(new Decimal(1).add(skillEffects.offlineProductionIncrease)).div(10); // Apply offline production bonus
+        bonsPoints = bonsPoints.add(productionThisTick);
+
+        // Automation checks (run every game tick)
+        if (autoEleveActive) performPurchase('eleve', 'max', true);
+        if (autoClasseActive) performPurchase('classe', 'max', true);
+        if (autoImageActive) performPurchase('image', 'max', true);
+        if (autoProfesseurActive) performPurchase('professeur', 'max', true);
+
+        const now = Date.now();
+
+        // Update display less frequently
+        if (now - lastDisplayUpdateTime >= displayUpdateInterval) {
+            mettreAJourAffichageBonsPoints();
+            updateButtonStates();
+            lastDisplayUpdateTime = now;
+        }
+
+        // Check unlocks and save less frequently
+        if (now - lastSaveCheckTime >= saveCheckInterval) {
+            checkUnlockConditions();
+            mettreAJourAffichageRessources(); // Assuming you'll create this function
+            saveGameState();
+            lastSaveCheckTime = now;
+        }
+    }, gameTickInterval);
+
+    function mettreAJourAffichageRessources() {
+        nombreElevesDisplay.textContent = formatNumber(nombreEleves, 0);
+        nombreClassesDisplay.textContent = formatNumber(nombreClasses, 0);
+        imagesDisplay.textContent = formatNumber(images, 0);
+        nombreprofesseurDisplay.textContent = formatNumber(nombreprofesseur, 0);
+        // ... Add updates for all your other resource displays here ...
+    }
+
+    // Make sure mettreAJourAffichage() only handles non-resource related display updates now
+    function mettreAJourAffichage() {
+        // ... Update things like modal content, quest progress, etc. ...
+    }
 
         // --- Initialisation ---
         window.onload = function () {
