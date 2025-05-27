@@ -4378,4 +4378,37 @@
             }
             if (Date.now() % 1000 < 100) {
                 checkUnlockConditions();
-                mettreAJourAffich
+                mettreAJourAffichage();
+                saveGameState();
+            }
+        }, 100);
+
+        // --- Initialisation ---
+        window.onload = function () {
+            loadGameState();
+            coutEleveActuel = calculateNextEleveCost(nombreEleves);
+            coutClasseActuel = calculateNextClasseCost(nombreClasses);
+            coutEcoleActuel = calculateNextEcoleCost(schoolCount);
+            coutLyceeActuel = calculateNextLyceeCost(nombreLycees);
+            coutCollegeActuel = calculateNextCollegeCost(nombreColleges);
+
+            applyAllSkillEffects();
+            mettreAJourAffichage();
+            checkUnlockConditions();
+            updateMultiplierButtons();
+            updateAutomationButtonStates();
+            updateSettingsButtonStates();
+            renderQuests();
+            renderAchievements();
+            renderSkillsMenu(); // Initial render of the new skill menu
+
+            // Ensure the Studies tab is open by default on load
+            openTab(studiesMainContainer);
+
+            showNotification("Bienvenue dans le Cahier d'Étude Avancé ! Prêt à apprendre ?", 5000);
+        };
+
+    </script>
+</body>
+
+</html>
