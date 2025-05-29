@@ -10,8 +10,8 @@
 
 // Dépendances :
 // - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
-//                           pour la gestion des grands nombres.
-//                           Les valeurs numériques sont converties en objets Decimal ici.
+//                           pour la gestion des grands nombres.
+//                           Les valeurs numériques sont converties en objets Decimal ici.
 
 // Variables Clés Définies et Exportées :
 // - initialCosts : Coûts de base des éléments achetables.
@@ -21,5 +21,7 @@
 // - questsData : Définitions de toutes les quêtes.
 // - bonusPointThresholds : Seuils de Bons Points pour gagner des points de compétence d'études.
 // - prime_PA : Valeur de base pour le calcul des Points d'Ascension.
+// - calculateNextImageCost : Fonction pour calculer le coût de la prochaine image.
+// - calculateAutomationCost : Fonction pour calculer le coût de la prochaine automatisation.
 
 // --- Coûts Initiaux de Base ---

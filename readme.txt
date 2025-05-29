@@ -88,6 +88,72 @@ Notes Spécifiques :
 
 
 
+---------------------------- Fiche Mémo : style.css --------------------------------
+
+// Description : Ce fichier CSS est le cœur de la présentation visuelle du jeu.
+// Il définit l'apparence de tous les éléments HTML, y compris la mise en page générale,
+// les couleurs, la typographie, les transitions, et les styles spécifiques pour les
+// différents composants de l'interface utilisateur (menus, boutons, modales, sections de jeu, etc.).
+// Il inclut également des styles pour le thème jour/nuit et assure la réactivité de l'interface.
+
+// Dépendances :
+// - index.html : Ce fichier est chargé par index.html via la balise <link>.
+// Il ne dépend pas directement de fichiers JavaScript pour son fonctionnement,
+// mais ses règles CSS sont appliquées aux éléments DOM définis dans index.html
+// et manipulés par les scripts JavaScript.
+
+// Variables Clés :
+// Le CSS ne contient pas de "variables" au sens de JavaScript, mais il utilise des sélecteurs
+// (IDs et classes) pour cibler et styliser des éléments spécifiques.
+// Les couleurs et autres propriétés sont définies directement dans les règles.
+
+// Fonctions Clés :
+// Le CSS n'a pas de "fonctions" au sens de la programmation.
+// Son rôle est d'appliquer des règles de style déclaratives aux éléments HTML.
+
+// Éléments DOM Clés (référencés par ID/Classe) :
+// - body: Styles de base pour l'ensemble de la page (police, arrière-plan, couleur de texte, transitions pour le thème).
+// - .main-game-wrapper: Conteneur principal pour la mise en page flexible du jeu.
+// - #side-menu: Menu de navigation latéral.
+// - .container: Conteneur principal pour l'affichage des ressources et le bouton de clic.
+// - button: Styles généraux pour tous les boutons interactifs.
+// - button.can-afford, button.cannot-afford: Styles conditionnels pour les boutons en fonction de l'accessibilité des achats.
+// - button.automation-active: Style pour les boutons d'automatisation actifs.
+// - .ressources, .resource-group, .production-inline: Styles pour l'affichage des ressources principales.
+// - #notifications-container, .notification-item: Conteneur et styles des notifications pop-up.
+// - .bons-points-color, .images-color, .eleves-color, .Professeur-color, .ascension-points-color, .prestige-points-color, .warning-color, .info-color: Classes pour les couleurs spécifiques aux ressources et messages.
+// - #confirmResetModal, #confirmAscensionModal, #confirmSkillResetModal, #achievementDetailModal, #confirmPrestigeModal, #statsModal: Styles pour les modales (fenêtres pop-up).
+// - .modal-content, .modal-buttons, .modal-checkbox: Styles des éléments internes des modales.
+// - #skillsContainer, #settingsContainer, #ascensionMenuContainer, #automationMainContainer, #studiesMainContainer, #questsContainer, #achievementsContainer, #prestigeMenuContainer: Conteneurs des différentes sections du jeu.
+// - .skill-panel, .skill-tier, .skill-boxes-wrapper, .skill-box, .skill-box.locked, .skill-box.unlocked, .skill-box.max-level, .skill-box.secret-skill: Styles pour l'arbre de compétences.
+// - .skill-box .tooltip-text: Styles pour les infobulles des compétences.
+// - #purchaseMultiplierSelection, .multiplier-button, .multiplier-button.active: Styles pour les boutons de sélection de multiplicateur d'achat.
+// - #achievementsGrid, .achievement-item, .achievement-item.unlocked, .achievement-tooltip: Styles pour la grille des succès et leurs infobulles.
+// - #page-footer: Pied de page du jeu.
+// - .quest-item, .quest-item.completed: Styles pour les éléments de quête.
+// - #minimalistResources: Panneau d'affichage minimaliste des ressources.
+// - #statsModal .stats-category: Catégories de statistiques dans la modale des statistiques.
+// - body.dark-theme: Sélecteur clé pour appliquer les styles du thème nuit à l'ensemble de l'application.
+
+// Logique Générale :
+// Ce fichier fournit la couche de présentation du jeu.
+// Il utilise des sélecteurs CSS pour cibler des éléments HTML spécifiques et leur appliquer des styles visuels.
+// Les styles sont conçus pour être cohérents et réactifs, s'adaptant à différentes tailles d'écran.
+// Le thème nuit est géré par une classe dark-theme ajoutée dynamiquement au body via JavaScript,
+// permettant une transition visuelle fluide.
+
+// Notes Spécifiques :
+// - Thème Nuit : La classe dark-theme est ajoutée ou retirée du body par le JavaScript
+// (`settings.js` et `core.js`) pour basculer entre les thèmes.
+// - Réactivité : L'utilisation de flexbox (display: flex, flex-wrap) et de pourcentages
+// (width: 100%, flex: 1 1 calc(50% - 10px)) permet au jeu de s'adapter aux différentes tailles d'écran.
+// - Animations/Transitions : Des transitions CSS sont utilisées pour des effets visuels doux,
+// notamment pour les boutons (transition: background-color, transform, border-color) et les notifications
+// (animation: fadeInOutSmooth).
+// - Infobulles : Les infobulles pour les compétences et les succès sont stylisées pour apparaître
+// au survol ou au clic, offrant des informations supplémentaires sans encombrer l'interface.
+
+
 
 ------------------  Fiche Mémo : core.js -----------------------------
 // Description : Ce fichier est le cœur de la logique du jeu. Il gère l'état global du jeu,
@@ -122,7 +188,7 @@ Notes Spécifiques :
 
 
 
------------------------- Fiche Mémo : data.js ---------------------------------------
+--------------------------- Fiche Mémo : data.js-------------------------------
 // Description : Ce fichier centralise toutes les données statiques et de configuration du jeu.
 // Cela inclut les coûts de base des améliorations, les productions de base,
 // les définitions complètes des compétences (études, ascension, prestige),
@@ -134,8 +200,8 @@ Notes Spécifiques :
 
 // Dépendances :
 // - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
-//                           pour la gestion des grands nombres.
-//                           Les valeurs numériques sont converties en objets Decimal ici.
+//                           pour la gestion des grands nombres.
+//                           Les valeurs numériques sont converties en objets Decimal ici.
 
 // Variables Clés Définies et Exportées :
 // - initialCosts : Coûts de base des éléments achetables.
@@ -145,9 +211,10 @@ Notes Spécifiques :
 // - questsData : Définitions de toutes les quêtes.
 // - bonusPointThresholds : Seuils de Bons Points pour gagner des points de compétence d'études.
 // - prime_PA : Valeur de base pour le calcul des Points d'Ascension.
+// - calculateNextImageCost : Fonction pour calculer le coût de la prochaine image.
+// - calculateAutomationCost : Fonction pour calculer le coût de la prochaine automatisation.
 
 // --- Coûts Initiaux de Base ---
-
 
 
 
