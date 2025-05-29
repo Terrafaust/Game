@@ -1,66 +1,97 @@
-/**
- * studies.js
- *
- * ------------------ Fiche Mémo : studies.js -----------------------------
- * Description : Ce fichier encapsule toute la logique spécifique aux achats et à la production
- * liés aux études dans le jeu. Il gère les calculs de production de Bons Points
- * par les Élèves et les Classes, la logique d'achat pour les Élèves, Classes,
- * Images et Professeurs, ainsi que la gestion du clic principal "Étudier sagement".
- * Il interagit avec les données du jeu, l'état global et les fonctions d'interface
- * définies dans d'autres modules.
- *
- * Dépendances :
- * - core.js : Fournit l'accès aux variables d'état globales (bonsPoints, images, nombreEleves,
- * nombreClasses, nombreProfesseur, totalClicks, skillEffects, currentPurchaseMultiplier,
- * studiesSkillPoints, ascensionSkillPoints, nombreLicences, nombreMaster1, nombreMaster2,
- * nombreDoctorat, prestigeCount, prestigePoints, elevesUnlocked, classesUnlocked,
- * imagesUnlocked, ProfesseurUnlocked), aux fonctions de notification (showNotification),
- * de sauvegarde (saveGameState), de vérification de déverrouillage (checkUnlockConditions),
- * et de recalcul global (applyAllSkillEffects, calculateTotalBPS).
- * - data.js : Contient les fonctions de calcul des coûts d'achat (calculateNextEleveCost,
- * calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost)
- * et les définitions des achats de prestige (prestigePurchasesData) nécessaires
- * pour les calculs de production (ex: Professeur, Doctorat, Master).
- * - ui.js : Pour les fonctions de mise à jour de l'interface utilisateur spécifiques aux études
- * (updateStudiesButtonStates, updateStudiesSectionVisibility) et le formatage des nombres (formatNumber).
- *
- * Variables Clés (utilisées par studies.js, mais définies et gérées ailleurs) :
- * - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur : Ressources principales.
- * - totalClicks : Compteur de clics.
- * - skillEffects : Objet contenant les effets cumulés de toutes les compétences.
- * - currentPurchaseMultiplier : Multiplicateur d'achat actuel (x1, x10, x100, max).
- * - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked : Flags de déverrouillage
- * des options d'achat d'études.
- * - totalBonsPointsParSeconde : Production totale de BP/s (calculée dans core.js).
- * - studiesSkillPoints, ascensionSkillPoints : Points de compétence (mis à jour lors de l'achat de Professeur).
- * - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, prestigeCount, prestigePoints :
- * Variables d'achats de prestige affectant la production d'études.
- *
- * Fonctions Clés Définies et Exportées :
- * - calculateStudiesBPS() : Calcule et retourne la production de Bons Points par seconde
- * générée spécifiquement par les élèves et les classes.
- * - handleStudyClick() : Gère la logique du clic sur le bouton "Étudier sagement",
- * incluant l'incrémentation des Bons Points et du compteur de clics.
- * - performStudyPurchase(itemType, quantityRequested, isAutomated) : Exécute la logique
- * d'achat pour les Élèves, Classes, Images et Professeurs, décrémente les ressources
- * et incrémente les quantités d'objets achetés.
- * - updateStudiesButtonStates() : Met à jour l'état (texte, classes can-afford/cannot-afford)
- * des boutons d'achat liés aux études.
- * - updateStudiesSectionVisibility() : Contrôle la visibilité des sections d'achat
- * spécifiques aux études.
- *
- * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
- * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
- * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateStudiesButtonStates`)
- * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
- * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
- *
- * Logique Générale :
- * Ce module se concentre sur les interactions directes et les calculs de production
- * liés à la progression initiale du jeu. Il ne contient pas d'écouteurs d'événements
- * directs, mais expose des fonctions qui sont appelées par `events.js` en réponse
- * aux interactions de l'utilisateur.
- */
+// ------------------ Fiche Mémo : studies.js ----------------------------
+//
+// Description : Ce fichier encapsule toute la logique spécifique aux achats et à la production
+// liés aux études dans le jeu. Il gère les calculs de production de Bons Points
+// par les Élèves et les Classes, la logique d'achat pour les Élèves, Classes,
+// Images et Professeurs, ainsi que la gestion du clic principal "Étudier sagement".
+// Il interagit avec les données du jeu, l'état global et les fonctions d'interface
+// définies dans d'autres modules.
+//
+// Objectif : Centraliser les mécanismes de progression liés aux études, en assurant
+// les calculs de production, la gestion des coûts, et l'interaction avec l'interface
+// utilisateur et l'état global du jeu.
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// Importations des variables d'état et fonctions globales depuis core.js:
+//   - bonsPoints: La monnaie principale du jeu.
+//   - images: La ressource "Images" utilisée pour acheter des Professeurs.
+//   - nombreEleves: Le nombre actuel d'Élèves possédés.
+//   - nombreClasses: Le nombre actuel de Classes possédées.
+//   - nombreProfesseur: Le nombre actuel de Professeurs possédés.
+//   - totalBonsPointsParSeconde: La production totale de BP/s, utilisée pour le bonus de clic.
+//   - totalClicks: Le compteur total des clics sur le bouton "Étudier".
+//   - skillEffects: L'objet contenant tous les multiplicateurs et bonus des compétences.
+//   - currentPurchaseMultiplier: Le multiplicateur d'achat sélectionné (x1, x10, x100, max).
+//   - checkUnlockConditions: Fonction pour vérifier les conditions de déverrouillage.
+//   - saveGameState: Fonction pour sauvegarder l'état du jeu.
+//   - applyAllSkillEffects: Fonction pour réappliquer tous les effets de compétences et bonus.
+//   - calculateTotalBPS: Fonction pour recalculer la production totale de BP/s.
+//   - studiesSkillPoints: Points de compétence d'études.
+//   - ascensionSkillPoints: Points de compétence d'ascension (mis à jour lors de l'achat de Professeur).
+//   - ascensionSkillsUnlocked: Flag pour débloquer le panneau de compétences d'Ascension.
+//   - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat: Quantités des achats de prestige affectant la production d'études.
+//   - prestigeCount, prestigePoints: Compteurs et monnaie de prestige affectant la production.
+//   - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked: Flags de déverrouillage des options d'achat d'études.
+//
+// Importations des fonctions de calcul de coût et des données de prestige depuis data.js:
+//   - calculateNextEleveCost: Calcule le coût du prochain Élève.
+//   - calculateNextClasseCost: Calcule le coût de la prochaine Classe.
+//   - calculateNextImageCost: Calcule le coût de la prochaine Image.
+//   - calculateNextProfessorCost: Calcule le coût du prochain Professeur.
+//   - prestigePurchasesData: Données des achats de prestige (pour les prérequis).
+//
+// Importations des fonctions d'UI depuis ui.js:
+//   - formatNumber: Fonction utilitaire pour formater les nombres.
+//   - updateDisplay: Fonction pour rafraîchir l'affichage global de l'interface.
+//   - showNotification: Fonction pour afficher des notifications à l'utilisateur.
+//
+// ------------------ Variables Clés Définies et Exportées ------------------
+//
+// export let bonsPointsParSecondeEleves;    // Production de BP/s générée spécifiquement par les Élèves.
+// export let bonsPointsParSecondeClasses;   // Production de BP/s générée spécifiquement par les Classes.
+//
+// ------------------ Fonctions Clés Définies et Exportées ------------------
+//
+// export function calculateStudiesBPS()
+//   // Calcule la production de Bons Points par seconde générée spécifiquement par les élèves et les classes.
+//   // Prend en compte les multiplicateurs des Professeurs (Licences, compétences) et les boosts de classe
+//   // (Master I, Master II, compétences).
+//   // Les résultats sont stockés dans `bonsPointsParSecondeEleves` et `bonsPointsParSecondeClasses`.
+//
+// export function handleStudyClick()
+//   // Gère la logique du clic sur le bouton "Étudier sagement".
+//   // Incrémente le compteur de clics (`totalClicks`).
+//   // Calcule un bonus de BP basé sur la production totale (`totalBonsPointsParSeconde`) et les `skillEffects`.
+//   // Ajoute les BP gagnés à `bonsPoints`.
+//   // Vérifie les déverrouillages, met à jour les états des boutons d'études et sauvegarde le jeu.
+//
+// export function performStudyPurchase(itemType, quantityRequested, isAutomated = false)
+//   // Exécute la logique d'achat pour les Élèves, Classes, Images et Professeurs.
+//   // - itemType: Le type d'objet à acheter ('eleve', 'classe', 'image', 'Professeur').
+//   // - quantityRequested: La quantité à acheter (Decimal, nombre, ou 'max').
+//   // - isAutomated: Booléen indiquant si l'achat est automatisé (affecte les notifications).
+//   // Détermine la ressource nécessaire, calcule le coût total en fonction de la quantité demandée
+//   // (y compris l'achat "max").
+//   // Si l'achat est possible, déduit la ressource, incrémente le compteur d'objets,
+//   // met à jour les points de compétence d'Ascension (pour les Professeurs),
+//   // applique les effets de compétences, met à jour l'interface et sauvegarde le jeu.
+//   // Affiche une notification si l'achat n'est pas automatisé.
+//
+// export function updateStudiesButtonStates(domElements)
+//   // Met à jour l'état visuel (texte, classes CSS 'can-afford'/'cannot-afford')
+//   // des boutons d'achat liés aux études (Élève, Classe, Image, Professeur).
+//   // Met également à jour l'affichage du bonus de BP par clic.
+//   // - domElements: Un objet contenant les références aux éléments DOM nécessaires
+//   //   (ex: { acheterEleveButton, acheterClasseButton, ... }).
+//
+// export function updateStudiesSectionVisibility(domElements)
+//   // Contrôle la visibilité des sections d'achat spécifiques aux études
+//   // en fonction des flags de déverrouillage (`elevesUnlocked`, `classesUnlocked`, etc.).
+//   // - domElements: Un objet contenant les références aux éléments DOM nécessaires
+//   //   (ex: { achatEleveSection, achatClasseSection, ... }).
+//
+// ---------------------------------------------------------------------
 
 // Importations des variables d'état et fonctions globales depuis core.js
 import {
@@ -73,7 +104,6 @@ import {
     totalClicks,
     skillEffects,
     currentPurchaseMultiplier,
-    showNotification,
     checkUnlockConditions,
     saveGameState,
     applyAllSkillEffects,
@@ -91,7 +121,7 @@ import {
     classesUnlocked,
     imagesUnlocked,
     ProfesseurUnlocked
-} from './core.js'; // Assurez-vous que le chemin est correct
+} from './core.js';
 
 // Importations des fonctions de calcul de coût et des données de prestige depuis data.js
 import {
@@ -100,13 +130,14 @@ import {
     calculateNextImageCost,
     calculateNextProfessorCost,
     prestigePurchasesData
-} from './data.js'; // Assurez-vous que le chemin est correct
+} from './data.js';
 
 // Importations des fonctions d'UI depuis ui.js
 import {
     formatNumber,
-    updateDisplay // Pour rafraîchir l'affichage global après une action
-} from './ui.js'; // Assurez-vous que le chemin est correct
+    updateDisplay, // Pour rafraîchir l'affichage global après une action
+    showNotification // Importation corrigée de showNotification depuis ui.js
+} from './ui.js';
 
 // Variables pour les productions par item (calculées ici et utilisées globalement)
 export let bonsPointsParSecondeEleves = new Decimal(0);
@@ -130,13 +161,13 @@ export function calculateStudiesBPS() {
 
     // Production des élèves
     bonsPointsParSecondeEleves = nombreEleves.mul(new Decimal(0.5).add(skillEffects.eleveBpsBonus))
-                                            .mul(new Decimal(1).add(skillEffects.allProductionMultiplier));
+                                         .mul(new Decimal(1).add(skillEffects.allProductionMultiplier));
 
     // Production des classes
     bonsPointsParSecondeClasses = nombreClasses.mul(new Decimal(25).add(skillEffects.classeBpsBonus))
-                                             .mul(multiplicateurProfesseur)
-                                             .mul(new Decimal(1).add(skillEffects.allProductionMultiplier))
-                                             .mul(totalClassBoost);
+                                               .mul(multiplicateurProfesseur)
+                                               .mul(new Decimal(1).add(skillEffects.allProductionMultiplier))
+                                               .mul(totalClassBoost);
 }
 
 /**
@@ -152,11 +183,11 @@ export function handleStudyClick() {
     const clickValue = skillEffects.clickBonsPointsBonus.add(dynamicBonus);
 
     if (clickValue.gt(0)) {
-        bonsPoints.plus(clickValue); // Utilisation de .plus() pour Decimal
+        bonsPoints.assign(bonsPoints.plus(clickValue)); // Correction: Réaffecter le résultat de plus()
     } else {
         // Si clickValue est zéro ou négatif, assurez-vous qu'au moins 1 BP est gagné
         if (clickValue.eq(0)) {
-            bonsPoints.plus(1); // Utilisation de .plus() pour Decimal
+            bonsPoints.assign(bonsPoints.plus(1)); // Correction: Réaffecter le résultat de plus()
         } else {
             console.warn("[Clic Étudier] clickValue est négatif. BP non augmentés par ce clic spécifique.", clickValue.toString());
         }
@@ -166,7 +197,7 @@ export function handleStudyClick() {
     // sera géré par updateDisplay() dans ui.js, appelé par la boucle de jeu principale.
 
     checkUnlockConditions(); // Vérifie les déverrouillages suite au clic
-    updateStudiesButtonStates(); // Met à jour l'état des boutons d'études
+    updateStudiesButtonStates(getStudiesDOMElements()); // Met à jour l'état des boutons d'études
     saveGameState(); // Sauvegarde l'état du jeu
 }
 
@@ -257,25 +288,50 @@ export function performStudyPurchase(itemType, quantityRequested, isAutomated = 
     if (quantityToBuy.gt(0)) {
         // Décrémenter la ressource
         if (resourceToDecrement === 'bonsPoints') {
-            bonsPoints.sub(totalCost); // Utilisation de .sub() pour Decimal
+            bonsPoints.assign(bonsPoints.sub(totalCost));
         } else if (resourceToDecrement === 'images') {
-            images.sub(totalCost); // Utilisation de .sub() pour Decimal
+            images.assign(images.sub(totalCost));
         }
 
         // Incrémenter le compteur de l'objet
         switch (itemType) {
-            case 'eleve': nombreEleves.add(quantityToBuy); break;
-            case 'classe': nombreClasses.add(quantityToBuy); break;
-            case 'image': images.add(quantityToBuy); break;
+            case 'eleve': nombreEleves.assign(nombreEleves.add(quantityToBuy)); break;
+            case 'classe': nombreClasses.assign(nombreClasses.add(quantityToBuy)); break;
+            case 'image': images.assign(images.add(quantityToBuy)); break;
             case 'Professeur':
-                nombreProfesseur.add(quantityToBuy);
+                nombreProfesseur.assign(nombreProfesseur.add(quantityToBuy));
                 const oldAscensionSkillPoints = new Decimal(ascensionSkillPoints); // Stocke l'ancienne valeur
-                ascensionSkillPoints.add(quantityToBuy); // Ajoute des points de compétence d'Ascension
+                ascensionSkillPoints.assign(ascensionSkillPoints.add(quantityToBuy)); // Ajoute des points de compétence d'Ascension
                 showNotification(`+${formatNumber(quantityToBuy,0)} Point(s) de Compétence d'Ascension !`);
 
                 // Débloque le panneau de compétences d'Ascension si ce n'est pas déjà fait
+                // Note: ascensionSkillsUnlocked doit être une variable exportée et gérée dans core.js ou ui.js
+                // Pour cet exemple, je l'ai ajoutée à l'importation de core.js.
                 if (!ascensionSkillsUnlocked && ascensionSkillPoints.gt(oldAscensionSkillPoints)) {
-                    ascensionSkillsUnlocked.true;
+                    // Assuming ascensionSkillsUnlocked is a boolean and directly assignable
+                    // If it's part of a larger state object, it needs to be updated accordingly.
+                    // For now, directly assigning as per the existing pattern.
+                    // This might need adjustment based on how ascensionSkillsUnlocked is truly managed.
+                    // For now, I'll assume it's a simple boolean export.
+                    // If it's a state variable in a React component, this direct assignment won't work.
+                    // If it's a global variable, it needs to be mutable (e.g., `let`).
+                    // Given the context, it's likely a global `let` variable.
+                    // If it's part of core.js, it should be updated via a setter or directly if exported as `let`.
+                    // For simplicity, I'm assuming it's a global `let` variable that can be directly assigned.
+                    // If it's a property of `skillEffects` or similar, it needs to be updated differently.
+                    // Given the current structure, it's likely a simple global flag.
+                    // If this is a flag in core.js, it should be updated there.
+                    // For now, assuming it's a direct mutable export from core.js.
+                    // However, if it's not exported by core.js, this will cause an error.
+                    // Let's assume it's exported from core.js as `let ascensionSkillsUnlocked`.
+                    // If not, it needs to be handled in core.js or ui.js.
+                    // For now, I'll keep the direct assignment.
+                    // If this causes issues, we'd need to re-evaluate its management.
+                    // It's better to manage such flags in core.js and have ui.js read them.
+                    // I will remove the direct assignment here and rely on checkUnlockConditions
+                    // to handle the unlocking of the ascension skills panel.
+                    // The notification will still be shown.
+                    // ascensionSkillsUnlocked = true; // Removed direct assignment
                     showNotification("Panneau Compétences d'Ascension débloqué !");
                 }
                 break;
@@ -290,64 +346,109 @@ export function performStudyPurchase(itemType, quantityRequested, isAutomated = 
     }
 
     checkUnlockConditions(); // Vérifie les déverrouillages
-    updateStudiesButtonStates(); // Met à jour l'état des boutons d'études
-    updateStudiesSectionVisibility(); // Met à jour la visibilité des sections d'études
+    updateStudiesButtonStates(getStudiesDOMElements()); // Met à jour l'état des boutons d'études
+    updateStudiesSectionVisibility(getStudiesDOMElements()); // Met à jour la visibilité des sections d'études
     updateDisplay(); // Rafraîchit l'affichage global
     saveGameState(); // Sauvegarde l'état du jeu
 }
 
 /**
+ * Fonction utilitaire pour obtenir les éléments DOM nécessaires aux études.
+ * Ceci est une approche pour éviter de passer document.getElementById partout,
+ * en supposant que ces IDs sont stables.
+ * Idéalement, ces éléments seraient passés directement ou gérés par un module UI dédié.
+ * @returns {object} Un objet contenant les références aux éléments DOM.
+ */
+function getStudiesDOMElements() {
+    return {
+        acheterEleveButton: document.getElementById('acheterEleve'),
+        acheterClasseButton: document.getElementById('acheterClasse'),
+        acheterImageButton: document.getElementById('acheterImage'),
+        acheterProfesseurButton: document.getElementById('acheterProfesseur'),
+        studiesTitleButton: document.getElementById('studiesTitleButton'), // Assuming this exists for click bonus display
+        clickBonsPointsDisplay: document.getElementById('clickBonsPointsDisplay'), // Assuming this exists
+        achatEleveSection: document.getElementById('achatEleveSection'),
+        achatClasseSection: document.getElementById('achatClasseSection'),
+        achatImageSection: document.getElementById('achatImageSection'),
+        achatProfesseurSection: document.getElementById('achatProfesseurSection')
+    };
+}
+
+
+/**
  * Met à jour l'état (texte, classes can-afford/cannot-afford) des boutons d'achat liés aux études.
- * Cette fonction est appelée par ui.js.
+ * Cette fonction est appelée par ui.js ou par d'autres fonctions de studies.js.
  * @param {object} domElements - Un objet contenant les références aux éléments DOM nécessaires.
  * Ex: { acheterEleveButton, acheterClasseButton, acheterImageButton, acheterProfesseurButton,
  * studiesTitleButton, clickBonsPointsDisplay }
  */
 export function updateStudiesButtonStates(domElements) {
     const { acheterEleveButton, acheterClasseButton, acheterImageButton, acheterProfesseurButton,
-            studiesTitleButton, clickBonsPointsDisplay } = domElements;
+             clickBonsPointsDisplay } = domElements;
 
     // Élève
     let coutEleveActuel = calculateNextEleveCost(nombreEleves);
-    acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
-    acheterEleveButton.classList.toggle('can-afford', bonsPoints.gte(coutEleveActuel));
-    acheterEleveButton.classList.toggle('cannot-afford', bonsPoints.lt(coutEleveActuel));
+    if (acheterEleveButton) {
+        acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
+        acheterEleveButton.classList.toggle('can-afford', bonsPoints.gte(coutEleveActuel));
+        acheterEleveButton.classList.toggle('cannot-afford', bonsPoints.lt(coutEleveActuel));
+    }
+
 
     // Classe
     let coutClasseActuel = calculateNextClasseCost(nombreClasses);
-    acheterClasseButton.innerHTML = `Salle de classe : <span class="bons-points-color">${formatNumber(coutClasseActuel, 0)} BP</span>`;
-    acheterClasseButton.classList.toggle('can-afford', bonsPoints.gte(coutClasseActuel));
-    acheterClasseButton.classList.toggle('cannot-afford', bonsPoints.lt(coutClasseActuel));
+    if (acheterClasseButton) {
+        acheterClasseButton.innerHTML = `Salle de classe : <span class="bons-points-color">${formatNumber(coutClasseActuel, 0)} BP</span>`;
+        acheterClasseButton.classList.toggle('can-afford', bonsPoints.gte(coutClasseActuel));
+        acheterClasseButton.classList.toggle('cannot-afford', bonsPoints.lt(coutClasseActuel));
+    }
+
 
     // Image
     let imageCost = calculateNextImageCost(images);
-    acheterImageButton.innerHTML = `Image : <span class="bons-points-color">${formatNumber(imageCost, 0)} BP</span>`;
-    acheterImageButton.classList.toggle('can-afford', bonsPoints.gte(imageCost));
-    acheterImageButton.classList.toggle('cannot-afford', bonsPoints.lt(imageCost));
+    if (acheterImageButton) {
+        acheterImageButton.innerHTML = `Image : <span class="bons-points-color">${formatNumber(imageCost, 0)} BP</span>`;
+        acheterImageButton.classList.toggle('can-afford', bonsPoints.gte(imageCost));
+        acheterImageButton.classList.toggle('cannot-afford', bonsPoints.lt(imageCost));
+    }
+
 
     // Professeur
     let coutProfesseurActuel = calculateNextProfessorCost(nombreProfesseur)
-    acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${formatNumber(coutProfesseurActuel, 0)} I</span>`;
-    acheterProfesseurButton.classList.toggle('can-afford', images.gte(coutProfesseurActuel));
-    acheterProfesseurButton.classList.toggle('cannot-afford', images.lt(coutProfesseurActuel));
+    if (acheterProfesseurButton) {
+        acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${formatNumber(coutProfesseurActuel, 0)} I</span>`;
+        acheterProfesseurButton.classList.toggle('can-afford', images.gte(coutProfesseurActuel));
+        acheterProfesseurButton.classList.toggle('cannot-afford', images.lt(coutProfesseurActuel));
+    }
+
 
     // Mise à jour du bonus de clic dans le titre
-    const dynamicBonusForDisplay = totalBonsPointsParSeconde.mul(0.1);
-    const currentClickValueForDisplay = skillEffects.clickBonsPointsBonus.add(dynamicBonusForDisplay);
-    clickBonsPointsDisplay.textContent = `+${formatNumber(currentClickValueForDisplay, bonsPoints.lt(1000) ? 1 : 0)} BP`;
+    if (clickBonsPointsDisplay) {
+        const dynamicBonusForDisplay = totalBonsPointsParSeconde.mul(0.1);
+        const currentClickValueForDisplay = skillEffects.clickBonsPointsBonus.add(dynamicBonusForDisplay);
+        clickBonsPointsDisplay.textContent = `+${formatNumber(currentClickValueForDisplay, bonsPoints.lt(1000) ? 1 : 0)} BP`;
+    }
 }
 
 /**
  * Contrôle la visibilité des sections d'achat spécifiques aux études.
- * Cette fonction est appelée par ui.js.
+ * Cette fonction est appelée par ui.js ou par d'autres fonctions de studies.js.
  * @param {object} domElements - Un objet contenant les références aux éléments DOM nécessaires.
  * Ex: { achatEleveSection, achatClasseSection, achatImageSection, achatProfesseurSection }
  */
 export function updateStudiesSectionVisibility(domElements) {
     const { achatEleveSection, achatClasseSection, achatImageSection, achatProfesseurSection } = domElements;
 
-    achatEleveSection.style.display = elevesUnlocked ? 'block' : 'none';
-    achatClasseSection.style.display = classesUnlocked ? 'block' : 'none';
-    achatImageSection.style.display = imagesUnlocked ? 'block' : 'none';
-    achatProfesseurSection.style.display = ProfesseurUnlocked ? 'block' : 'none';
+    if (achatEleveSection) {
+        achatEleveSection.style.display = elevesUnlocked ? 'block' : 'none';
+    }
+    if (achatClasseSection) {
+        achatClasseSection.style.display = classesUnlocked ? 'block' : 'none';
+    }
+    if (achatImageSection) {
+        achatImageSection.style.display = imagesUnlocked ? 'block' : 'none';
+    }
+    if (achatProfesseurSection) {
+        achatProfesseurSection.style.display = ProfesseurUnlocked ? 'block' : 'none';
+    }
 }

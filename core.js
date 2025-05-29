@@ -28,6 +28,7 @@
 //                    permanentBpsBonusFromAchievements).
 
 // Variables Globales (état du jeu) - Exportées pour être accessibles par d'autres modules
+// Variables Globales (état du jeu) - Exportées pour être accessibles par d'autres modules
 export let bonsPoints;
 export let totalBonsPointsParSeconde; // Production totale de BP/s
 export let bonsPointsTotal; // Total cumulé de BP gagnés (pour les succès/stats)
@@ -164,9 +165,9 @@ import { checkQuests, updateQuestProgress, questsData, completedQuests, paMultip
 import { checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements } from './achievements.js';
 import { updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
          updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
-         openTab, closeStatsModal, showNotification, updateStatsDisplay,
-         showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip } from './ui.js';
-import { prime_PA } from './data.js'; // prime_PA est défini dans data.js
+         openTab, closeStatsModal, updateStatsDisplay,
+         showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, applyAllSkillEffects, updateCachedMultipliers } from './ui.js'; // Removed showNotification
+import { prime_PA, prestigePurchasesData } from './data.js'; // prime_PA et prestigePurchasesData sont définis dans data.js
 
 // --- Fonctions Utilitaires ---
 
@@ -198,7 +199,240 @@ export function formatNumber(num, decimalPlaces = 2, exponentThreshold = 6) {
     return num.toExponential(decimalPlaces);
 }
 
-// --- Fonctions de Sauvegarde et Chargement ---
+/**
+ * Affiche une notification temporaire à l'utilisateur.
+ * @param {string} message Le message à afficher.
+ * @param {number} duration La durée d'affichage de la notification en ms.
+ */
+export function showNotification(message, duration = 3000) {
+    const notificationsContainer = document.getElementById('notifications-container');
+    if (!notificationsContainer) {
+        console.warn("Notifications container not found.");
+        return;
+    }
+    const notification = document.createElement('div');
+    notification.classList.add('notification-item');
+    notification.textContent = message;
+    notificationsContainer.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 500);
+    }, duration - 500);
+}
+
+
+/**
+ * Gère l'achat d'un élément du jeu.
+ * @param {string} itemType Le type d'élément à acheter (e.g., 'eleve', 'classe', 'image', 'Professeur').
+ * @param {Decimal|string} quantityRequested La quantité à acheter (Decimal, '1', '10', '100', 'max').
+ * @param {boolean} isAutomated Indique si l'achat est effectué par l'automatisation.
+ */
+export function performPurchase(itemType, quantityRequested, isAutomated = false) {
+    let currentResource, costFunction, itemCounter, resourceToDecrement;
+    let totalCostPA = new Decimal(0); // Track total PA cost for automation purchases
+    let totalCostPP = new Decimal(0); // Track total PP cost for prestige purchases
+    // First, check for and apply any new achievement multipliers before calculating cost
+    checkAchievements();
+    switch (itemType) {
+        case 'eleve':
+            currentResource = bonsPoints;
+            costFunction = calculateNextEleveCost;
+            itemCounter = nombreEleves;
+            resourceToDecrement = 'bonsPoints';
+            break;
+        case 'classe':
+            currentResource = bonsPoints;
+            costFunction = calculateNextClasseCost;
+            itemCounter = nombreClasses;
+            resourceToDecrement = 'bonsPoints';
+            break;
+        case 'image':
+            currentResource = bonsPoints;
+            costFunction = calculateNextImageCost;
+            itemCounter = images;
+            resourceToDecrement = 'bonsPoints';
+            break;
+        case 'Professeur':
+            currentResource = images;
+            costFunction = calculateNextProfessorCost;
+            itemCounter = nombreProfesseur;
+            resourceToDecrement = 'images';
+            break;
+        case 'ecole': // Added for école purchase
+            currentResource = ascensionPoints;
+            costFunction = calculateNextEcoleCost;
+            itemCounter = schoolCount;
+            resourceToDecrement = 'ascensionPoints';
+            break;
+        case 'lycee': // Added for lycee purchase
+            currentResource = ascensionPoints;
+            costFunction = calculateNextLyceeCost;
+            itemCounter = nombreLycees;
+            resourceToDecrement = 'ascensionPoints';
+            break;
+        case 'college': // Added for college purchase
+            currentResource = ascensionPoints;
+            costFunction = calculateNextCollegeCost;
+            itemCounter = nombreColleges;
+            resourceToDecrement = 'ascensionPoints';
+            break;
+        case 'licence':
+            currentResource = prestigePoints;
+            costFunction = calculateLicenceCost;
+            itemCounter = nombreLicences;
+            resourceToDecrement = 'prestigePoints';
+            break;
+        case 'master1':
+            currentResource = prestigePoints;
+            costFunction = calculateMaster1Cost;
+            itemCounter = nombreMaster1;
+            resourceToDecrement = 'prestigePoints';
+            break;
+        case 'master2':
+            currentResource = prestigePoints;
+            costFunction = calculateMaster2Cost;
+            itemCounter = nombreMaster2;
+            resourceToDecrement = 'prestigePoints';
+            break;
+        case 'doctorat':
+            currentResource = prestigePoints;
+            costFunction = calculateDoctoratCost;
+            itemCounter = nombreDoctorat;
+            resourceToDecrement = 'prestigePoints';
+            break;
+        case 'postDoctorat':
+            currentResource = prestigePoints;
+            costFunction = calculatePostDoctoratCost;
+            itemCounter = nombrePostDoctorat;
+            resourceToDecrement = 'prestigePoints';
+            break;
+        default:
+            return;
+    }
+
+    // Check prerequisites for prestige purchases
+    if (itemType === 'doctorat' && !prestigePurchasesData.find(p => p.id === 'doctorat').prerequisites()) {
+        showNotification("Conditions pour Doctorat non remplies (10 Prestiges nécessaires) !");
+        return;
+    }
+    if (itemType === 'postDoctorat' && !prestigePurchasesData.find(p => p.id === 'postDoctorat').prerequisites()) {
+        showNotification("Conditions pour Post-Doctorat non remplies (30 Prestiges, 100 Ascensions nécessaires) !");
+        return;
+    }
+
+    let quantityToBuy = new Decimal(0);
+    let currentCost = new Decimal(0);
+
+    if (quantityRequested === 'max') {
+        let tempItemCounter = itemCounter;
+        let tempResource = currentResource;
+
+        // Add a safety limit for max buy to prevent potential infinite loops or extreme calculations
+        const maxIterations = 100000; // Cap the number of items to check
+        let iterations = 0;
+
+        while (iterations < maxIterations) {
+            let costPerItem = costFunction(tempItemCounter); // Pass tempItemCounter to cost function
+            if (tempResource.gte(costPerItem)) {
+                tempResource = tempResource.sub(costPerItem);
+                tempItemCounter = tempItemCounter.add(1);
+                quantityToBuy = quantityToBuy.add(1);
+                currentCost = currentCost.add(costPerItem); // Accumulate total cost for 'max'
+                iterations++;
+            } else {
+                break; // Not enough resources
+            }
+        }
+    } else {
+        // For x1, x10, x100
+        let numToBuy = new Decimal(quantityRequested);
+        let tempItemCounter = itemCounter;
+        let tempResource = currentResource;
+        let totalCostForQuantity = new Decimal(0);
+
+        for (let i = 0; i < numToBuy.toNumber(); i++) {
+            let costPerItem = costFunction(tempItemCounter); // Pass tempItemCounter to cost function
+            if (tempResource.gte(costPerItem)) {
+                tempResource = tempResource.sub(costPerItem);
+                tempItemCounter = tempItemCounter.add(1);
+                totalCostForQuantity = totalCostForQuantity.add(costPerItem);
+                quantityToBuy = quantityToBuy.add(1);
+            } else {
+                break; // Cannot afford all requested items
+            }
+        }
+        currentCost = totalCostForQuantity;
+    }
+
+    if (quantityToBuy.gt(0)) {
+        // Decrement resource
+        if (resourceToDecrement === 'bonsPoints') bonsPoints = bonsPoints.sub(currentCost);
+        else if (resourceToDecrement === 'images') images = images.sub(currentCost);
+        else if (resourceToDecrement === 'ascensionPoints') ascensionPoints = ascensionPoints.sub(currentCost);
+        else if (resourceToDecrement === 'prestigePoints') prestigePoints = prestigePoints.sub(currentCost);
+
+        // Increment item counter
+        switch (itemType) {
+            case 'eleve':
+                nombreEleves = nombreEleves.add(quantityToBuy);
+                break;
+            case 'classe':
+                nombreClasses = nombreClasses.add(quantityToBuy);
+                break;
+            case 'image':
+                images = images.add(quantityToBuy);
+                break;
+            case 'Professeur':
+                nombreProfesseur = nombreProfesseur.add(quantityToBuy);
+                break;
+            case 'ecole':
+                schoolCount = schoolCount.add(quantityToBuy);
+                break;
+            case 'lycee':
+                nombreLycees = nombreLycees.add(quantityToBuy);
+                break;
+            case 'college':
+                nombreColleges = nombreColleges.add(quantityToBuy);
+                break;
+            case 'licence':
+                nombreLicences = nombreLicences.add(quantityToBuy);
+                break;
+            case 'master1':
+                nombreMaster1 = nombreMaster1.add(quantityToBuy);
+                break;
+            case 'master2':
+                nombreMaster2 = nombreMaster2.add(quantityToBuy);
+                break;
+            case 'doctorat':
+                nombreDoctorat = nombreDoctorat.add(quantityToBuy);
+                break;
+            case 'postDoctorat':
+                nombrePostDoctorat = nombrePostDoctorat.add(quantityToBuy);
+                break;
+        }
+
+        // Update quests related to the purchased item
+        updateQuestProgress(itemType, quantityToBuy);
+        updateQuestProgress('totalBonsPointsEarned', currentCost); // If applicable for BP purchases
+
+        // Apply skill effects and update display after purchase
+        applyAllSkillEffects();
+        updateCosts();
+        calculateTotalBPS();
+        updateDisplay();
+        checkUnlockConditions();
+        saveGameState();
+
+        if (!isAutomated) {
+            showNotification(`Acheté ${formatNumber(quantityToBuy, 0)} ${itemType}(s) !`);
+        }
+    } else if (!isAutomated) {
+        showNotification(`Pas assez de ressources pour acheter ${itemType}(s) !`);
+    }
+}
+
 
 /**
  * Sauvegarde l'état actuel du jeu dans le localStorage.
@@ -988,6 +1222,272 @@ export function initializeGame() {
     }, gameTickInterval);
 }
 
-// Les fonctions `performPurchase`, `handleSkillClick`, `openStatsModal` sont définies dans d'autres modules
-// (studies.js, skills.js, ui.js) et sont appelées par events.js.
+// Les fonctions `handleSkillClick`, `openStatsModal` sont définies dans d'autres modules
+// (skills.js, ui.js) et sont appelées par events.js.
 // Elles ne sont pas définies ici dans core.js.
+
+// ------------------ Fiche Mémo : core.js ----------------------------
+//
+// Description : Ce fichier est le cœur de la logique du jeu incrémental.
+// Il gère l'état global du jeu, les variables principales (ressources, compteurs, déverrouillages),
+// les fonctions essentielles de sauvegarde/chargement, les calculs de production,
+// la gestion des achats, l'application des effets de compétences/bonus,
+// et la boucle de jeu principale.
+//
+// Objectif : Centraliser l'état du jeu et les fonctions critiques pour assurer
+// la cohérence des données et la bonne exécution de la logique.
+//
+// ------------------ Variables Globales (état du jeu) ------------------
+//
+// export let bonsPoints;                     // Monnaie principale du jeu.
+// export let totalBonsPointsParSeconde;      // Production totale de Bons Points par seconde (BP/s).
+// export let bonsPointsTotal;                // Total cumulé de Bons Points gagnés (pour les succès/stats).
+// export let images;                         // Ressource "Images".
+// export let nombreEleves;                   // Nombre d'unités "Élèves".
+// export let nombreClasses;                  // Nombre d'unités "Classes".
+// export let nombreProfesseur;               // Nombre d'unités "Professeur".
+// export let schoolCount;                    // Nombre d'unités "Écoles".
+// export let nombreLycees;                   // Nombre d'unités "Lycées".
+// export let nombreColleges;                 // Nombre d'unités "Collèges".
+// export let ascensionPoints;                // Monnaie d'Ascension (PA).
+// export let ascensionCount;                 // Nombre d'Ascensions effectuées.
+// export let totalPAEarned;                  // Total cumulé de PA gagnés (pour le prestige).
+// export let ascensionBonus;                 // Multiplicateur de bonus d'Ascension.
+// export let prestigePoints;                 // Monnaie de Prestige (PP).
+// export let prestigeCount;                  // Nombre de Prestiges effectués.
+// export let totalClicks;                    // Total des clics sur le bouton "Étudier".
+// export let currentPurchaseMultiplier;      // Multiplicateur d'achat actuel (x1, x10, x100, max).
+//
+// ------------------ Variables de Déverrouillage des Fonctionnalités ------------------
+//
+// export let elevesUnlocked;                 // Vrai si les Élèves sont débloqués.
+// export let classesUnlocked;                // Vrai si les Classes sont débloquées.
+// export let imagesUnlocked;                 // Vrai si les Images sont débloquées.
+// export let ProfesseurUnlocked;             // Vrai si les Professeurs sont débloqués.
+// export let ascensionUnlocked;              // Vrai si l'Ascension est débloquée (peut être effectuée).
+// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectué).
+// export let skillsButtonUnlocked;           // Vrai si le bouton "Compétences" est débloqué.
+// export let settingsButtonUnlocked;         // Vrai si le bouton "Paramètres" est débloqué.
+// export let automationCategoryUnlocked;     // Vrai si la catégorie "Automatisation" est débloquée.
+// export let questsUnlocked;                 // Vrai si les "Quêtes" sont débloquées.
+// export let achievementsButtonUnlocked;     // Vrai si le bouton "Succès" est débloqué.
+// export let newSettingsUnlocked;            // Vrai si de nouveaux paramètres sont débloqués.
+// export let multiPurchaseOptionUnlocked;    // Vrai si les options d'achat multiple (x10, x100) sont débloquées.
+// export let maxPurchaseOptionUnlocked;      // Vrai si l'option d'achat "max" est débloquée.
+// export let statsButtonUnlocked;            // Vrai si le bouton "Statistiques" est débloqué.
+// export let prestigeMenuButtonUnlocked;     // Vrai si le bouton de menu "Prestige" est débloqué.
+// export let ascensionMenuButtonUnlocked;    // Vrai si le bouton de menu "Ascension" est débloqué.
+//
+// ------------------ Variables d'Automatisation ------------------
+//
+// export let autoEleveActive;                // Vrai si l'automatisation des Élèves est active.
+// export let autoClasseActive;               // Vrai si l'automatisation des Classes est active.
+// export let autoImageActive;                // Vrai si l'automatisation des Images est active.
+// export let autoProfesseurActive;           // Vrai si l'automatisation des Professeurs est active.
+//
+// ------------------ Variables de Compétences ------------------
+//
+// export let studiesSkillPoints;             // Points de compétence d'Études.
+// export let ascensionSkillPoints;           // Points de compétence d'Ascension.
+// export let prestigeSkillPoints;            // Points de compétence de Prestige.
+// export let studiesSkillLevels;             // Objet { skillId: level, ... } pour les niveaux de compétences d'études.
+// export let ascensionSkillLevels;           // Objet { skillId: level, ... } pour les niveaux de compétences d'ascension.
+// export let prestigeSkillLevels;            // Objet { skillId: level, ... } pour les niveaux de compétences de prestige.
+// export let secretSkillClicks;              // Compteur pour la compétence secrète (clics).
+//
+// ------------------ Variables de Paramètres ------------------
+//
+// export let isDayTheme;                     // Vrai si le thème actuel est le thème de jour.
+// export let themeOptionUnlocked;            // Vrai si l'option de changement de thème est débloquée.
+// export let offlineProgressEnabled;         // Vrai si le progrès hors ligne est activé.
+// export let minimizeResourcesActive;        // Vrai si l'affichage des ressources est minimisé.
+// export let disableAscensionWarning;        // Vrai pour désactiver l'avertissement de première ascension.
+// export let firstAscensionPerformed;        // Vrai si la première ascension a été effectuée.
+// export let disablePrestigeWarning;         // Vrai pour désactiver l'avertissement de prestige.
+//
+// ------------------ Variables de Prestige (quantités d'achats de prestige) ------------------
+//
+// export let nombreLicences;                 // Nombre de Licences achetées.
+// export let nombreMaster1;                  // Nombre de Master 1 achetés.
+// export let nombreMaster2;                  // Nombre de Master 2 achetés.
+// export let nombreDoctorat;                 // Nombre de Doctorats achetés.
+// export let nombrePostDoctorat;             // Nombre de Post-Doctorats achetés.
+//
+// ------------------ Objets de Bonus Cumulés (skillEffects) ------------------
+// Cet objet agrège tous les multiplicateurs et réductions de coût provenant
+// des compétences, succès et achats de prestige. Il est mis à jour par `applyAllSkillEffects`.
+//
+// export let skillEffects = {
+//     clickBonsPointsBonus: new Decimal(0),       // Bonus additif aux BP gagnés par clic.
+//     eleveBpsMultiplier: new Decimal(1),         // Multiplicateur de production des Élèves.
+//     classeBpsMultiplier: new Decimal(1),        // Multiplicateur de production des Classes.
+//     imageBpsMultiplier: new Decimal(1),         // Multiplicateur de production des Images.
+//     ProfesseurBpsMultiplier: new Decimal(1),    // Multiplicateur de production des Professeurs.
+//     eleveCostReduction: new Decimal(0),         // Pourcentage de réduction du coût des Élèves (0 à 1).
+//     classeCostReduction: new Decimal(0),        // Pourcentage de réduction du coût des Classes.
+//     imageCostReduction: new Decimal(0),         // Pourcentage de réduction du coût des Images.
+//     ProfesseurCostReduction: new Decimal(0),    // Pourcentage de réduction du coût des Professeurs.
+//     ecoleCostReduction: new Decimal(0),         // Pourcentage de réduction du coût des Écoles.
+//     automationCostReduction: new Decimal(0),    // Pourcentage de réduction du coût d'automatisation.
+//     allCostReduction: new Decimal(0),           // Réduction de coût globale.
+//     allBpsMultiplier: new Decimal(1),           // Multiplicateur de production globale de BP/s.
+//     paGainMultiplier: new Decimal(1),           // Multiplicateur de gain de Points d'Ascension.
+//     ascensionBonusIncrease: new Decimal(0),     // Augmentation additive du bonus d'Ascension.
+//     offlineProductionIncrease: new Decimal(0),  // Augmentation du progrès hors ligne.
+//     allProductionMultiplier: new Decimal(1),    // Multiplicateur de production de toutes les structures.
+//     licenceProfMultiplier: new Decimal(0),      // Pourcentage de boost du multiplicateur Professeur par Licence.
+//     master1ClassProduction: new Decimal(0),     // Pourcentage de boost de la production des Classes par Master I.
+//     master2ClassProduction: new Decimal(0),     // Pourcentage de boost de la production des Classes par Master II.
+//     doctoratBPSBonus: new Decimal(0),           // Pourcentage de boost BP/s du Doctorat.
+//     doctoratMinClasses: 0,                      // Nombre minimum de classes après Ascension par Doctorat.
+//     postDoctoratPAGain: new Decimal(0),         // Pourcentage de boost de gain de PA par Ascension par Post-Doctorat.
+// };
+//
+// ------------------ Variables pour les Coûts Actuels ------------------
+// Ces variables stockent les coûts actuels des achats pour l'affichage dans ui.js.
+//
+// export let coutEleveActuel;                // Coût actuel d'un Élève.
+// export let coutClasseActuel;               // Coût actuel d'une Classe.
+// export let coutImageActuel;                // Coût actuel d'une Image.
+// export let coutProfesseurActuel;           // Coût actuel d'un Professeur.
+// export let coutEcoleActuel;                // Coût actuel d'une École.
+// export let coutLyceeActuel;                // Coût actuel d'un Lycée.
+// export let coutCollegeActuel;              // Coût actuel d'un Collège.
+// export let coutLicenceActuel;              // Coût actuel d'une Licence.
+// export let coutMaster1Actuel;              // Coût actuel d'un Master 1.
+// export let coutMaster2Actuel;              // Coût actuel d'un Master 2.
+// export let coutDoctoratActuel;             // Coût actuel d'un Doctorat.
+// export let coutPostDoctoratActuel;         // Coût actuel d'un Post-Doctorat.
+//
+// ------------------ Variables de Temps pour la Boucle de Jeu ------------------
+//
+// export const gameTickInterval = 50;        // Intervalle de mise à jour de la logique du jeu en ms.
+// export const displayUpdateInterval = 100;  // Intervalle de mise à jour de l'affichage en ms.
+// export const saveCheckInterval = 5000;     // Intervalle de sauvegarde en ms.
+//
+// export let lastUpdate = Date.now();        // Dernier timestamp de mise à jour pour le progrès hors ligne.
+// export let lastDisplayUpdateTime = 0;      // Dernier timestamp de mise à jour de l'affichage.
+// export let lastSaveCheckTime = 0;          // Dernier timestamp de vérification de sauvegarde.
+//
+// ------------------ Fonctions Utilitaires ------------------
+//
+// export function formatNumber(num, decimalPlaces = 2, exponentThreshold = 6)
+//   // Formate un nombre (Decimal ou number) en notation scientifique ou standard
+//   // (ex: 1.23K, 4.56M, 7.89e+9).
+//   // - num: Le nombre à formater.
+//   // - decimalPlaces: Nombre de décimales à afficher.
+//   // - exponentThreshold: Seuil d'exposant pour passer en notation scientifique.
+//
+// export function showNotification(message, duration = 3000)
+//   // Affiche une notification temporaire à l'utilisateur en bas à droite de l'écran.
+//   // - message: Le texte de la notification.
+//   // - duration: La durée d'affichage en ms.
+//
+// export function performPurchase(itemType, quantityRequested, isAutomated = false)
+//   // Gère l'achat d'un élément du jeu (Élève, Classe, Image, Professeur, École, Lycée, Collège,
+//   // Licences, Masters, Doctorats, Post-Doctorats).
+//   // Calcule le coût, déduit les ressources, incrémente le compteur d'éléments,
+//   // met à jour les quêtes, applique les effets de compétences et sauvegarde le jeu.
+//   // - itemType: Le type d'élément à acheter (chaîne de caractères).
+//   // - quantityRequested: La quantité à acheter (Decimal, '1', '10', '100', 'max').
+//   // - isAutomated: Vrai si l'achat est effectué par l'automatisation (désactive les notifications).
+//
+// ------------------ Fonctions de Sauvegarde et Chargement ------------------
+//
+// export function saveGameState()
+//   // Sauvegarde l'état actuel de toutes les variables du jeu dans le localStorage.
+//   // Convertit les objets Decimal en chaînes de caractères pour la sauvegarde.
+//
+// export function loadGameState()
+//   // Charge l'état du jeu depuis le localStorage.
+//   // Si aucune sauvegarde n'est trouvée, initialise le jeu à son état par défaut.
+//   // Convertit les chaînes de caractères chargées en objets Decimal.
+//   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
+//
+// function resetGameVariables()
+//   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
+//   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
+//
+// function resetSkillEffects()
+//   // Réinitialise l'objet `skillEffects` à ses valeurs par défaut.
+//   // Appelée avant d'appliquer les effets des compétences/bonus pour éviter les cumuls incorrects.
+//
+// export function hardResetGame()
+//   // Effectue une réinitialisation complète du jeu (hard reset).
+//   // Supprime la sauvegarde du localStorage et réinitialise toutes les variables.
+//
+// export function softResetGame()
+//   // Effectue une réinitialisation douce du jeu (soft reset), utilisée après une Ascension.
+//   // Réinitialise certaines variables (BP, images, élèves, classes, professeurs, clics, compétences d'études)
+//   // tout en conservant les déverrouillages majeurs et les progrès d'Ascension/Prestige.
+//
+// export function superSoftResetGame()
+//   // Effectue une réinitialisation super douce du jeu (super soft reset), utilisée après un Prestige.
+//   // Réinitialise la plupart des variables comme un soft reset, mais conserve les points de prestige
+//   // et les achats de prestige, et réinitialise les compétences d'Ascension.
+//
+// ------------------ Fonctions de Calcul et de Mise à Jour ------------------
+//
+// export function updateCosts()
+//   // Met à jour les coûts actuels de tous les éléments achetables (Élèves, Classes, Écoles, etc.)
+//   // en appelant les fonctions de calcul de coût respectives des autres modules.
+//
+// export function calculateTotalBPS()
+//   // Calcule la production totale de Bons Points par seconde (BP/s).
+//   // Prend en compte la production de base des unités et applique tous les multiplicateurs
+//   // provenant des compétences, de l'Ascension, du Prestige et des Succès.
+//
+// export function checkUnlockConditions()
+//   // Vérifie les conditions de déverrouillage de toutes les fonctionnalités du jeu
+//   // (nouvelles unités, menus, options) et les débloque si les conditions sont remplies.
+//   // Met à jour la visibilité des sections de l'interface utilisateur.
+//
+// export function applyAllSkillEffects()
+//   // Applique tous les effets cumulés des compétences (études, ascension, prestige),
+//   // des succès permanents et des bonus des achats de prestige.
+//   // Réinitialise `skillEffects` puis le reconstruit avec les bonus actifs.
+//
+// export function updateCachedMultipliers()
+//   // Met à jour les multiplicateurs mis en cache, en s'assurant que `calculateTotalBPS`
+//   // est appelée pour refléter les derniers effets.
+//
+// export function calculateOfflineProgress()
+//   // Calcule les Bons Points gagnés pendant que le joueur était hors ligne,
+//   // en fonction du temps écoulé et de la production hors ligne.
+//   // N'applique le progrès que si le temps écoulé dépasse un certain seuil.
+//
+// ------------------ Fonction d'Initialisation du Jeu ------------------
+//
+// export function initializeGame()
+//   // Fonction principale d'initialisation du jeu, appelée au chargement de la page.
+//   // Charge l'état du jeu, met à jour tous les éléments d'interface,
+//   // vérifie les déverrouillages initiaux et démarre la boucle de jeu principale.
+//   // La boucle de jeu met à jour la logique et l'affichage à intervalles réguliers.
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// Importations depuis './studies.js':
+//   - calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost
+//   - elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem, ProfesseurBpsPerItem
+// Importations depuis './automation.js':
+//   - calculateAutomationCost, runAutomation
+// Importations depuis './data.js':
+//   - skillsData, prime_PA, prestigePurchasesData
+// Importations depuis './ascension.js':
+//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost
+// Importations depuis './prestige.js':
+//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
+// Importations depuis './quests.js':
+//   - checkQuests, updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests
+// Importations depuis './achievements.js':
+//   - checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements
+// Importations depuis './ui.js':
+//   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
+//     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
+//     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
+//     hideAchievementTooltip, toggleAchievementTooltip, applyAllSkillEffects, updateCachedMultipliers
+//
+// Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
+// globalement avant ce script pour la gestion des grands nombres.
+//
+// ---------------------------------------------------------------------
