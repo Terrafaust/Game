@@ -10,8 +10,8 @@
 
 // Dépendances :
 // - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
-//                           pour la gestion des grands nombres.
-//                           Les valeurs numériques sont converties en objets Decimal ici.
+//                           pour la gestion des grands nombres.
+//                           Les valeurs numériques sont converties en objets Decimal ici.
 
 // Variables Clés Définies et Exportées :
 // - initialCosts : Coûts de base des éléments achetables.
@@ -21,6 +21,8 @@
 // - questsData : Définitions de toutes les quêtes.
 // - bonusPointThresholds : Seuils de Bons Points pour gagner des points de compétence d'études.
 // - prime_PA : Valeur de base pour le calcul des Points d'Ascension.
+// - calculateNextImageCost : Fonction pour calculer le coût de la prochaine image.
+// - calculateAutomationCost : Fonction pour calculer le coût de la prochaine automatisation.
 
 // --- Coûts Initiaux de Base ---
 export const initialCosts = {
@@ -45,6 +47,38 @@ export const baseProductions = {
     imageBpsMultiplier: new Decimal(0.01), // Multiplicateur pour la production totale de BP/s par image
     ProfesseurClassMultiplier: new Decimal(0.1), // Multiplicateur pour la production des classes par professeur
 };
+
+// --- Fonctions de Calcul de Coût (ajoutées pour résoudre les erreurs d'import) ---
+
+/**
+ * Calcule le coût de la prochaine image à acheter.
+ * @param {Decimal} currentImages - Le nombre actuel d'images possédées.
+ * @returns {Decimal} Le coût de la prochaine image.
+ */
+export function calculateNextImageCost(currentImages) {
+    // Exemple de logique de coût : coût de base * (multiplicateur de coût ^ nombre actuel)
+    // Vous devrez ajuster cette logique pour correspondre à votre jeu.
+    const baseCost = initialCosts.image;
+    const costMultiplier = new Decimal(1.15); // Exemple de multiplicateur de coût
+    return baseCost.times(costMultiplier.pow(currentImages));
+}
+
+/**
+ * Calcule le coût de la prochaine amélioration d'automatisation.
+ * @param {Decimal} currentAutomationLevel - Le niveau actuel de l'automatisation.
+ * @returns {Decimal} Le coût de la prochaine amélioration d'automatisation.
+ */
+export function calculateAutomationCost(currentAutomationLevel) {
+    // Exemple de logique de coût : coût de base * (multiplicateur de coût ^ niveau actuel)
+    // Vous devrez ajuster cette logique pour correspondre à votre jeu.
+    // Pour l'exemple, nous allons utiliser un coût de base pour l'automatisation.
+    // Si l'automatisation a des types différents (eleve, classe, image, professeur),
+    // vous devrez passer le type en argument pour calculer le coût spécifique.
+    const baseCost = new Decimal(10000); // Coût de base arbitraire pour l'automatisation
+    const costMultiplier = new Decimal(1.5); // Exemple de multiplicateur de coût
+    return baseCost.times(costMultiplier.pow(currentAutomationLevel));
+}
+
 
 // --- Définitions des Compétences ---
 // Chaque fonction 'effect' prend le niveau de la compétence et l'objet 'skillEffects' en argument.
