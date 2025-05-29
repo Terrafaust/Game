@@ -1,0 +1,23 @@
+// Fiche Mémo : settings.js
+// Description : Ce fichier gère la logique des différentes options de paramètres du jeu.
+// Il est responsable de la modification de l'état du jeu concernant le thème,
+// la progression hors ligne, l'affichage minimaliste des ressources, et l'ouverture
+// de la modale des statistiques.
+// Les écouteurs d'événements pour ces actions sont définis dans events.js,
+// qui appellera les fonctions exportées de ce module.
+
+// Dépendances :
+// - core.js : Pour accéder et modifier les variables d'état du jeu (isDayTheme,
+//             offlineProgressEnabled, minimizeResourcesActive, themeOptionUnlocked,
+//             images), pour appeler showNotification, saveGameState, updateDisplay,
+//             updateSectionVisibility, updateSettingsButtonStates.
+// - ui.js : Pour appeler openStatsModal et closeStatsModal (bien que closeStatsModal
+//          soit gérée par l'événement de clic sur la modale elle-même dans events.js).
+
+// Fonctions Clés Définies et Exportées :
+// - toggleTheme() : Bascule entre le thème jour et nuit, gère le déverrouillage de l'option.
+// - toggleOfflineProgress(isChecked) : Active ou désactive la progression hors ligne.
+// - toggleMinimizeResources() : Active ou désactive l'affichage minimaliste des ressources.
+// - openStats() : Ouvre la modale des statistiques.
+
+// --- Imports des modules nécessaires ---

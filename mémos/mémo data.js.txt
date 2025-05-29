@@ -1,0 +1,25 @@
+// Fiche Mémo : data.js
+// Description : Ce fichier centralise toutes les données statiques et de configuration du jeu.
+// Cela inclut les coûts de base des améliorations, les productions de base,
+// les définitions complètes des compétences (études, ascension, prestige),
+// les définitions des achats de prestige, les définitions des quêtes,
+// et d'autres seuils ou valeurs constantes.
+// Ce fichier n'effectue aucune logique de jeu ni de modification d'état,
+// il fournit simplement les données brutes que d'autres modules (comme core.js, studies.js, skills.js)
+// utiliseront pour leurs calculs et leur logique.
+
+// Dépendances :
+// - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
+//                           pour la gestion des grands nombres.
+//                           Les valeurs numériques sont converties en objets Decimal ici.
+
+// Variables Clés Définies et Exportées :
+// - initialCosts : Coûts de base des éléments achetables.
+// - baseProductions : Productions de base par élément.
+// - skillsData : Définitions complètes de tous les arbres de compétences.
+// - prestigePurchasesData : Définitions des améliorations de prestige.
+// - questsData : Définitions de toutes les quêtes.
+// - bonusPointThresholds : Seuils de Bons Points pour gagner des points de compétence d'études.
+// - prime_PA : Valeur de base pour le calcul des Points d'Ascension.
+
+// --- Coûts Initiaux de Base ---

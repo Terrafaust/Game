@@ -1,0 +1,30 @@
+// Fiche Mémo : core.js
+// Description : Ce fichier est le cœur de la logique du jeu. Il gère l'état global du jeu,
+// les ressources principales, les compteurs, les fonctions de production,
+// la sauvegarde et le chargement de la progression, les réinitialisations (soft, super soft, hard),
+// le système de notifications, et la boucle de jeu principale.
+// Il centralise également l'application de tous les effets de compétences, de prestiges et de succès.
+
+// Dépendances :
+// - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
+//                           pour la gestion des grands nombres.
+// - data.js : Contient les données statiques du jeu (coûts de base, productions de base, définitions des compétences, etc.).
+// - ui.js : Pour les fonctions de mise à jour de l'interface utilisateur (e.g., updateDisplay, updateButtonStates,
+//           updateSectionVisibility, updateAutomationButtonStates, updateSettingsButtonStates,
+//           renderSkillsMenu, renderQuests, renderAchievements, openTab, closeStatsModal,
+//           showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, updateStatsDisplay).
+//           Bien que core.js ne les appelle pas toutes directement, il les utilise pour rafraîchir l'UI.
+// - studies.js : Pour les fonctions de calcul de coût et de production spécifiques aux études
+//                (e.g., calculateNextEleveCost, elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem,
+//                ProfesseurBpsPerItem).
+// - automation.js : Pour la fonction d'exécution de l'automatisation (e.g., runAutomation) et le calcul de coût.
+// - skills.js : Pour la logique d'application des effets de compétences (e.g., skillEffects, studiesSkillLevels,
+//               ascensionSkillLevels, prestigeSkillLevels).
+// - ascension.js : Pour les fonctions liées à l'ascension (e.g., calculatePAGained, performAscension).
+// - prestige.js : Pour les fonctions liées au prestige (e.g., calculatePPGained, performPrestige,
+//                getPrestigeBonusMultiplier).
+// - quests.js : Pour la gestion des quêtes (e.g., checkQuests, updateQuestProgress, questsData, completedQuests).
+// - achievements.js : Pour la gestion des succès (e.g., checkAchievements, achievementsData, unlockedAchievements,
+//                    permanentBpsBonusFromAchievements).
+
+// Variables Globales (état du jeu) - Exportées pour être accessibles par d'autres modules

@@ -1,0 +1,109 @@
+ Assumes global variables from core.js, data.js, etc., are available in the global scope.
+// Examples: bonsPoints, totalBonsPointsParSeconde, images, nombreProfesseur, etc.
+// Assumes functions like calculateNextEleveCost, calculatePAGained, etc., are available.
+// Assumes data structures like skillsData, questsData, achievementsData, prestigePurchasesData are available.
+// Assumes skillEffects object is available and updated by applyAllSkillEffects.
+
+// Fiche Mémo : ui.js
+// Description : Ce fichier est dédié à la gestion de l&#39;interface utilisateur du jeu.
+// Il est responsable de la mise à jour de l&#39;affichage de toutes les ressources,
+// des états des boutons, de la visibilité des sections, des notifications,
+// et du rendu des menus dynamiques comme l&#39;arbre de compétences, les quêtes et les succès.
+// Il ne contient aucune logique de jeu (calculs de production, achats, réinitialisations),
+// mais interagit avec les données et les fonctions définies dans d&#39;autres modules.
+
+// Dépendances :
+// - core.js : Fournit les variables d'état du jeu (bonsPoints, images, nombreEleves, etc.),
+//             les totaux de production (totalBonsPointsParSeconde), les fonctions
+//             de calcul de production (elevesBpsPerItem, classesBpsPerItem),
+//             et les variables de déverrouillage (elevesUnlocked, ascensionUnlocked, etc.).
+// - data.js : Contient les données statiques du jeu, y compris les définitions
+//             des compétences (skillsData), des quêtes (questsData), des succès (achievementsData),
+//             et des achats de prestige (prestigePurchasesData).
+// - studies.js : Fournit les fonctions de calcul de coût pour les études
+//                (calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost,
+//                calculateNextProfessorCost).
+// - automation.js : Fournit la fonction de calcul de coût pour l'automatisation
+//                   (calculateAutomationCost).
+// - skills.js : Fournit la fonction `buySkill` pour gérer l'achat de compétences,
+//               et l'objet `skillEffects` qui contient les bonus actifs des compétences.
+// - ascension.js : Fournit les fonctions de calcul de coût pour l'ascension
+//                  (calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost)
+//                  ainsi que les variables liées à l'ascension (ascensionPoints, ascensionCount,
+//                  totalPAEarned, ascensionBonus, ecoleMultiplier, lyceeMultiplier, collegeMultiplier).
+// - prestige.js : Fournit les fonctions de calcul de coût pour le prestige
+//                 (calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
+//                 calculateDoctoratCost, calculatePostDoctoratCost) et les variables
+//                 liées au prestige (prestigePoints, prestigeCount, multiplicateurProfesseur,
+//                 paMultiplierFromQuests, getPrestigeBonusMultiplier).
+// - settings.js : Fournit les variables liées aux paramètres (isDayTheme, themeOptionUnlocked,
+//                 minimizeResourcesActive, statsButtonUnlocked).
+// - quests.js : Gère la logique des quêtes et leur état.
+// - achievements.js : Gère la logique des succès et leur état (unlockedAchievements,
+//                     permanentBpsBonusFromAchievements).
+// - events.js : Attache les écouteurs d'événements aux éléments DOM et appelle les
+//               fonctions appropriées définies dans ui.js et d'autres modules.
+// - break\_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
+//                           pour la gestion des grands nombres.
+
+// Variables Clés (utilisées par ui.js, mais définies ailleurs) :
+// - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur : Ressources principales.
+// - totalBonsPointsParSeconde, elevesBpsPerItem, classesBpsPerItem : Productions.
+// - ascensionPoints, ascensionCount, totalPAEarned, ascensionBonus : Variables d'ascension.
+// - prestigePoints, prestigeCount : Variables de prestige.
+// - schoolCount, nombreLycees, nombreColleges, nombreLicences, nombreMaster1,
+//   nombreMaster2, nombreDoctorat, nombrePostDoctorat : Quantités d'achats supérieurs.
+// - totalClicks : Compteur de clics.
+// - clickBonsPoints : Bonus de bons points par clic.
+// - currentPurchaseMultiplier : Multiplicateur d'achat actuel (x1, x10, x100, max).
+// - isDayTheme, minimizeResourcesActive : États des paramètres.
+// - autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive : États d'automatisation.
+// - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked,
+//   ascensionUnlocked, prestigeUnlocked, skillsButtonUnlocked, settingsButtonUnlocked,
+//   automationCategoryUnlocked, questsUnlocked, achievementsButtonUnlocked,
+//   newSettingsUnlocked, multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked,
+//   statsButtonUnlocked : Flags de déverrouillage des fonctionnalités/sections.
+// - studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints : Points de compétence.
+// - studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels : Niveaux des compétences débloquées.
+// - secretSkillClicks : Compteur pour la compétence secrète.
+// - unlockedAchievements : Objet des succès débloqués.
+// - permanentBpsBonusFromAchievements : Bonus permanent des succès.
+// - paMultiplierFromQuests : Multiplicateur de PA des quêtes.
+// - skillEffects : Objet contenant les effets cumulés de toutes les compétences et succès.
+
+// Fonctions Clés (appelées par ui.js, mais définies ailleurs) :
+// - formatNumber(num, decimalPlaces, exponentThreshold) : Formate un nombre pour l'affichage.
+// - calculateNextEleveCost(count), calculateNextClasseCost(count), etc. : Calculent les coûts des achats.
+// - calculateAutomationCost(baseCost) : Calcule le coût des automatisations.
+// - calculatePAGained() : Calcule les PA gagnés à l'ascension.
+// - calculatePPGained(totalPA, totalAscensions) : Calcule les PP gagnés au prestige.
+// - getPrestigeBonusMultiplier(type, currentPrestigeCount, currentPrestigePoints) : Calcule les multiplicateurs de prestige.
+// - calculateTotalBPS(), calculateItemBPS() : Recalculent les productions.
+// - buySkill(panelType, skillId) : Fonction pour acheter une compétence.
+// - checkUnlockConditions() : Vérifie et applique les déverrouillages.
+// - checkAchievements() : Vérifie et débloque les succès.
+
+// Éléments DOM Clés (référencés par ID) :
+// - \#bonsPoints, \#totalBpsInline, \#imagesCount, \#nombreProfesseur, etc. : Affichage des ressources.
+// - \#acheterEleveButton, \#acheterClasseButton, etc. : Boutons d'achat.
+// - \#studiesTabBtn, \#automationTabBtn, etc. : Boutons de navigation latérale.
+// - \#studiesMainContainer, \#automationMainContainer, etc. : Conteneurs des sections principales.
+// - \#notifications-container : Conteneur des notifications.
+// - \#skillPanels, \#studiesSkillsGrid, \#ascensionSkillsGrid, \#prestigeSkillsGrid : Arbre de compétences.
+// - \#questsList, \#completedQuestsList : Listes des quêtes.
+// - \#achievementsGrid, \#achievementTooltip : Grille et infobulle des succès.
+// - \#statsModal : Modale des statistiques.
+
+// Logique Générale :
+// Ce fichier est le "front-end" visuel du jeu. Il prend les données de l'état du jeu
+// (gérées par `core.js` et d'autres modules de logique) et les traduit en éléments
+// HTML visibles et interactifs. Il ne contient pas de logique de jeu (achats,
+// calculs de production, réinitialisations, etc.), mais appelle les fonctions
+// appropriées des autres modules si nécessaire pour obtenir les données à afficher.
+
+// Notes Spécifiques :
+// - Les IDs des éléments HTML sont supposés correspondre à ceux définis dans `index.html`.
+// - La fonction `formatNumber` est incluse ici pour la commodité, mais pourrait être déplacée
+//   dans un fichier `utils.js` si l'architecture le permet.
+// - Ce fichier ne contient pas d'écouteurs d'événements directs (addEventListener).
+//   Ces derniers sont gérés dans `events.js` qui appelle les fonctions de `ui.js`.

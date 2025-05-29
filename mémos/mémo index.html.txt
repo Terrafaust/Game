@@ -1,0 +1,65 @@
+<!-- Fiche Mémo : index.html
+Description : Ce fichier est le point d'entrée principal de l'application web.
+Il définit la structure HTML globale du jeu, inclut les feuilles de style CSS,
+les bibliothèques externes (comme break_infinity.min.js), et charge tous
+les fichiers JavaScript modulaires qui contiennent la logique du jeu.
+Il ne contient aucune logique JavaScript active, seulement les balises <script>
+pour charger les autres fichiers.
+
+Dépendances :
+- style.css : Fournit les styles visuels pour l'interface du jeu.
+- break_infinity.min.js : Bibliothèque JavaScript pour la gestion des grands nombres (doit être chargé en premier).
+- core.js : Fonctions principales du jeu, gestion de l'état global, sauvegarde/chargement, et la boucle de jeu.
+- data.js : Données statiques du jeu (coûts, multiplicateurs, définitions des compétences, quêtes, succès, etc.).
+- ui.js : Gestion de l'interface utilisateur, mise à jour de l'affichage des ressources, états des boutons, visibilité des sections.
+- studies.js : Logique spécifique aux achats et à la production liés aux études (Élèves, Classes, Images, Professeurs).
+- automation.js : Logique de l'automatisation des achats.
+- skills.js : Logique de l'arbre de compétences (achat, réinitialisation, application des effets).
+- ascension.js : Logique du mécanisme d'ascension (calcul des PA, achats d'Ascension, réinitialisation douce).
+- prestige.js : Logique du mécanisme de prestige (calcul des PP, achats de Prestige, réinitialisation super douce).
+- settings.js : Logique des paramètres du jeu (thème, progression hors ligne, minimisation des ressources).
+- quests.js : Logique du système de quêtes (définition, suivi de progression, récompenses).
+- achievements.js : Logique du système de succès (définition, vérification des conditions, récompenses, infobulles).
+- events.js : Gestion centralisée de tous les écouteurs d'événements DOM (clics sur les boutons, changements d'état, etc.).
+
+Variables Clés : Aucune variable JavaScript clé globale n'est définie
+ou gérée directement dans ce fichier. Il sert uniquement de conteneur
+pour les éléments DOM et les inclusions de scripts.
+
+Fonctions Clés : Aucune fonction JavaScript n'est définie ou exécutée
+directement dans ce fichier, à l'exception du chargement des scripts externes.
+
+Éléments DOM Clés :
+- <div id="side-menu"> : Contient les boutons de navigation entre les différentes sections du jeu.
+- <div id="main-content"> : Conteneur principal pour le contenu dynamique des différentes sections (études, automatisation, etc.).
+- <div class="container"> : Affiche les ressources principales et le bouton de clic.
+- <div id="studiesMainContainer"> : Section dédiée aux achats et à la production des études.
+- <div id="automationMainContainer"> : Section pour les options d'automatisation.
+- <div id="skillsContainer"> : Section pour l'arbre de compétences.
+- <div id="ascensionMenuContainer"> : Section pour le mécanisme d'ascension.
+- <div id="prestigeMenuContainer"> : Section pour le mécanisme de prestige.
+- <div id="questsContainer"> : Section pour les quêtes.
+- <div id="achievementsContainer"> : Section pour les succès.
+- <div id="settingsContainer"> : Section pour les paramètres du jeu.
+- <div id="notifications-container"> : Conteneur pour les notifications pop-up.
+- <div id="minimalistResources"> : Affichage compact des ressources (optionnel).
+- Modales (#confirmResetModal, #confirmAscensionModal, #confirmPrestigeModal, #statsModal) :
+  Fenêtres pop-up pour les confirmations ou l'affichage de statistiques.
+
+Événements Gérés : Ce fichier ne gère pas directement les événements.
+Il fournit les éléments DOM auxquels les gestionnaires d'événements
+(définis principalement dans events.js et d'autres modules) s'attachent.
+
+Logique Générale : Le rôle principal de index.html est de structurer
+l'interface utilisateur et d'orchestrer le chargement de tous les composants
+JavaScript et CSS nécessaires au fonctionnement du jeu. Il sert de fondation
+sur laquelle la logique du jeu est construite par les fichiers JavaScript modulaires.
+
+Notes Spécifiques :
+- L'ordre d'inclusion des scripts JavaScript est important en raison des dépendances
+  entre les modules. `break_infinity.min.js` doit être chargé en premier car il expose une variable globale.
+  Ensuite, les modules doivent être chargés dans un ordre qui respecte leurs dépendances (e.g., `core.js` avant `ui.js`, `data.js` avant tout module qui utilise ses données, etc.).
+  Les modules `type="module"` gèrent leurs dépendances via les instructions `import`.
+- Les styles `display: none;` sur certains conteneurs sont gérés dynamiquement par les fonctions
+  JavaScript (principalement `updateSectionVisibility` dans `ui.js`) pour afficher ou masquer les sections du jeu.
+-->

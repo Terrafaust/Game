@@ -1,0 +1,47 @@
+/**
+ * quests.js
+ *
+ * ------------------ Fiche Mémo : quests.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées aux quêtes
+ * (Quests) du jeu. Il permet de définir les quêtes, de vérifier leurs conditions de complétion,
+ * de distribuer les récompenses une fois les quêtes terminées, et de mettre à jour
+ * l'interface utilisateur du journal des quêtes.
+ *
+ * Dépendances :
+ * - core.js : Fournit l'accès aux variables d'état globales (bonsPoints, images, nombreEleves,
+ * nombreClasses, nombreProfesseur, totalClicks, totalPAEarned, prestigeCount,
+ * showNotification, saveGameState, updateDisplay, applyAllSkillEffects),
+ * ainsi que l'objet `completedQuests` pour suivre les quêtes terminées.
+ * - data.js : Contient les définitions des quêtes (questsData) incluant leurs conditions
+ * de complétion et leurs récompenses.
+ * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
+ * de l'interface utilisateur spécifique aux quêtes (updateQuestsUI, renderQuests).
+ *
+ * Variables Clés (utilisées par quests.js, mais définies et gérées ailleurs) :
+ * - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur, totalClicks,
+ * totalPAEarned, prestigeCount : Variables d'état du jeu utilisées pour vérifier les conditions des quêtes.
+ * - completedQuests : Objet pour suivre les quêtes déjà complétées par leur ID.
+ *
+ * Fonctions Clés Définies et Exportées :
+ * - checkQuests() : Vérifie les conditions de toutes les quêtes non complétées et
+ * marque celles qui sont terminées comme "complétées" ou "réclamables".
+ * - claimQuestReward(questId) : Gère la logique de réclamation d'une récompense de quête,
+ * ajoute les récompenses au joueur et marque la quête comme réclamée.
+ * - updateQuestsUI(domElements) : Met à jour l'affichage des informations générales des quêtes
+ * dans l'interface utilisateur.
+ * - renderQuests(domElements) : Construit ou met à jour dynamiquement la structure HTML
+ * du journal des quêtes en fonction de leur état (non commencée, en cours, complétée, réclamée).
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+ * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateQuestsUI` et `renderQuests`)
+ * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
+ * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
+ *
+ * Logique Générale :
+ * Ce module est essentiel pour guider la progression du joueur et offrir des objectifs
+ * à court et moyen terme. Il interagit avec les données du jeu pour déterminer la
+ * complétion des quêtes et avec l'état global pour appliquer les récompenses.
+ * Il est appelé par la boucle de jeu principale (`core.js`) pour la vérification périodique
+ * et par `events.js` pour les interactions utilisateur (réclamation de récompenses).
+ */

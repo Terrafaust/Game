@@ -1,0 +1,42 @@
+------------------ Fiche Mémo : skills.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées aux compétences
+ * (Skills) du jeu. Il permet l'achat de compétences dans différentes catégories (Études, Ascension, Prestige),
+ * gère les points de compétence requis, applique les effets des compétences, et met à jour
+ * l'interface utilisateur du menu des compétences.
+ *
+ * Dépendances :
+ * - core.js : Fournit l'accès aux variables d'état globales (studiesSkillPoints, ascensionSkillPoints,
+ * prestigeSkillPoints, skillEffects, purchasedSkills, showNotification, saveGameState,
+ * updateDisplay, checkUnlockConditions, applyAllSkillEffects, totalClicks, nombreProfesseur,
+ * prestigeCount).
+ * - data.js : Contient les définitions des compétences (skillsData) incluant leurs coûts,
+ * effets, et conditions de déverrouillage.
+ * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
+ * de l'interface utilisateur spécifique aux compétences (updateSkillsUI, renderSkillsMenu).
+ *
+ * Variables Clés (utilisées par skills.js, mais définies et gérées ailleurs) :
+ * - studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints : Monnaies utilisées pour acheter les compétences.
+ * - skillEffects : Objet accumulant tous les bonus actifs des compétences achetées.
+ * - purchasedSkills : Objet pour suivre les compétences déjà achetées.
+ * - totalClicks, nombreProfesseur, prestigeCount : Utilisés pour vérifier les conditions de déverrouillage des compétences.
+ *
+ * Fonctions Clés Définies et Exportées :
+ * - purchaseSkill(skillId, skillType) : Gère la logique d'achat d'une compétence,
+ * vérifie les coûts, déduit les points, marque la compétence comme achetée et applique ses effets.
+ * - updateSkillsUI(domElements) : Met à jour l'état (texte, classes CSS, visibilité)
+ * des éléments de l'interface utilisateur du menu des compétences.
+ * - renderSkillsMenu(domElements) : Construit ou met à jour dynamiquement la structure HTML
+ * du menu des compétences en fonction des compétences débloquées et achetées.
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+ * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateSkillsUI` et `renderSkillsMenu`)
+ * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
+ * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
+ *
+ * Logique Générale :
+ * Ce module est le centre de la progression par compétences. Il interagit avec les données
+ * du jeu pour déterminer la disponibilité des compétences et avec l'état global pour
+ * appliquer leurs bonus. Il est appelé par `events.js` pour les interactions utilisateur
+ * et par la boucle de jeu principale pour les mises à jour visuelles.
+ */
