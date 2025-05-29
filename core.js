@@ -1,33 +1,3 @@
-// Fiche Mémo : core.js
-// Description : Ce fichier est le cœur de la logique du jeu. Il gère l'état global du jeu,
-// les ressources principales, les compteurs, les fonctions de production,
-// la sauvegarde et le chargement de la progression, les réinitialisations (soft, super soft, hard),
-// le système de notifications, et la boucle de jeu principale.
-// Il centralise également l'application de tous les effets de compétences, de prestiges et de succès.
-
-// Dépendances :
-// - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
-//                           pour la gestion des grands nombres.
-// - data.js : Contient les données statiques du jeu (coûts de base, productions de base, définitions des compétences, etc.).
-// - ui.js : Pour les fonctions de mise à jour de l'interface utilisateur (e.g., updateDisplay, updateButtonStates,
-//           updateSectionVisibility, updateAutomationButtonStates, updateSettingsButtonStates,
-//           renderSkillsMenu, renderQuests, renderAchievements, openTab, closeStatsModal,
-//           showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, updateStatsDisplay).
-//           Bien que core.js ne les appelle pas toutes directement, il les utilise pour rafraîchir l'UI.
-// - studies.js : Pour les fonctions de calcul de coût et de production spécifiques aux études
-//                (e.g., calculateNextEleveCost, elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem,
-//                ProfesseurBpsPerItem).
-// - automation.js : Pour la fonction d'exécution de l'automatisation (e.g., runAutomation) et le calcul de coût.
-// - skills.js : Pour la logique d'application des effets de compétences (e.g., skillEffects, studiesSkillLevels,
-//               ascensionSkillLevels, prestigeSkillLevels).
-// - ascension.js : Pour les fonctions liées à l'ascension (e.g., calculatePAGained, performAscension).
-// - prestige.js : Pour les fonctions liées au prestige (e.g., calculatePPGained, performPrestige,
-//                getPrestigeBonusMultiplier).
-// - quests.js : Pour la gestion des quêtes (e.g., checkQuests, updateQuestProgress, questsData, completedQuests).
-// - achievements.js : Pour la gestion des succès (e.g., checkAchievements, achievementsData, unlockedAchievements,
-//                    permanentBpsBonusFromAchievements).
-
-// Variables Globales (état du jeu) - Exportées pour être accessibles par d'autres modules
 // Variables Globales (état du jeu) - Exportées pour être accessibles par d'autres modules
 export let bonsPoints;
 export let totalBonsPointsParSeconde; // Production totale de BP/s
@@ -163,10 +133,13 @@ import { calculatePAGained, performAscension, calculateNextEcoleCost, calculateN
 import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
 import { checkQuests, updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests } from './quests.js';
 import { checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements } from './achievements.js';
+// CORRECTION: applyAllSkillEffects et updateCachedMultipliers sont définis et exportés par core.js,
+// donc ils ne doivent PAS être importés de ui.js.
+// showNotification est déplacé vers ui.js pour une meilleure cohérence d'architecture.
 import { updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
          updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
          openTab, closeStatsModal, updateStatsDisplay,
-         showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, applyAllSkillEffects, updateCachedMultipliers } from './ui.js'; // Removed showNotification
+         showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, showNotification } from './ui.js';
 import { prime_PA, prestigePurchasesData } from './data.js'; // prime_PA et prestigePurchasesData sont définis dans data.js
 
 // --- Fonctions Utilitaires ---
@@ -197,29 +170,6 @@ export function formatNumber(num, decimalPlaces = 2, exponentThreshold = 6) {
 
     // Pour les très grands nombres, utiliser la notation scientifique
     return num.toExponential(decimalPlaces);
-}
-
-/**
- * Affiche une notification temporaire à l'utilisateur.
- * @param {string} message Le message à afficher.
- * @param {number} duration La durée d'affichage de la notification en ms.
- */
-export function showNotification(message, duration = 3000) {
-    const notificationsContainer = document.getElementById('notifications-container');
-    if (!notificationsContainer) {
-        console.warn("Notifications container not found.");
-        return;
-    }
-    const notification = document.createElement('div');
-    notification.classList.add('notification-item');
-    notification.textContent = message;
-    notificationsContainer.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(() => notification.remove(), 500);
-    }, duration - 500);
 }
 
 
@@ -1222,10 +1172,6 @@ export function initializeGame() {
     }, gameTickInterval);
 }
 
-// Les fonctions `handleSkillClick`, `openStatsModal` sont définies dans d'autres modules
-// (skills.js, ui.js) et sont appelées par events.js.
-// Elles ne sont pas définies ici dans core.js.
-
 // ------------------ Fiche Mémo : core.js ----------------------------
 //
 // Description : Ce fichier est le cœur de la logique du jeu incrémental.
@@ -1265,7 +1211,7 @@ export function initializeGame() {
 // export let imagesUnlocked;                 // Vrai si les Images sont débloquées.
 // export let ProfesseurUnlocked;             // Vrai si les Professeurs sont débloqués.
 // export let ascensionUnlocked;              // Vrai si l'Ascension est débloquée (peut être effectuée).
-// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectué).
+// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectuée).
 // export let skillsButtonUnlocked;           // Vrai si le bouton "Compétences" est débloqué.
 // export let settingsButtonUnlocked;         // Vrai si le bouton "Paramètres" est débloqué.
 // export let automationCategoryUnlocked;     // Vrai si la catégorie "Automatisation" est débloquée.
@@ -1378,11 +1324,6 @@ export function initializeGame() {
 //   // - decimalPlaces: Nombre de décimales à afficher.
 //   // - exponentThreshold: Seuil d'exposant pour passer en notation scientifique.
 //
-// export function showNotification(message, duration = 3000)
-//   // Affiche une notification temporaire à l'utilisateur en bas à droite de l'écran.
-//   // - message: Le texte de la notification.
-//   // - duration: La durée d'affichage en ms.
-//
 // export function performPurchase(itemType, quantityRequested, isAutomated = false)
 //   // Gère l'achat d'un élément du jeu (Élève, Classe, Image, Professeur, École, Lycée, Collège,
 //   // Licences, Masters, Doctorats, Post-Doctorats).
@@ -1485,7 +1426,7 @@ export function initializeGame() {
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
 //     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
 //     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
-//     hideAchievementTooltip, toggleAchievementTooltip, applyAllSkillEffects, updateCachedMultipliers
+//     hideAchievementTooltip, toggleAchievementTooltip, showNotification
 //
 // Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.

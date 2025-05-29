@@ -1,24 +1,22 @@
 /**
 */
-// Assumes global variables from core.js, data.js, etc., are available in the global scope.
-// Examples: bonsPoints, totalBonsPointsParSeconde, images, nombreProfesseur, etc.
-// Assumes functions like calculateNextEleveCost, calculatePAGained, etc., are available.
-// Assumes data structures like skillsData, questsData, achievementsData, prestigePurchasesData are available.
-// Assumes skillEffects object is available and updated by applyAllSkillEffects.
-
 // Fiche Mémo : ui.js
-// Description : Ce fichier est dédié à la gestion de l&#39;interface utilisateur du jeu.
-// Il est responsable de la mise à jour de l&#39;affichage de toutes les ressources,
+// Description : Ce fichier est dédié à la gestion de l'interface utilisateur du jeu.
+// Il est responsable de la mise à jour de l'affichage de toutes les ressources,
 // des états des boutons, de la visibilité des sections, des notifications,
-// et du rendu des menus dynamiques comme l&#39;arbre de compétences, les quêtes et les succès.
+// et du rendu des menus dynamiques comme l'arbre de compétences, les quêtes et les succès.
 // Il ne contient aucune logique de jeu (calculs de production, achats, réinitialisations),
-// mais interagit avec les données et les fonctions définies dans d&#39;autres modules.
+// mais interagit avec les données et les fonctions définies dans d'autres modules.
 
 // Dépendances :
 // - core.js : Fournit les variables d'état du jeu (bonsPoints, images, nombreEleves, etc.),
 //             les totaux de production (totalBonsPointsParSeconde), les fonctions
 //             de calcul de production (elevesBpsPerItem, classesBpsPerItem),
-//             et les variables de déverrouillage (elevesUnlocked, ascensionUnlocked, etc.).
+//             les variables de déverrouillage (elevesUnlocked, ascensionUnlocked, etc.),
+//             ainsi que les fonctions `formatNumber`, `applyAllSkillEffects`, `updateCachedMultipliers`,
+//             `calculateTotalBPS`, `checkUnlockConditions`, `updateButtonStates`,
+//             `updateAutomationButtonStates`, `updateSettingsButtonStates`, `openTab`,
+//             `closeStatsModal`, `updateStatsDisplay`.
 // - data.js : Contient les données statiques du jeu, y compris les définitions
 //             des compétences (skillsData), des quêtes (questsData), des succès (achievementsData),
 //             et des achats de prestige (prestigePurchasesData).
@@ -27,44 +25,33 @@
 //                calculateNextProfessorCost).
 // - automation.js : Fournit la fonction de calcul de coût pour l'automatisation
 //                   (calculateAutomationCost).
-// - skills.js : Fournit la fonction `buySkill` pour gérer l'achat de compétences,
-//               et l'objet `skillEffects` qui contient les bonus actifs des compétences.
+// - skills.js : Fournit la fonction `buySkill` pour gérer l'achat de compétences.
 // - ascension.js : Fournit les fonctions de calcul de coût pour l'ascension
-//                  (calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost)
-//                  ainsi que les variables liées à l'ascension (ascensionPoints, ascensionCount,
-//                  totalPAEarned, ascensionBonus, ecoleMultiplier, lyceeMultiplier, collegeMultiplier).
+//                  (calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost).
 // - prestige.js : Fournit les fonctions de calcul de coût pour le prestige
 //                 (calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
-//                 calculateDoctoratCost, calculatePostDoctoratCost) et les variables
-//                 liées au prestige (prestigePoints, prestigeCount, multiplicateurProfesseur,
-//                 paMultiplierFromQuests, getPrestigeBonusMultiplier).
-// - settings.js : Fournit les variables liées aux paramètres (isDayTheme, themeOptionUnlocked,
-//                 minimizeResourcesActive, statsButtonUnlocked).
-// - quests.js : Gère la logique des quêtes et leur état.
-// - achievements.js : Gère la logique des succès et leur état (unlockedAchievements,
-//                     permanentBpsBonusFromAchievements).
-// - events.js : Attache les écouteurs d'événements aux éléments DOM et appelle les
-//               fonctions appropriées définies dans ui.js et d'autres modules.
-// - break\_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
+//                 calculateDoctoratCost, calculatePostDoctoratCost) et la fonction
+//                 `getPrestigeBonusMultiplier`.
+// - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
 //                           pour la gestion des grands nombres.
 
-// Variables Clés (utilisées par ui.js, mais définies ailleurs) :
+// Variables Clés (utilisées par ui.js, mais définies ailleurs et importées) :
 // - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur : Ressources principales.
-// - totalBonsPointsParSeconde, elevesBpsPerItem, classesBpsPerItem : Productions.
+// - totalBonsPointsParSeconde : Production totale de BP/s.
 // - ascensionPoints, ascensionCount, totalPAEarned, ascensionBonus : Variables d'ascension.
 // - prestigePoints, prestigeCount : Variables de prestige.
 // - schoolCount, nombreLycees, nombreColleges, nombreLicences, nombreMaster1,
 //   nombreMaster2, nombreDoctorat, nombrePostDoctorat : Quantités d'achats supérieurs.
 // - totalClicks : Compteur de clics.
-// - clickBonsPoints : Bonus de bons points par clic.
 // - currentPurchaseMultiplier : Multiplicateur d'achat actuel (x1, x10, x100, max).
-// - isDayTheme, minimizeResourcesActive : États des paramètres.
+// - isDayTheme, minimizeResourcesActive, offlineProgressEnabled : États des paramètres.
 // - autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive : États d'automatisation.
 // - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked,
 //   ascensionUnlocked, prestigeUnlocked, skillsButtonUnlocked, settingsButtonUnlocked,
 //   automationCategoryUnlocked, questsUnlocked, achievementsButtonUnlocked,
 //   newSettingsUnlocked, multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked,
-//   statsButtonUnlocked : Flags de déverrouillage des fonctionnalités/sections.
+//   statsButtonUnlocked, prestigeMenuButtonUnlocked, ascensionMenuButtonUnlocked,
+//   lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked : Flags de déverrouillage des fonctionnalités/sections.
 // - studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints : Points de compétence.
 // - studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels : Niveaux des compétences débloquées.
 // - secretSkillClicks : Compteur pour la compétence secrète.
@@ -72,29 +59,51 @@
 // - permanentBpsBonusFromAchievements : Bonus permanent des succès.
 // - paMultiplierFromQuests : Multiplicateur de PA des quêtes.
 // - skillEffects : Objet contenant les effets cumulés de toutes les compétences et succès.
+// - clickBonsPoints : Bonus de bons points par clic (remplacé par skillEffects.clickBonsPointsBonus).
+// - ecoleMultiplier, lyceeMultiplier, collegeMultiplier : Multiplicateurs des structures d'ascension.
 
-// Fonctions Clés (appelées par ui.js, mais définies ailleurs) :
+// Fonctions Clés (appelées par ui.js, mais définies ailleurs et importées) :
 // - formatNumber(num, decimalPlaces, exponentThreshold) : Formate un nombre pour l'affichage.
 // - calculateNextEleveCost(count), calculateNextClasseCost(count), etc. : Calculent les coûts des achats.
 // - calculateAutomationCost(baseCost) : Calcule le coût des automatisations.
 // - calculatePAGained() : Calcule les PA gagnés à l'ascension.
 // - calculatePPGained(totalPA, totalAscensions) : Calcule les PP gagnés au prestige.
 // - getPrestigeBonusMultiplier(type, currentPrestigeCount, currentPrestigePoints) : Calcule les multiplicateurs de prestige.
-// - calculateTotalBPS(), calculateItemBPS() : Recalculent les productions.
+// - calculateTotalBPS() : Recalcule la production totale de BP/s.
 // - buySkill(panelType, skillId) : Fonction pour acheter une compétence.
 // - checkUnlockConditions() : Vérifie et applique les déverrouillages.
 // - checkAchievements() : Vérifie et débloque les succès.
 
+// Fonctions Clés (définies et exportées par ui.js) :
+// - updateDisplay() : Met à jour l'affichage de toutes les ressources et éléments UI.
+// - showNotification(message, type = 'info') : Affiche une notification pop-up.
+// - updateSectionVisibility() : Contrôle la visibilité des sections du jeu.
+// - updateMultiplierButtons() : Met à jour l'état visuel des boutons de multiplicateur.
+// - updateAutomationButtonStates() : Met à jour l'état visuel des boutons d'automatisation.
+// - updateSettingsButtonStates() : Met à jour l'état visuel des boutons des paramètres.
+// - renderSkillsMenu() : Orchestre le rendu complet de l'arbre de compétences.
+// - renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPanelUnlocked) : Rend un panneau de compétences spécifique.
+// - handleSkillClick(panelType, skillId) : Gère la logique de clic sur une compétence.
+// - renderQuests() : Rend la liste des quêtes actives et terminées.
+// - renderAchievements() : Rend la grille des succès.
+// - showAchievementTooltip(event, ach) : Affiche l'infobulle d'un succès.
+// - hideAchievementTooltip() : Masque l'infobulle d'un succès.
+// - toggleAchievementTooltip(event, ach) : Bascule l'affichage de l'infobulle d'un succès.
+// - openTab(tabContainer) : Ouvre une section principale du jeu.
+// - openStatsModal() : Ouvre la modale des statistiques.
+// - closeStatsModal() : Ferme la modale des statistiques.
+// - updateStatsDisplay() : Met à jour les valeurs affichées dans la modale des statistiques.
+
 // Éléments DOM Clés (référencés par ID) :
-// - \#bonsPoints, \#totalBpsInline, \#imagesCount, \#nombreProfesseur, etc. : Affichage des ressources.
-// - \#acheterEleveButton, \#acheterClasseButton, etc. : Boutons d'achat.
-// - \#studiesTabBtn, \#automationTabBtn, etc. : Boutons de navigation latérale.
-// - \#studiesMainContainer, \#automationMainContainer, etc. : Conteneurs des sections principales.
-// - \#notifications-container : Conteneur des notifications.
-// - \#skillPanels, \#studiesSkillsGrid, \#ascensionSkillsGrid, \#prestigeSkillsGrid : Arbre de compétences.
-// - \#questsList, \#completedQuestsList : Listes des quêtes.
-// - \#achievementsGrid, \#achievementTooltip : Grille et infobulle des succès.
-// - \#statsModal : Modale des statistiques.
+// - #bonsPoints, #totalBpsInline, #imagesCount, #nombreProfesseur, etc. : Affichage des ressources.
+// - #acheterEleveButton, #acheterClasseButton, etc. : Boutons d'achat.
+// - #studiesTabBtn, #automationTabBtn, etc. : Boutons de navigation latérale.
+// - #studiesMainContainer, #automationMainContainer, etc. : Conteneurs des sections principales.
+// - #notifications-container : Conteneur des notifications.
+// - #skillPanels, #studiesSkillsGrid, #ascensionSkillsGrid, #prestigeSkillsGrid : Arbre de compétences.
+// - #questsList, #completedQuestsList : Listes des quêtes.
+// - #achievementsGrid, #achievementTooltip : Grille et infobulle des succès.
+// - #statsModal : Modale des statistiques.
 
 // Logique Générale :
 // Ce fichier est le "front-end" visuel du jeu. Il prend les données de l'état du jeu
@@ -105,45 +114,51 @@
 
 // Notes Spécifiques :
 // - Les IDs des éléments HTML sont supposés correspondre à ceux définis dans `index.html`.
-// - La fonction `formatNumber` est incluse ici pour la commodité, mais pourrait être déplacée
-//   dans un fichier `utils.js` si l'architecture le permet.
 // - Ce fichier ne contient pas d'écouteurs d'événements directs (addEventListener).
 //   Ces derniers sont gérés dans `events.js` qui appelle les fonctions de `ui.js`.
 
-/**
- * Formate un nombre pour l'affichage, en utilisant la notation scientifique pour les très grands nombres,
- * le formatage spécifique à la locale pour les grands nombres, et des décimales fixes pour les petits nombres.
- * Fonctionne avec les objets Decimal de break_infinity.js.
- * @param {Decimal} num Le nombre (objet Decimal) à formater.
- * @param {number} [decimalPlaces=0] Le nombre de décimales à afficher pour les petits nombres.
- * @param {number} [exponentThreshold=6] Le seuil pour passer à la notation exponentielle (ex: 1e6).
- * @returns {string} La chaîne de caractères du nombre formaté.
- */
-function formatNumber(num, decimalPlaces = 0, exponentThreshold = 6) {
-    if (!(num instanceof Decimal)) {
-        num = new Decimal(num); // S'assure que c'est un objet Decimal
-    }
+// --- Importation des fonctions et données des autres modules ---
+// Assurez-vous que ces imports correspondent aux exports des fichiers respectifs.
+import {
+    bonsPoints, totalBonsPointsParSeconde, images, nombreEleves, nombreClasses, nombreProfesseur,
+    schoolCount, nombreLycees, nombreColleges, ascensionPoints, ascensionCount, totalPAEarned,
+    ascensionBonus, prestigePoints, prestigeCount, totalClicks, currentPurchaseMultiplier,
+    elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked, ascensionUnlocked, prestigeUnlocked,
+    skillsButtonUnlocked, settingsButtonUnlocked, automationCategoryUnlocked, questsUnlocked, achievementsButtonUnlocked,
+    newSettingsUnlocked, multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, statsButtonUnlocked,
+    prestigeMenuButtonUnlocked, ascensionMenuButtonUnlocked,
+    autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive,
+    studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints,
+    studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels, secretSkillClicks,
+    isDayTheme, themeOptionUnlocked, offlineProgressEnabled, minimizeResourcesActive,
+    disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
+    nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat,
+    skillEffects, permanentBpsBonusFromAchievements, paMultiplierFromQuests,
+    formatNumber, applyAllSkillEffects, updateCachedMultipliers, calculateTotalBPS,
+    checkUnlockConditions, updateButtonStates,
+    // Variables pour les multiplicateurs des structures d'ascension.
+    // Assurez-vous que ces variables sont bien exportées par core.js ou ascension.js
+    ecoleMultiplier, lyceeMultiplier, collegeMultiplier,
+    // Variables de déverrouillage spécifiques aux lycées/collèges et compétences
+    lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked
+} from './core.js'; // Importe les variables d'état et fonctions principales de core.js
 
-    if (num.abs().lt(1000) && num.abs().gt(0)) { // Pour les nombres inférieurs à 1000, utilise des décimales fixes
-        return num.toFixed(decimalPlaces);
-    }
-    if (num.abs().gte(new Decimal('1e' + exponentThreshold))) {
-        return num.toExponential(2); // ex: 1.23e+9
-    } else if (num.abs().gte(1000)) {
-        return num.toNumber().toLocaleString('fr-FR', {
-            minimumFractionDigits: decimalPlaces,
-            maximumFractionDigits: decimalPlaces
-        });
-    } else {
-        return num.toFixed(decimalPlaces);
-    }
-}
+import { calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost,
+         elevesBpsPerItem, classesBpsPerItem } from './studies.js';
+import { calculateAutomationCost } from './automation.js';
+import { skillsData, prestigePurchasesData, questsData, achievementsData } from './data.js';
+import { calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js';
+import { getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
+         calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
+import { buySkill } from './skills.js'; // Importe la fonction buySkill
+
+// Assumes Decimal is globally available from break_infinity.min.js
 
 /**
  * Met à jour l'affichage de toutes les ressources principales et des boutons d'achat.
  * Cette fonction est appelée fréquemment pour refléter l'état actuel du jeu.
  */
-function updateDisplay() {
+export function updateDisplay() {
     // Mise à jour des ressources principales
     document.getElementById('bonsPoints').textContent = formatNumber(bonsPoints, 0);
     document.getElementById('totalBpsInline').textContent = formatNumber(totalBonsPointsParSeconde, 1);
@@ -238,7 +253,7 @@ function updateDisplay() {
     }
 
     // Mise à jour du bouton de clic principal
-    document.getElementById('studiesTitleButton').innerHTML = `Études (<span id="clickBonsPointsDisplay">+${formatNumber(clickBonsPoints, bonsPoints.lt(1000) ? 1 : 0)} BP</span>)`;
+    document.getElementById('studiesTitleButton').innerHTML = `Études (<span id="clickBonsPointsDisplay">+${formatNumber(skillEffects.clickBonsPointsBonus.add(1), bonsPoints.lt(1000) ? 1 : 0)} BP</span>)`; // Use skillEffects.clickBonsPointsBonus
 
     // Mise à jour des éléments de la section "Ascension"
     if (ascensionMenuButtonUnlocked) {
@@ -249,7 +264,6 @@ function updateDisplay() {
         document.getElementById('acheterEcoleButton').classList.toggle('cannot-afford', ascensionPoints.lt(coutEcoleActuel));
         document.getElementById('coutEcole').textContent = `${formatNumber(coutEcoleActuel, 0)} PA`;
         document.getElementById('nombreEcoles').textContent = formatNumber(schoolCount, 0);
-        // Assumes ecoleMultiplier is calculated globally (e.g., in core.js)
         document.getElementById('ecoleMultiplier').textContent = `${formatNumber(ecoleMultiplier, 2)}x`;
 
         if (lyceesUnlocked) {
@@ -259,7 +273,6 @@ function updateDisplay() {
             document.getElementById('acheterLyceeButton').classList.toggle('can-afford', ascensionPoints.gte(coutLyceeActuel));
             document.getElementById('acheterLyceeButton').classList.toggle('cannot-afford', ascensionPoints.lt(coutLyceeActuel));
             document.getElementById('nombreLyceesDisplay').textContent = formatNumber(nombreLycees, 0);
-            // Assumes lyceeMultiplier is calculated globally
             document.getElementById('lyceeMultiplierDisplay').textContent = `${formatNumber(lyceeMultiplier, 2)}x`;
         } else {
             document.getElementById('achatLyceeSection').style.display = 'none';
@@ -272,7 +285,6 @@ function updateDisplay() {
             document.getElementById('acheterCollegeButton').classList.toggle('can-afford', ascensionPoints.gte(coutCollegeActuel));
             document.getElementById('acheterCollegeButton').classList.toggle('cannot-afford', ascensionPoints.lt(coutCollegeActuel));
             document.getElementById('nombreCollegesDisplay').textContent = formatNumber(nombreColleges, 0);
-            // Assumes collegeMultiplier is calculated globally
             document.getElementById('collegeMultiplierDisplay').textContent = `${formatNumber(collegeMultiplier, 2)}x`;
         } else {
             document.getElementById('achatCollegeSection').style.display = 'none';
@@ -360,10 +372,15 @@ function updateDisplay() {
 /**
  * Affiche une notification pop-up à l'utilisateur.
  * @param {string} message Le message à afficher.
- * @param {string} type Le type de notification ('info', 'success', 'warning', 'error').
+ * @param {string} [type='info'] Le type de notification ('info', 'success', 'warning', 'error').
+ * @param {number} [duration=5000] La durée d'affichage en ms.
  */
-function showNotification(message, type = 'info') {
+export function showNotification(message, type = 'info', duration = 5000) {
     const notificationsContainer = document.getElementById('notifications-container');
+    if (!notificationsContainer) {
+        console.warn("Notifications container not found.");
+        return;
+    }
     const notification = document.createElement('div');
     notification.classList.add('notification-item');
     notification.classList.add(type); // Ajoute une classe pour le style spécifique au type
@@ -376,18 +393,18 @@ function showNotification(message, type = 'info') {
         notification.style.transform = 'translateX(0)';
     }, 10); // Petit délai pour que la transition s'applique
 
-    // Supprime la notification après un certain temps (par exemple, 5 secondes)
+    // Supprime la notification après un certain temps
     setTimeout(() => {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
         setTimeout(() => notification.remove(), 500); // Attend la fin de l'animation de sortie avant de supprimer
-    }, 5000);
+    }, duration - 500);
 }
 
 /**
  * Contrôle la visibilité des différentes sections du jeu (onglets) et des ressources.
  */
-function updateSectionVisibility() {
+export function updateSectionVisibility() {
     // Visibilité des boutons de navigation latérale
     document.getElementById('automationTabBtn').style.display = automationCategoryUnlocked ? 'block' : 'none';
     document.getElementById('skillsTabBtn').style.display = skillsButtonUnlocked ? 'block' : 'none';
@@ -427,7 +444,7 @@ function updateSectionVisibility() {
 /**
  * Met à jour l'état visuel des boutons de multiplicateur d'achat (x1, x10, x100, xMax).
  */
-function updateMultiplierButtons() {
+export function updateMultiplierButtons() {
     const multiplierButtons = document.querySelectorAll('#multiplierButtonsContainer .multiplier-button');
     multiplierButtons.forEach(button => {
         const multiplier = button.dataset.multiplier;
@@ -442,7 +459,7 @@ function updateMultiplierButtons() {
 /**
  * Met à jour l'état visuel des boutons d'automatisation (texte et classe 'automation-active').
  */
-function updateAutomationButtonStates() {
+export function updateAutomationButtonStates() {
     const autoEleveBtn = document.getElementById('autoEleveBtn');
     const autoClasseBtn = document.getElementById('autoClasseBtn');
     const autoImageBtn = document.getElementById('autoImageBtn');
@@ -492,7 +509,7 @@ function updateAutomationButtonStates() {
 /**
  * Met à jour l'état visuel des boutons des paramètres (thème, réinitialisation, etc.).
  */
-function updateSettingsButtonStates() {
+export function updateSettingsButtonStates() {
     const themeToggleButton = document.getElementById('themeToggleButton');
     const resetProgressionButton = document.getElementById('resetProgressionButton');
     const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
@@ -514,7 +531,7 @@ function updateSettingsButtonStates() {
 /**
  * Orchestre le rendu complet de l'arbre de compétences, y compris la visibilité des panneaux.
  */
-function renderSkillsMenu() {
+export function renderSkillsMenu() {
     const studiesPanel = document.getElementById('studiesPanel');
     const ascensionPanel = document.getElementById('ascensionPanel');
     const prestigePanel = document.getElementById('prestigePanel');
@@ -609,10 +626,9 @@ function renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPa
  * @param {string} panelType Le type de panneau de compétences.
  * @param {string} skillId L'ID de la compétence cliquée.
  */
-function handleSkillClick(panelType, skillId) {
+export function handleSkillClick(panelType, skillId) {
     // La logique d'achat et d'application des effets de compétence est dans skills.js.
     // Ce fichier UI.js ne fait que déclencher l'action.
-    // Assumes buySkill function is defined in skills.js
     if (typeof buySkill === 'function') {
         buySkill(panelType, skillId);
     } else {
@@ -623,7 +639,7 @@ function handleSkillClick(panelType, skillId) {
 /**
  * Rend la liste des quêtes actives et terminées.
  */
-function renderQuests() {
+export function renderQuests() {
     if (!questsUnlocked) return; // Ne rien rendre si les quêtes ne sont pas déverrouillées
 
     const questsListDiv = document.getElementById('questsList');
@@ -631,7 +647,10 @@ function renderQuests() {
     questsListDiv.innerHTML = '';
     completedQuestsListDiv.innerHTML = '';
 
-    questsData.forEach(quest => {
+    // Convertir questsData en un tableau si ce n'est pas déjà le cas
+    const questsArray = Array.isArray(questsData) ? questsData : Object.values(questsData);
+
+    questsArray.forEach(quest => {
         const questDiv = document.createElement('div');
         questDiv.classList.add('achat-section', 'quest-item'); // Réutilise les styles existants
 
@@ -661,6 +680,7 @@ function renderQuests() {
                 case 'nombreProfesseur': currentVal = nombreProfesseur; break;
                 case 'bonsPoints': currentVal = bonsPoints; break;
                 case 'totalClicks': currentVal = totalClicks; break;
+                case 'images': currentVal = images; break; // Added images as a target type
             }
             progressText = `<p>Progrès : <span class="info-color">${formatNumber(currentVal, 0)}/${formatNumber(quest.targetValue, 0)}</span></p>`;
         }
@@ -684,7 +704,7 @@ function renderQuests() {
 /**
  * Rend la grille des succès.
  */
-function renderAchievements() {
+export function renderAchievements() {
     if (!achievementsUnlocked) return; // Ne rien rendre si les succès ne sont pas déverrouillés
 
     const achievementsGrid = document.getElementById('achievementsGrid');
@@ -715,7 +735,7 @@ let activeAchievementTooltip = null; // Pour gérer l'infobulle cliquée
  * @param {Event} event L'événement de la souris.
  * @param {Object} ach L'objet succès.
  */
-function showAchievementTooltip(event, ach) {
+export function showAchievementTooltip(event, ach) {
     // N'affiche que si aucune infobulle n'est actuellement cliquée et affichée
     if (activeAchievementTooltip && activeAchievementTooltip.classList.contains('clicked')) return;
 
@@ -736,7 +756,7 @@ function showAchievementTooltip(event, ach) {
 /**
  * Masque l'infobulle d'un succès.
  */
-function hideAchievementTooltip() {
+export function hideAchievementTooltip() {
     const achievementTooltip = document.getElementById('achievementTooltip');
     // Ne masque que si elle n'est pas actuellement cliquée
     if (activeAchievementTooltip && activeAchievementTooltip.classList.contains('clicked')) return;
@@ -750,7 +770,7 @@ function hideAchievementTooltip() {
  * @param {Event} event L'événement de clic.
  * @param {Object} ach L'objet succès.
  */
-function toggleAchievementTooltip(event, ach) {
+export function toggleAchievementTooltip(event, ach) {
     event.stopPropagation(); // Empêche le clic de se propager au document
 
     const achievementTooltip = document.getElementById('achievementTooltip');
@@ -789,7 +809,7 @@ function toggleAchievementTooltip(event, ach) {
  * Cette fonction est appelée par les écouteurs d'événements des boutons de navigation dans `events.js`.
  * @param {HTMLElement} tabContainer L'élément DOM du conteneur de la section à ouvrir.
  */
-function openTab(tabContainer) {
+export function openTab(tabContainer) {
     // Masque tous les conteneurs de contenu principal
     const mainContentContainers = [
         document.getElementById('studiesMainContainer'),
@@ -828,7 +848,7 @@ function openTab(tabContainer) {
 /**
  * Ouvre la modale des statistiques et met à jour son contenu.
  */
-function openStatsModal() {
+export function openStatsModal() {
     updateStatsDisplay();
     document.getElementById('statsModal').style.display = 'flex';
 }
@@ -836,20 +856,19 @@ function openStatsModal() {
 /**
  * Ferme la modale des statistiques.
  */
-function closeStatsModal() {
+export function closeStatsModal() {
     document.getElementById('statsModal').style.display = 'none';
 }
 
 /**
  * Met à jour les valeurs affichées dans la modale des statistiques.
  */
-function updateStatsDisplay() {
+export function updateStatsDisplay() {
     // Production Globale
     document.getElementById('statsCurrentBPS').textContent = formatNumber(totalBonsPointsParSeconde, 2);
-    document.getElementById('statsSkillBonus').textContent = formatNumber(skillEffects.totalBpsMultiplierBonus.mul(100), 2) + '%';
-    // Assumes ascensionBonus is a global variable
+    document.getElementById('statsSkillBonus').textContent = formatNumber(skillEffects.totalBpsMultiplierBonus ? skillEffects.totalBpsMultiplierBonus.mul(100) : new Decimal(0), 2) + '%'; // Added check for totalBpsMultiplierBonus
     document.getElementById('statsAscensionBonus').textContent = formatNumber(ascensionBonus, 2) + 'x';
-    document.getElementById('statsPrestigeBPSBonus').textContent = formatNumber(getPrestigeBonusMultiplier('bps'), 2) + 'x';
+    document.getElementById('statsPrestigeBPSBonus').textContent = formatNumber(getPrestigeBonusMultiplier('bps', prestigeCount, prestigePoints), 2) + 'x';
     document.getElementById('statsAchievementBPSBonus').textContent = formatNumber(permanentBpsBonusFromAchievements.mul(100), 2) + '%';
     document.getElementById('statsAllBPSMultiplier').textContent = formatNumber(skillEffects.allBpsMultiplier, 2) + 'x';
 
@@ -857,8 +876,7 @@ function updateStatsDisplay() {
     document.getElementById('statsBonsPoints').textContent = formatNumber(bonsPoints, 0);
     document.getElementById('statsImages').textContent = formatNumber(images, 0);
     document.getElementById('statsProfesseur').textContent = formatNumber(nombreProfesseur, 0);
-    // Assumes multiplicateurProfesseur is a global variable
-    document.getElementById('statsProfMultiplier').textContent = formatNumber(multiplicateurProfesseur, 2) + 'x';
+    // document.getElementById('statsProfMultiplier').textContent = formatNumber(multiplicateurProfesseur, 2) + 'x'; // Commented out: 'multiplicateurProfesseur' is not defined. Use skillEffects.licenceProfMultiplier if applicable.
     document.getElementById('statsAscensionPoints').textContent = formatNumber(ascensionPoints, 0);
     document.getElementById('statsPrestigePoints').textContent = formatNumber(prestigePoints, 0);
 
@@ -873,8 +891,7 @@ function updateStatsDisplay() {
 
     // Bonus Spécifiques
     document.getElementById('statsClickBPSBonus').textContent = formatNumber(skillEffects.clickBonsPointsBonus, 2);
-    // Assumes paMultiplierFromQuests is a global variable
-    document.getElementById('statsPAGainMultiplier').textContent = formatNumber(paMultiplierFromQuests.add(skillEffects.paGainMultiplier).add(nombrePostDoctorat.mul(prestigePurchasesData.find(p => p.id === 'postDoctorat').effect.value).mul(prestigePoints)).add(skillEffects.postDoctoratPAGain).sub(1).mul(100), 2) + '%';
+    document.getElementById('statsPAGainMultiplier').textContent = formatNumber(paMultiplierFromQuests.add(skillEffects.paGainMultiplier).add(nombrePostDoctorat.mul(prestigePurchasesData.find(p => p.id === 'postDoctorat').effect.value)).sub(1).mul(100), 2) + '%'; // Simplified calculation assuming effect.value is a direct multiplier
     document.getElementById('statsAscensionBonusIncrease').textContent = formatNumber(skillEffects.ascensionBonusIncrease, 2) + 'x';
     document.getElementById('statsOfflineProductionIncrease').textContent = formatNumber(skillEffects.offlineProductionIncrease.mul(100), 2) + '%';
     document.getElementById('statsAllProductionMultiplier').textContent = formatNumber(skillEffects.allProductionMultiplier.mul(100), 2) + '%';
@@ -898,6 +915,6 @@ function updateStatsDisplay() {
     document.getElementById('statsMaster1Boost').textContent = formatNumber(prestigePurchasesData.find(p => p.id === 'master1').getEffectValue().sub(1).mul(100), 2) + '%';
     document.getElementById('statsMaster2Boost').textContent = formatNumber(prestigePurchasesData.find(p => p.id === 'master2').getEffectValue().sub(1).mul(100), 2) + '%';
     document.getElementById('statsDoctoratBPSBoost').textContent = formatNumber(prestigePurchasesData.find(p => p.id === 'doctorat').getEffectValue().sub(1).mul(100), 2) + '%';
-    document.getElementById('statsDoctoratMinClasses').textContent = formatNumber(nombreDoctorat.gt(0) ? new Decimal(1) : new Decimal(0), 0);
+    document.getElementById('statsDoctoratMinClasses').textContent = formatNumber(doctoratData.getMinClasses(), 0); // Use doctoratData.getMinClasses() directly
     document.getElementById('statsPostDoctoratBoost').textContent = formatNumber(prestigePurchasesData.find(p => p.id === 'postDoctorat').getEffectValue().sub(1).mul(100), 2) + '%';
 }

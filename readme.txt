@@ -196,7 +196,7 @@ Notes Spécifiques :
 // export let imagesUnlocked;                 // Vrai si les Images sont débloquées.
 // export let ProfesseurUnlocked;             // Vrai si les Professeurs sont débloqués.
 // export let ascensionUnlocked;              // Vrai si l'Ascension est débloquée (peut être effectuée).
-// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectué).
+// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectuée).
 // export let skillsButtonUnlocked;           // Vrai si le bouton "Compétences" est débloqué.
 // export let settingsButtonUnlocked;         // Vrai si le bouton "Paramètres" est débloqué.
 // export let automationCategoryUnlocked;     // Vrai si la catégorie "Automatisation" est débloquée.
@@ -309,11 +309,6 @@ Notes Spécifiques :
 //   // - decimalPlaces: Nombre de décimales à afficher.
 //   // - exponentThreshold: Seuil d'exposant pour passer en notation scientifique.
 //
-// export function showNotification(message, duration = 3000)
-//   // Affiche une notification temporaire à l'utilisateur en bas à droite de l'écran.
-//   // - message: Le texte de la notification.
-//   // - duration: La durée d'affichage en ms.
-//
 // export function performPurchase(itemType, quantityRequested, isAutomated = false)
 //   // Gère l'achat d'un élément du jeu (Élève, Classe, Image, Professeur, École, Lycée, Collège,
 //   // Licences, Masters, Doctorats, Post-Doctorats).
@@ -416,12 +411,15 @@ Notes Spécifiques :
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
 //     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
 //     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
-//     hideAchievementTooltip, toggleAchievementTooltip, applyAllSkillEffects, updateCachedMultipliers
+//     hideAchievementTooltip, toggleAchievementTooltip, showNotification
 //
 // Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.
 //
-// 
+// ---------------------------------------------------------------------
+
+
+
 
 
 
@@ -455,26 +453,23 @@ Notes Spécifiques :
 
 
 
-------------------------------------  Fiche Mémo : ui.js -------------------------------------
-// Assumes global variables from core.js, data.js, etc., are available in the global scope.
-// Examples: bonsPoints, totalBonsPointsParSeconde, images, nombreProfesseur, etc.
-// Assumes functions like calculateNextEleveCost, calculatePAGained, etc., are available.
-// Assumes data structures like skillsData, questsData, achievementsData, prestigePurchasesData are available.
-// Assumes skillEffects object is available and updated by applyAllSkillEffects.
-
-
-// Description : Ce fichier est dédié à la gestion de l&#39;interface utilisateur du jeu.
-// Il est responsable de la mise à jour de l&#39;affichage de toutes les ressources,
+-------------------------- // Fiche Mémo : ui.js -----------------------
+// Description : Ce fichier est dédié à la gestion de l'interface utilisateur du jeu.
+// Il est responsable de la mise à jour de l'affichage de toutes les ressources,
 // des états des boutons, de la visibilité des sections, des notifications,
-// et du rendu des menus dynamiques comme l&#39;arbre de compétences, les quêtes et les succès.
+// et du rendu des menus dynamiques comme l'arbre de compétences, les quêtes et les succès.
 // Il ne contient aucune logique de jeu (calculs de production, achats, réinitialisations),
-// mais interagit avec les données et les fonctions définies dans d&#39;autres modules.
+// mais interagit avec les données et les fonctions définies dans d'autres modules.
 
 // Dépendances :
 // - core.js : Fournit les variables d'état du jeu (bonsPoints, images, nombreEleves, etc.),
 //             les totaux de production (totalBonsPointsParSeconde), les fonctions
 //             de calcul de production (elevesBpsPerItem, classesBpsPerItem),
-//             et les variables de déverrouillage (elevesUnlocked, ascensionUnlocked, etc.).
+//             les variables de déverrouillage (elevesUnlocked, ascensionUnlocked, etc.),
+//             ainsi que les fonctions `formatNumber`, `applyAllSkillEffects`, `updateCachedMultipliers`,
+//             `calculateTotalBPS`, `checkUnlockConditions`, `updateButtonStates`,
+//             `updateAutomationButtonStates`, `updateSettingsButtonStates`, `openTab`,
+//             `closeStatsModal`, `updateStatsDisplay`.
 // - data.js : Contient les données statiques du jeu, y compris les définitions
 //             des compétences (skillsData), des quêtes (questsData), des succès (achievementsData),
 //             et des achats de prestige (prestigePurchasesData).
@@ -483,44 +478,33 @@ Notes Spécifiques :
 //                calculateNextProfessorCost).
 // - automation.js : Fournit la fonction de calcul de coût pour l'automatisation
 //                   (calculateAutomationCost).
-// - skills.js : Fournit la fonction `buySkill` pour gérer l'achat de compétences,
-//               et l'objet `skillEffects` qui contient les bonus actifs des compétences.
+// - skills.js : Fournit la fonction `buySkill` pour gérer l'achat de compétences.
 // - ascension.js : Fournit les fonctions de calcul de coût pour l'ascension
-//                  (calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost)
-//                  ainsi que les variables liées à l'ascension (ascensionPoints, ascensionCount,
-//                  totalPAEarned, ascensionBonus, ecoleMultiplier, lyceeMultiplier, collegeMultiplier).
+//                  (calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost).
 // - prestige.js : Fournit les fonctions de calcul de coût pour le prestige
 //                 (calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
-//                 calculateDoctoratCost, calculatePostDoctoratCost) et les variables
-//                 liées au prestige (prestigePoints, prestigeCount, multiplicateurProfesseur,
-//                 paMultiplierFromQuests, getPrestigeBonusMultiplier).
-// - settings.js : Fournit les variables liées aux paramètres (isDayTheme, themeOptionUnlocked,
-//                 minimizeResourcesActive, statsButtonUnlocked).
-// - quests.js : Gère la logique des quêtes et leur état.
-// - achievements.js : Gère la logique des succès et leur état (unlockedAchievements,
-//                     permanentBpsBonusFromAchievements).
-// - events.js : Attache les écouteurs d'événements aux éléments DOM et appelle les
-//               fonctions appropriées définies dans ui.js et d'autres modules.
-// - break\_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
+//                 calculateDoctoratCost, calculatePostDoctoratCost) et la fonction
+//                 `getPrestigeBonusMultiplier`.
+// - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
 //                           pour la gestion des grands nombres.
 
-// Variables Clés (utilisées par ui.js, mais définies ailleurs) :
+// Variables Clés (utilisées par ui.js, mais définies ailleurs et importées) :
 // - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur : Ressources principales.
-// - totalBonsPointsParSeconde, elevesBpsPerItem, classesBpsPerItem : Productions.
+// - totalBonsPointsParSeconde : Production totale de BP/s.
 // - ascensionPoints, ascensionCount, totalPAEarned, ascensionBonus : Variables d'ascension.
 // - prestigePoints, prestigeCount : Variables de prestige.
 // - schoolCount, nombreLycees, nombreColleges, nombreLicences, nombreMaster1,
 //   nombreMaster2, nombreDoctorat, nombrePostDoctorat : Quantités d'achats supérieurs.
 // - totalClicks : Compteur de clics.
-// - clickBonsPoints : Bonus de bons points par clic.
 // - currentPurchaseMultiplier : Multiplicateur d'achat actuel (x1, x10, x100, max).
-// - isDayTheme, minimizeResourcesActive : États des paramètres.
+// - isDayTheme, minimizeResourcesActive, offlineProgressEnabled : États des paramètres.
 // - autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive : États d'automatisation.
 // - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked,
 //   ascensionUnlocked, prestigeUnlocked, skillsButtonUnlocked, settingsButtonUnlocked,
 //   automationCategoryUnlocked, questsUnlocked, achievementsButtonUnlocked,
 //   newSettingsUnlocked, multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked,
-//   statsButtonUnlocked : Flags de déverrouillage des fonctionnalités/sections.
+//   statsButtonUnlocked, prestigeMenuButtonUnlocked, ascensionMenuButtonUnlocked,
+//   lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked : Flags de déverrouillage des fonctionnalités/sections.
 // - studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints : Points de compétence.
 // - studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels : Niveaux des compétences débloquées.
 // - secretSkillClicks : Compteur pour la compétence secrète.
@@ -528,29 +512,51 @@ Notes Spécifiques :
 // - permanentBpsBonusFromAchievements : Bonus permanent des succès.
 // - paMultiplierFromQuests : Multiplicateur de PA des quêtes.
 // - skillEffects : Objet contenant les effets cumulés de toutes les compétences et succès.
+// - clickBonsPoints : Bonus de bons points par clic (remplacé par skillEffects.clickBonsPointsBonus).
+// - ecoleMultiplier, lyceeMultiplier, collegeMultiplier : Multiplicateurs des structures d'ascension.
 
-// Fonctions Clés (appelées par ui.js, mais définies ailleurs) :
+// Fonctions Clés (appelées par ui.js, mais définies ailleurs et importées) :
 // - formatNumber(num, decimalPlaces, exponentThreshold) : Formate un nombre pour l'affichage.
 // - calculateNextEleveCost(count), calculateNextClasseCost(count), etc. : Calculent les coûts des achats.
 // - calculateAutomationCost(baseCost) : Calcule le coût des automatisations.
 // - calculatePAGained() : Calcule les PA gagnés à l'ascension.
 // - calculatePPGained(totalPA, totalAscensions) : Calcule les PP gagnés au prestige.
 // - getPrestigeBonusMultiplier(type, currentPrestigeCount, currentPrestigePoints) : Calcule les multiplicateurs de prestige.
-// - calculateTotalBPS(), calculateItemBPS() : Recalculent les productions.
+// - calculateTotalBPS() : Recalcule la production totale de BP/s.
 // - buySkill(panelType, skillId) : Fonction pour acheter une compétence.
 // - checkUnlockConditions() : Vérifie et applique les déverrouillages.
 // - checkAchievements() : Vérifie et débloque les succès.
 
+// Fonctions Clés (définies et exportées par ui.js) :
+// - updateDisplay() : Met à jour l'affichage de toutes les ressources et éléments UI.
+// - showNotification(message, type = 'info') : Affiche une notification pop-up.
+// - updateSectionVisibility() : Contrôle la visibilité des sections du jeu.
+// - updateMultiplierButtons() : Met à jour l'état visuel des boutons de multiplicateur.
+// - updateAutomationButtonStates() : Met à jour l'état visuel des boutons d'automatisation.
+// - updateSettingsButtonStates() : Met à jour l'état visuel des boutons des paramètres.
+// - renderSkillsMenu() : Orchestre le rendu complet de l'arbre de compétences.
+// - renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPanelUnlocked) : Rend un panneau de compétences spécifique.
+// - handleSkillClick(panelType, skillId) : Gère la logique de clic sur une compétence.
+// - renderQuests() : Rend la liste des quêtes actives et terminées.
+// - renderAchievements() : Rend la grille des succès.
+// - showAchievementTooltip(event, ach) : Affiche l'infobulle d'un succès.
+// - hideAchievementTooltip() : Masque l'infobulle d'un succès.
+// - toggleAchievementTooltip(event, ach) : Bascule l'affichage de l'infobulle d'un succès.
+// - openTab(tabContainer) : Ouvre une section principale du jeu.
+// - openStatsModal() : Ouvre la modale des statistiques.
+// - closeStatsModal() : Ferme la modale des statistiques.
+// - updateStatsDisplay() : Met à jour les valeurs affichées dans la modale des statistiques.
+
 // Éléments DOM Clés (référencés par ID) :
-// - \#bonsPoints, \#totalBpsInline, \#imagesCount, \#nombreProfesseur, etc. : Affichage des ressources.
-// - \#acheterEleveButton, \#acheterClasseButton, etc. : Boutons d'achat.
-// - \#studiesTabBtn, \#automationTabBtn, etc. : Boutons de navigation latérale.
-// - \#studiesMainContainer, \#automationMainContainer, etc. : Conteneurs des sections principales.
-// - \#notifications-container : Conteneur des notifications.
-// - \#skillPanels, \#studiesSkillsGrid, \#ascensionSkillsGrid, \#prestigeSkillsGrid : Arbre de compétences.
-// - \#questsList, \#completedQuestsList : Listes des quêtes.
-// - \#achievementsGrid, \#achievementTooltip : Grille et infobulle des succès.
-// - \#statsModal : Modale des statistiques.
+// - #bonsPoints, #totalBpsInline, #imagesCount, #nombreProfesseur, etc. : Affichage des ressources.
+// - #acheterEleveButton, #acheterClasseButton, etc. : Boutons d'achat.
+// - #studiesTabBtn, #automationTabBtn, etc. : Boutons de navigation latérale.
+// - #studiesMainContainer, #automationMainContainer, etc. : Conteneurs des sections principales.
+// - #notifications-container : Conteneur des notifications.
+// - #skillPanels, #studiesSkillsGrid, #ascensionSkillsGrid, #prestigeSkillsGrid : Arbre de compétences.
+// - #questsList, #completedQuestsList : Listes des quêtes.
+// - #achievementsGrid, #achievementTooltip : Grille et infobulle des succès.
+// - #statsModal : Modale des statistiques.
 
 // Logique Générale :
 // Ce fichier est le "front-end" visuel du jeu. Il prend les données de l'état du jeu
@@ -561,8 +567,6 @@ Notes Spécifiques :
 
 // Notes Spécifiques :
 // - Les IDs des éléments HTML sont supposés correspondre à ceux définis dans `index.html`.
-// - La fonction `formatNumber` est incluse ici pour la commodité, mais pourrait être déplacée
-//   dans un fichier `utils.js` si l'architecture le permet.
 // - Ce fichier ne contient pas d'écouteurs d'événements directs (addEventListener).
 //   Ces derniers sont gérés dans `events.js` qui appelle les fonctions de `ui.js`.
 

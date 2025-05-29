@@ -37,7 +37,7 @@
 // export let imagesUnlocked;                 // Vrai si les Images sont débloquées.
 // export let ProfesseurUnlocked;             // Vrai si les Professeurs sont débloqués.
 // export let ascensionUnlocked;              // Vrai si l'Ascension est débloquée (peut être effectuée).
-// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectué).
+// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectuée).
 // export let skillsButtonUnlocked;           // Vrai si le bouton "Compétences" est débloqué.
 // export let settingsButtonUnlocked;         // Vrai si le bouton "Paramètres" est débloqué.
 // export let automationCategoryUnlocked;     // Vrai si la catégorie "Automatisation" est débloquée.
@@ -150,11 +150,6 @@
 //   // - decimalPlaces: Nombre de décimales à afficher.
 //   // - exponentThreshold: Seuil d'exposant pour passer en notation scientifique.
 //
-// export function showNotification(message, duration = 3000)
-//   // Affiche une notification temporaire à l'utilisateur en bas à droite de l'écran.
-//   // - message: Le texte de la notification.
-//   // - duration: La durée d'affichage en ms.
-//
 // export function performPurchase(itemType, quantityRequested, isAutomated = false)
 //   // Gère l'achat d'un élément du jeu (Élève, Classe, Image, Professeur, École, Lycée, Collège,
 //   // Licences, Masters, Doctorats, Post-Doctorats).
@@ -257,7 +252,7 @@
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
 //     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
 //     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
-//     hideAchievementTooltip, toggleAchievementTooltip, applyAllSkillEffects, updateCachedMultipliers
+//     hideAchievementTooltip, toggleAchievementTooltip, showNotification
 //
 // Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.
