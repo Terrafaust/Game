@@ -126,8 +126,6 @@
 //
 // ---------------------------------------------------------------------
 
-import { Decimal } from './break_infinity.min.js';
-
 // --- Coûts Initiaux de Base ---
 // Ces coûts sont les valeurs de départ pour les calculs de prix dans les modules respectifs.
 export const initialCosts = {
