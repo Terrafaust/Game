@@ -115,6 +115,11 @@
 // //                                        Cette valeur est fondamentale pour déterminer la quantité de PA
 // //                                        obtenue par le joueur en fonction de sa progression cumulée.
 //
+// // export const PRESTIGE_POINT_THRESHOLD : Constante Decimal qui définit le seuil de Points d'Ascension Total
+// //                                        requis pour gagner 1 Point de Prestige (PP) lors d'un Prestige.
+// //                                        Cette valeur est fondamentale pour déterminer la quantité de PP
+// //                                        obtenue par le joueur en fonction de sa progression cumulée en PA.
+//
 // ------------------ Fonctions de Calcul de Coût (RETIREES DE CE FICHIER) ------------------
 //
 // // Note Importante : Les fonctions de calcul de coût telles que calculateNextImageCost et calculateAutomationCost
@@ -124,7 +129,7 @@
 // //                  et automation.js pour calculateAutomationCost).
 // //                  Cela assure une meilleure séparation des préoccupations et une architecture plus propre.
 //
-// ---------------------------------------------------------------------
+// --------------------------------------------------------------------
 
 // --- Coûts Initiaux de Base ---
 // Ces coûts sont les valeurs de départ pour les calculs de prix dans les modules respectifs.
@@ -497,3 +502,6 @@ export const prime_PA = new Decimal(2);
 
 // --- Seuil de Bons Points Total pour gagner 1 Point d'Ascension ---
 export const ASCENSION_POINT_THRESHOLD = new Decimal("1e10");
+
+// --- Seuil de Points d'Ascension Total pour gagner 1 Point de Prestige ---
+export const PRESTIGE_POINT_THRESHOLD = new Decimal("1000"); // Valeur par défaut, ajustez si nécessaire
