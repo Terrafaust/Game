@@ -9,18 +9,18 @@
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (studiesSkillPoints, ascensionSkillPoints,
- * prestigeSkillPoints, skillEffects, purchasedSkills, showNotification, saveGameState,
- * updateDisplay, checkUnlockConditions, applyAllSkillEffects, totalClicks, nombreProfesseur,
- * prestigeCount).
+ * prestigeSkillPoints, skillEffects, studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels,
+ * showNotification, saveGameState, checkUnlockConditions, applyAllSkillEffects,
+ * totalClicks, nombreProfesseur, prestigeCount).
  * - data.js : Contient les définitions des compétences (skillsData) incluant leurs coûts,
  * effets, et conditions de déverrouillage.
  * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique aux compétences (updateSkillsUI, renderSkillsMenu).
+ * de l'interface utilisateur spécifique aux compétences (updateSkillsUI, renderSkillsMenu) et générale (updateDisplay).
  *
  * Variables Clés (utilisées par skills.js, mais définies et gérées ailleurs) :
  * - studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints : Monnaies utilisées pour acheter les compétences.
  * - skillEffects : Objet accumulant tous les bonus actifs des compétences achetées.
- * - purchasedSkills : Objet pour suivre les compétences déjà achetées.
+ * - studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels : Objets pour suivre les niveaux des compétences achetées.
  * - totalClicks, nombreProfesseur, prestigeCount : Utilisés pour vérifier les conditions de déverrouillage des compétences.
  *
  * Fonctions Clés Définies et Exportées :
@@ -44,87 +44,139 @@
  * et par la boucle de jeu principale pour les mises à jour visuelles.
  */
 
-// Importations des variables d'état et fonctions globales depuis core.js
+// --- Imports des modules nécessaires ---
 import {
     studiesSkillPoints,
     ascensionSkillPoints,
     prestigeSkillPoints,
+    studiesSkillLevels, // Importation correcte des niveaux de compétences
+    ascensionSkillLevels, // Importation correcte des niveaux de compétences
+    prestigeSkillLevels, // Importation correcte des niveaux de compétences
     skillEffects,
-    purchasedSkills, // Assurez-vous que cette variable est définie et exportée dans core.js
-    showNotification,
-    saveGameState,
-    updateDisplay,
-    checkUnlockConditions,
-    applyAllSkillEffects,
     totalClicks,
     nombreProfesseur,
-    prestigeCount
-} from './core.js'; // Assurez-vous que le chemin est correct
+    prestigeCount,
+    saveGameState,
+    checkUnlockConditions,
+    applyAllSkillEffects
+} from './core.js';
 
-// Importations des définitions de compétences depuis data.js
-import {
-    skillsData // Assurez-vous que cette variable est définie et exportée dans data.js
-} from './data.js'; // Assurez-vous que le chemin est correct
+import { skillsData } from './data.js';
 
-// Importations des fonctions d'UI depuis ui.js
-import {
-    formatNumber
-} from './ui.js'; // Assurez-vous que le chemin est correct
+// Importation des fonctions d'UI (assurez-vous qu'elles sont exportées par ui.js)
+import { 
+    formatNumber,
+    showNotification,
+    updateDisplay
+} from './ui.js';
+
 
 /**
- * Gère la logique d'achat d'une compétence.
- * @param {string} skillId - L'ID unique de la compétence à acheter.
- * @param {string} skillType - Le type de compétence ('studies', 'ascension', 'prestige').
+ * Gère l'achat d'une compétence.
+ * @param {string} skillId L'ID de la compétence à acheter.
+ * @param {string} skillType Le type de compétence ('studies', 'ascension', 'prestige').
  */
 export function purchaseSkill(skillId, skillType) {
-    const skill = skillsData[skillType]?.[skillId];
+    const skillCategory = skillsData[skillType];
+    if (!skillCategory) {
+        console.error(`Catégorie de compétence inconnue: ${skillType}`);
+        return;
+    }
 
+    // Trouver la compétence dans le tableau de la catégorie
+    const skill = skillCategory.find(s => s.id === skillId);
     if (!skill) {
-        console.error(`Compétence non trouvée: ${skillId} de type ${skillType}`);
+        console.error(`Compétence non trouvée: ${skillId} dans la catégorie ${skillType}`);
         return;
     }
 
-    if (purchasedSkills[skillId]) {
-        showNotification(`Vous avez déjà acheté "${skill.name}" !`);
-        return;
-    }
+    let currentSkillPoints; // Variable pour les points de compétence de la catégorie
+    let skillLevelsObject; // Objet pour suivre les niveaux de compétences de la catégorie
 
-    let currentPoints;
-    let pointsName;
-    switch (skill.currency) {
-        case 'studiesSkillPoints':
-            currentPoints = studiesSkillPoints;
-            pointsName = 'Points d\'Étude';
+    // Assigner les bonnes variables en fonction du type de compétence
+    switch (skillType) {
+        case 'studies':
+            currentSkillPoints = studiesSkillPoints;
+            skillLevelsObject = studiesSkillLevels;
             break;
-        case 'ascensionSkillPoints':
-            currentPoints = ascensionSkillPoints;
-            pointsName = 'Points d\'Ascension';
+        case 'ascension':
+            currentSkillPoints = ascensionSkillPoints;
+            skillLevelsObject = ascensionSkillLevels;
             break;
-        case 'prestigeSkillPoints':
-            currentPoints = prestigeSkillPoints;
-            pointsName = 'Points de Prestige';
+        case 'prestige':
+            currentSkillPoints = prestigeSkillPoints;
+            skillLevelsObject = prestigeSkillLevels;
             break;
         default:
-            console.error(`Devise de compétence inconnue: ${skill.currency}`);
+            console.error(`Type de compétence non géré: ${skillType}`);
             return;
+    }
+
+    const currentLevel = skillLevelsObject[skillId] || 0; // Niveau actuel de la compétence
+
+    // Vérifier si la compétence est déjà au niveau max
+    if (currentLevel >= skill.maxLevel) {
+        showNotification(`${skill.name} est déjà au niveau maximum !`);
+        return;
+    }
+
+    // Vérifier les prérequis (toutes les compétences prérequises doivent être au niveau max)
+    const allPrerequisitesMet = skill.prerequisites.every(prereqId => {
+        const prereqSkill = skillCategory.find(s => s.id === prereqId);
+        return prereqSkill && (skillLevelsObject[prereqId] || 0) >= prereqSkill.maxLevel;
+    });
+
+    if (!allPrerequisitesMet) {
+        showNotification(`Prérequis non remplis pour ${skill.name} !`);
+        return;
     }
 
     const cost = new Decimal(skill.cost);
 
-    if (currentPoints.gte(cost)) {
-        currentPoints.sub(cost); // Utilisation de .sub() pour Decimal
-        purchasedSkills[skillId] = true; // Marque la compétence comme achetée
-        applyAllSkillEffects(); // Réapplique tous les effets des compétences
-        showNotification(`Compétence "${skill.name}" achetée !`);
-    } else {
-        showNotification(`Pas assez de ${pointsName} pour acheter "${skill.name}" ! (Coût: ${formatNumber(cost, 0)})`);
+    // Vérifier si le joueur a assez de points de compétence
+    if (currentSkillPoints.lt(cost)) {
+        showNotification(`Pas assez de points de compétence pour acheter "${skill.name}" ! (Coût: ${formatNumber(cost, 0)})`);
         return;
     }
 
-    checkUnlockConditions(); // Vérifie si de nouvelles choses sont débloquées
-    updateSkillsUI(); // Met à jour l'interface des compétences
-    updateDisplay(); // Rafraîchit l'affichage global
-    saveGameState(); // Sauvegarde l'état du jeu
+    // Effectuer l'achat
+    // Déduire le coût des points de compétence appropriés
+    switch (skillType) {
+        case 'studies':
+            studiesSkillPoints.minus(cost); // Mise à jour directe de la variable exportée
+            break;
+        case 'ascension':
+            ascensionSkillPoints.minus(cost);
+            break;
+        case 'prestige':
+            prestigeSkillPoints.minus(cost);
+            break;
+    }
+
+    skillLevelsObject[skillId] = currentLevel + 1; // Incrémenter le niveau de la compétence
+
+    // Appliquer l'effet de la compétence
+    if (skill.effect) {
+        skill.effect(skillLevelsObject[skillId], skillEffects);
+    }
+
+    // Cas spécial pour la compétence secrète (si elle existe et est gérée par un clic)
+    if (skillId === 'S5_2_Secret' && skillType === 'studies') {
+        // La logique spécifique à cette compétence (ex: incrémenter un compteur de clics)
+        // devrait être gérée dans events.js lors du clic sur l'élément DOM de la compétence,
+        // ou ici si l'achat lui-même déclenche un effet unique.
+        // Pour l'instant, l'achat marque juste la compétence comme "acquise".
+    }
+
+    showNotification(`Compétence "${skill.name}" achetée !`);
+
+    // Mettre à jour l'interface et sauvegarder l'état du jeu
+    applyAllSkillEffects(); // Réappliquer tous les effets des compétences après l'achat
+    updateDisplay(); // Mettre à jour l'affichage global
+    // Les fonctions updateSkillsUI et renderSkillsMenu seront appelées par la boucle de jeu
+    // ou par ui.js si elles sont déclenchées par un événement UI.
+    checkUnlockConditions(); // Vérifier si de nouvelles fonctionnalités sont débloquées
+    saveGameState(); // Sauvegarder l'état du jeu
 }
 
 /**
@@ -141,10 +193,9 @@ export function updateSkillsUI(domElements) {
     if (ascensionSkillPointsSpan) ascensionSkillPointsSpan.textContent = formatNumber(ascensionSkillPoints, 0);
     if (prestigeSkillPointsSpan) prestigeSkillPointsSpan.textContent = formatNumber(prestigeSkillPoints, 0);
 
-    // Mise à jour de l'état des boutons de compétences (gérée par renderSkillsMenu)
-    // Cette fonction se concentre sur les points de compétence.
-    // La mise à jour des boutons individuels est mieux gérée par renderSkillsMenu
-    // car elle peut recréer ou modifier les éléments.
+    // Note: La mise à jour des classes CSS des compétences individuelles
+    // (can-afford, purchased, cannot-afford) est gérée par `renderSkillsMenu`
+    // qui reconstruit ou met à jour les éléments de la grille.
 }
 
 /**
@@ -157,56 +208,68 @@ export function renderSkillsMenu(domElements) {
     const { studiesSkillsGrid, ascensionSkillsGrid, prestigeSkillsGrid } = domElements;
 
     // Fonction utilitaire pour rendre une grille de compétences
-    const renderGrid = (gridElement, skillCategory, currentPoints) => {
-        if (!gridElement) return; // S'assurer que l'élément existe
+    const renderGrid = (gridElement, skillCategory, currentPoints, skillLevelsObject) => {
+        if (!gridElement) return; // S'assurer que l'élément DOM existe
 
         gridElement.innerHTML = ''; // Nettoyer la grille avant de la reconstruire
 
-        for (const skillId in skillsData[skillCategory]) {
-            const skill = skillsData[skillCategory][skillId];
-
+        // Itérer sur le tableau des compétences pour la catégorie donnée
+        for (const skill of skillsData[skillCategory]) {
             // Vérifier les conditions de déverrouillage (exemple simple, à étendre si nécessaire)
             let isUnlocked = true;
+            // Exemple de conditions de déverrouillage basées sur des propriétés de skill (si définies dans data.js)
             if (skill.unlockedBy) {
                 if (skill.unlockedBy.totalClicks && totalClicks.lt(skill.unlockedBy.totalClicks)) isUnlocked = false;
                 if (skill.unlockedBy.nombreProfesseur && nombreProfesseur.lt(skill.unlockedBy.nombreProfesseur)) isUnlocked = false;
                 if (skill.unlockedBy.prestigeCount && prestigeCount.lt(skill.unlockedBy.prestigeCount)) isUnlocked = false;
-                // Ajoutez d'autres conditions de déverrouillage ici
+                // Ajoutez d'autres conditions de déverrouillage ici si nécessaire
             }
 
             if (!isUnlocked) continue; // Ne pas afficher les compétences non débloquées
 
             const skillDiv = document.createElement('div');
             skillDiv.classList.add('skill-item');
-            skillDiv.dataset.skillId = skillId;
+            skillDiv.dataset.skillId = skill.id; // Utiliser skill.id
             skillDiv.dataset.skillType = skillCategory;
 
-            const isPurchased = purchasedSkills[skillId];
+            const isMaxLevel = (skillLevelsObject[skill.id] || 0) >= skill.maxLevel;
             const canAfford = currentPoints.gte(new Decimal(skill.cost));
 
-            if (isPurchased) {
-                skillDiv.classList.add('purchased');
+            if (isMaxLevel) {
+                skillDiv.classList.add('purchased'); // Utiliser 'purchased' pour indiquer max level
             } else if (canAfford) {
                 skillDiv.classList.add('can-afford');
             } else {
                 skillDiv.classList.add('cannot-afford');
             }
 
+            // Déterminer le texte du coût et du niveau
+            let costText = `Coût: ${formatNumber(new Decimal(skill.cost), 0)} Pts`;
+            if (skill.currency) { // Si une devise spécifique est définie dans data.js
+                costText = `Coût: ${formatNumber(new Decimal(skill.cost), 0)} ${skill.currency.replace('SkillPoints', ' Pts')}`;
+            }
+
+            const currentLevel = skillLevelsObject[skill.id] || 0;
+            const levelText = `Niveau: ${currentLevel}/${skill.maxLevel}`;
+
             skillDiv.innerHTML = `
                 <h3>${skill.name}</h3>
                 <p>${skill.description}</p>
-                <p class="skill-cost">Coût: ${formatNumber(new Decimal(skill.cost), 0)} ${skill.currency.replace('SkillPoints', ' Pts')}</p>
+                <p class="skill-cost">${costText}</p>
+                <p class="skill-level">${levelText}</p>
             `;
 
-            if (!isPurchased) {
-                skillDiv.addEventListener('click', () => purchaseSkill(skillId, skillCategory));
+            // Ajouter l'écouteur d'événement seulement si la compétence n'est pas au niveau max
+            if (!isMaxLevel) {
+                skillDiv.addEventListener('click', () => purchaseSkill(skill.id, skillCategory));
             }
 
             gridElement.appendChild(skillDiv);
         }
     };
 
-    renderGrid(studiesSkillsGrid, 'studies', studiesSkillPoints);
-    renderGrid(ascensionSkillsGrid, 'ascension', ascensionSkillPoints);
-    renderGrid(prestigeSkillsGrid, 'prestige', prestigeSkillPoints);
+    // Appeler renderGrid pour chaque catégorie de compétences
+    renderGrid(studiesSkillsGrid, 'studies', studiesSkillPoints, studiesSkillLevels);
+    renderGrid(ascensionSkillsGrid, 'ascension', ascensionSkillPoints, ascensionSkillLevels);
+    renderGrid(prestigeSkillsGrid, 'prestige', prestigeSkillPoints, prestigeSkillLevels);
 }

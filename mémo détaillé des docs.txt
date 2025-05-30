@@ -1014,7 +1014,10 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 
 
 
------------------- Fiche Mémo : skills.js -----------------------------
+
+
+ *
+ * ------------------ Fiche Mémo : skills.js -----------------------------
  * Description : Ce fichier gère toute la logique et les fonctionnalités liées aux compétences
  * (Skills) du jeu. Il permet l'achat de compétences dans différentes catégories (Études, Ascension, Prestige),
  * gère les points de compétence requis, applique les effets des compétences, et met à jour
@@ -1022,18 +1025,18 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (studiesSkillPoints, ascensionSkillPoints,
- * prestigeSkillPoints, skillEffects, purchasedSkills, showNotification, saveGameState,
- * updateDisplay, checkUnlockConditions, applyAllSkillEffects, totalClicks, nombreProfesseur,
- * prestigeCount).
+ * prestigeSkillPoints, skillEffects, studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels,
+ * showNotification, saveGameState, checkUnlockConditions, applyAllSkillEffects,
+ * totalClicks, nombreProfesseur, prestigeCount).
  * - data.js : Contient les définitions des compétences (skillsData) incluant leurs coûts,
  * effets, et conditions de déverrouillage.
  * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique aux compétences (updateSkillsUI, renderSkillsMenu).
+ * de l'interface utilisateur spécifique aux compétences (updateSkillsUI, renderSkillsMenu) et générale (updateDisplay).
  *
  * Variables Clés (utilisées par skills.js, mais définies et gérées ailleurs) :
  * - studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints : Monnaies utilisées pour acheter les compétences.
  * - skillEffects : Objet accumulant tous les bonus actifs des compétences achetées.
- * - purchasedSkills : Objet pour suivre les compétences déjà achetées.
+ * - studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels : Objets pour suivre les niveaux des compétences achetées.
  * - totalClicks, nombreProfesseur, prestigeCount : Utilisés pour vérifier les conditions de déverrouillage des compétences.
  *
  * Fonctions Clés Définies et Exportées :
@@ -1056,6 +1059,7 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * appliquer leurs bonus. Il est appelé par `events.js` pour les interactions utilisateur
  * et par la boucle de jeu principale pour les mises à jour visuelles.
  */
+
 
 
 
