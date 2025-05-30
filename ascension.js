@@ -57,9 +57,9 @@ import {
 } from './data.js';
 // Importations des fonctions d'UI depuis ui.js (pour updateAutomationButtonStates)
 import {
-    updateAutomationButtonStates // This function is defined in ui.js
+    updateAutomationButtonStates, // This function is defined in ui.js
     showNotification,
-    updateDisplay,
+    updateDisplay
 
 } from './ui.js';
 /**
