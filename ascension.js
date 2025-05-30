@@ -14,7 +14,7 @@
  * ascensionPoints, totalPAEarned, saveGameState,
  * checkUnlockConditions, softResetGame, applyAllSkillEffects, ascensionUnlocked, nombreProfesseur),
  * et la fonction de formatage des nombres (formatNumber).
- * - data.js : Contient les définitions des seuils pour gagner des PA (ASCENSION_POINT_THRESHOLD).
+ * - data.js : Contient les définitions des seuils pour gagner des PA (ASCENSION_POINT_THRESHOLD) et les coûts initiaux (initialCosts). (modif 30/05)
  * - ui.js : Fournit la fonction de notification (showNotification) et (updateDisplay) et est responsable
  * d'appeler les fonctions de mise à jour de l'interface utilisateur spécifiques à l'Ascension
  * (updateAscensionUI, updateAscensionButtonStates) en leur passant les éléments DOM.
@@ -28,10 +28,13 @@
  * - nombreProfesseur : Le nombre actuel de Professeurs possédés.
  *
  * Fonctions Clés Définies et Exportées :
- * - calculatePotentialAscensionPoints() : Calcule le nombre de Points d'Ascension que le joueur
- * gagnerait s'il effectuait une Ascension maintenant, basé sur bonsPointsTotal.
+ * - calculatePAGained() : Calcule le nombre de Points d'Ascension que le joueur
+ * gagnerait s'il effectuait une Ascension maintenant, basé sur bonsPointsTotal. (modif 30/05)
  * - performAscension() : Exécute le processus d'Ascension, réinitialise le jeu (sauf les PA et bonus),
  * ajoute les PA gagnés et déclenche les mises à jour nécessaires. L'Ascension nécessite au moins 5 Professeurs.
+ * - calculateNextEcoleCost(count) : Calcule le coût de la prochaine École. (modif 30/05)
+ * - calculateNextLyceeCost(count) : Calcule le coût du prochain Lycée. (modif 30/05)
+ * - calculateNextCollegeCost(count) : Calcule le coût du prochain Collège. (modif 30/05)
  * - updateAscensionUI(domElements) : Met à jour l'affichage des informations d'Ascension
  * dans l'interface utilisateur.
  * - updateAscensionButtonStates(domElements) : Met à jour l'état (texte, classes CSS)
@@ -66,7 +69,8 @@ import {
 
 // Importations des fonctions de calcul de coût/bonus depuis data.js
 import {
-    ASCENSION_POINT_THRESHOLD // Seuil de BP total pour gagner 1 PA
+    ASCENSION_POINT_THRESHOLD, // Seuil de BP total pour gagner 1 PA
+    initialCosts // (modif 30/05)
     // ASCENSION_BASE_COST_MULTIPLIER est supprimé car l'ascension ne coûte pas d'argent
 } from './data.js';
 
@@ -81,7 +85,7 @@ import {
  * Basé sur le total cumulé de Bons Points gagnés (bonsPointsTotal).
  * @returns {Decimal} Le nombre de Points d'Ascension potentiels.
  */
-export function calculatePotentialAscensionPoints() {
+export function calculatePAGained() { // (modif 30/05)
     // Le nombre de PA gagnés est basé sur bonsPointsTotal divisé par un seuil.
     // Chaque tranche du seuil donne 1 PA.
     // Par exemple, si ASCENSION_POINT_THRESHOLD est 1e10, et bonsPointsTotal est 2.5e10,
@@ -90,6 +94,39 @@ export function calculatePotentialAscensionPoints() {
         return new Decimal(0);
     }
     return bonsPointsTotal.div(ASCENSION_POINT_THRESHOLD).floor();
+}
+
+/**
+ * Calcule le coût de la prochaine École.
+ * @param {Decimal} currentCount Le nombre actuel d'Écoles possédées.
+ * @returns {Decimal} Le coût de la prochaine École.
+ */
+export function calculateNextEcoleCost(currentCount) { // (modif 30/05)
+    const baseCost = initialCosts.ecole;
+    const costMultiplier = new Decimal(1.15); // Exemple de multiplicateur, à ajuster si nécessaire (modif 30/05)
+    return baseCost.times(costMultiplier.pow(currentCount));
+}
+
+/**
+ * Calcule le coût du prochain Lycée.
+ * @param {Decimal} currentCount Le nombre actuel de Lycées possédés.
+ * @returns {Decimal} Le coût du prochain Lycée.
+ */
+export function calculateNextLyceeCost(currentCount) { // (modif 30/05)
+    const baseCost = initialCosts.lycee;
+    const costMultiplier = new Decimal(1.18); // Exemple de multiplicateur, à ajuster si nécessaire (modif 30/05)
+    return baseCost.times(costMultiplier.pow(currentCount));
+}
+
+/**
+ * Calcule le coût du prochain Collège.
+ * @param {Decimal} currentCount Le nombre actuel de Collèges possédés.
+ * @returns {Decimal} Le coût du prochain Collège.
+ */
+export function calculateNextCollegeCost(currentCount) { // (modif 30/05)
+    const baseCost = initialCosts.college;
+    const costMultiplier = new Decimal(1.2); // Exemple de multiplicateur, à ajuster si nécessaire (modif 30/05)
+    return baseCost.times(costMultiplier.pow(currentCount));
 }
 
 /**
@@ -104,7 +141,7 @@ export function performAscension() {
         return;
     }
 
-    const potentialPA = calculatePotentialAscensionPoints();
+    const potentialPA = calculatePAGained(); // (modif 30/05)
 
     if (potentialPA.lt(1)) {
         showNotification("Pas assez de Bons Points cumulés pour Ascender !");
@@ -162,7 +199,7 @@ export function updateAscensionUI(domElements) {
  */
 export function updateAscensionButtonStates(domElements) {
     const { ascensionButton } = domElements;
-    const potentialPA = calculatePotentialAscensionPoints();
+    const potentialPA = calculatePAGained(); // (modif 30/05)
 
     if (!ascensionButton) return;
 

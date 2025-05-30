@@ -17,7 +17,7 @@
  * et les données des achats de prestige (prestigePurchasesData), incluant leurs coûts et effets.
  * - ui.js : Pour les fonctions : showNotification,  updateDisplay, et la mise à jour
  * de l'interface utilisateur spécifique au Prestige (updatePrestigeUI, updatePrestigeButtonStates,
- * renderPrestigePurchases). 
+ * renderPrestigePurchases).
  *
  * Variables Clés (utilisées par prestige.js, mais définies et gérées ailleurs) :
  * - totalPAEarned : Total cumulé de Points d'Ascension gagnés, utilisé pour calculer les PP.
@@ -28,8 +28,14 @@
  * - prestigeUnlocked : Flag booléen indiquant si le menu de Prestige est débloqué.
  *
  * Fonctions Clés Définies et Exportées :
- * - calculatePotentialPrestigePoints() : Calcule le nombre de Points de Prestige que le joueur
- * gagnerait s'il effectuait un Prestige maintenant, basé sur totalPAEarned.
+ * - calculatePPGained() : Calcule le nombre de Points de Prestige que le joueur
+ * gagnerait s'il effectuait un Prestige maintenant, basé sur totalPAEarned. (modif 30/05)
+ * - getPrestigeBonusMultiplier(type, currentPrestigeCount, currentPrestigePoints) : Calcule les multiplicateurs de prestige. (modif 30/05)
+ * - calculateLicenceCost(count) : Calcule le coût de la prochaine Licence. (modif 30/05)
+ * - calculateMaster1Cost(count) : Calcule le coût du prochain Master 1. (modif 30/05)
+ * - calculateMaster2Cost(count) : Calcule le coût du prochain Master 2. (modif 30/05)
+ * - calculateDoctoratCost(count) : Calcule le coût du prochain Doctorat. (modif 30/05)
+ * - calculatePostDoctoratCost(count) : Calcule le coût du prochain Post-Doctorat. (modif 30/05)
  * - performPrestige() : Exécute le processus de Prestige, réinitialise le jeu (plus profondément
  * que l'Ascension), ajoute les PP gagnés et déclenche les mises à jour nécessaires.
  * - performPrestigePurchase(purchaseId) : Gère la logique d'achat pour les améliorations de prestige,
@@ -69,14 +75,15 @@ import {
     resetGameVariables, // Fonction de réinitialisation du jeu
     applyAllSkillEffects,
     saveGameState,
-    formatNumber, // viens de core.js, pas ui.js 
+    formatNumber, // viens de core.js, pas ui.js
     prestigeUnlocked // Flag de déverrouillage du menu de Prestige
 } from './core.js'; // Assurez-vous que le chemin est correct
 
 // Importations des fonctions de calcul de coût/bonus et des données de prestige depuis data.js
 import {
     PRESTIGE_POINT_THRESHOLD, // Seuil de PA total pour gagner 1 PP
-    prestigePurchasesData // Données des achats de prestige
+    prestigePurchasesData, // Données des achats de prestige
+    initialCosts // (modif 30/05)
 } from './data.js'; // Assurez-vous que le chemin est correct
 
 // Importations des fonctions d'UI depuis ui.js
@@ -90,7 +97,7 @@ import {
  * Basé sur le total cumulé de Points d'Ascension gagnés (totalPAEarned).
  * @returns {Decimal} Le nombre de Points de Prestige potentiels.
  */
-export function calculatePotentialPrestigePoints() {
+export function calculatePPGained() { // (modif 30/05)
     // Le nombre de PP gagnés est basé sur totalPAEarned divisé par un seuil.
     // Chaque tranche du seuil donne 1 PP.
     if (totalPAEarned.lt(PRESTIGE_POINT_THRESHOLD)) {
@@ -100,12 +107,77 @@ export function calculatePotentialPrestigePoints() {
 }
 
 /**
+ * Calcule le multiplicateur de bonus de prestige pour un type donné.
+ * @param {string} type Le type de bonus (ex: 'licence', 'master1').
+ * @param {Decimal} currentPrestigeCount Le nombre actuel de cet achat de prestige.
+ * @returns {Decimal} Le multiplicateur de bonus.
+ */
+export function getPrestigeBonusMultiplier(type, currentPrestigeCount) { // (modif 30/05)
+    const purchase = prestigePurchasesData[type];
+    if (!purchase || !purchase.getEffectValue) {
+        console.warn(`Prestige purchase type ${type} or its effect function not found.`);
+        return new Decimal(1);
+    }
+    return purchase.getEffectValue(currentPrestigeCount);
+}
+
+/**
+ * Calcule le coût de la prochaine Licence.
+ * @param {Decimal} count Le nombre actuel de Licences possédées.
+ * @returns {Decimal} Le coût de la prochaine Licence.
+ */
+export function calculateLicenceCost(count) { // (modif 30/05)
+    const purchase = prestigePurchasesData.licence;
+    return new Decimal(purchase.baseCost).mul(Decimal.pow(purchase.costMultiplier, count));
+}
+
+/**
+ * Calcule le coût du prochain Master 1.
+ * @param {Decimal} count Le nombre actuel de Master 1 possédés.
+ * @returns {Decimal} Le coût du prochain Master 1.
+ */
+export function calculateMaster1Cost(count) { // (modif 30/05)
+    const purchase = prestigePurchasesData.master1;
+    return new Decimal(purchase.baseCost).mul(Decimal.pow(purchase.costMultiplier, count));
+}
+
+/**
+ * Calcule le coût du prochain Master 2.
+ * @param {Decimal} count Le nombre actuel de Master 2 possédés.
+ * @returns {Decimal} Le coût du prochain Master 2.
+ */
+export function calculateMaster2Cost(count) { // (modif 30/05)
+    const purchase = prestigePurchasesData.master2;
+    return new Decimal(purchase.baseCost).mul(Decimal.pow(purchase.costMultiplier, count));
+}
+
+/**
+ * Calcule le coût du prochain Doctorat.
+ * @param {Decimal} count Le nombre actuel de Doctorats possédés.
+ * @returns {Decimal} Le coût du prochain Doctorat.
+ */
+export function calculateDoctoratCost(count) { // (modif 30/05)
+    const purchase = prestigePurchasesData.doctorat;
+    return new Decimal(purchase.baseCost).mul(Decimal.pow(purchase.costMultiplier, count));
+}
+
+/**
+ * Calcule le coût du prochain Post-Doctorat.
+ * @param {Decimal} count Le nombre actuel de Post-Doctorats possédés.
+ * @returns {Decimal} Le coût du prochain Post-Doctorat.
+ */
+export function calculatePostDoctoratCost(count) { // (modif 30/05)
+    const purchase = prestigePurchasesData.postDoctorat;
+    return new Decimal(purchase.baseCost).mul(Decimal.pow(purchase.costMultiplier, count));
+}
+
+/**
  * Exécute le processus de Prestige.
  * Réinitialise le jeu (plus profondément que l'Ascension), ajoute les PP gagnés et déclenche les mises à jour nécessaires.
  * Cette fonction est appelée par events.js.
  */
 export function performPrestige() {
-    const potentialPP = calculatePotentialPrestigePoints();
+    const potentialPP = calculatePPGained(); // (modif 30/05)
 
     if (potentialPP.lt(1)) {
         showNotification("Pas assez de Points d'Ascension cumulés pour Prestiger !");
@@ -116,10 +188,10 @@ export function performPrestige() {
     showNotification(`Prestige en cours ! Vous gagnez ${formatNumber(potentialPP, 0)} Points de Prestige.`);
 
     // Incrémenter le compteur de Prestige
-    prestigeCount.add(1); // Utilisation de .add() pour Decimal
+    window.prestigeCount = prestigeCount.add(1); // (modif 30/05)
 
     // Ajouter les Points de Prestige gagnés
-    prestigePoints.add(potentialPP); // Utilisation de .add() pour Decimal
+    window.prestigePoints = prestigePoints.add(potentialPP); // (modif 30/05)
 
     // Réinitialiser l'état du jeu (réinitialisation complète sauf les bonus permanents et les PP)
     resetGameVariables(false); // Passer 'false' pour indiquer une réinitialisation de Prestige (plus profonde)
@@ -165,17 +237,15 @@ export function performPrestigePurchase(purchaseId) {
     const cost = new Decimal(purchase.baseCost).mul(Decimal.pow(purchase.costMultiplier, currentCounter));
 
     if (prestigePoints.gte(cost)) {
-        prestigePoints.sub(cost); // Utilisation de .sub() pour Decimal
-        currentCounter.add(1); // Incrémente le compteur de l'achat
-
+        window.prestigePoints = prestigePoints.sub(cost); // Utilisation de .sub() pour Decimal (modif 30/05)
         // Mettre à jour la variable globale correspondante (nécessite une mutation directe ou une fonction de mise à jour dans core.js)
         // Pour l'exemple, nous allons muter directement, mais une fonction setNombreLicences() etc. serait préférable
         switch (purchaseId) {
-            case 'licence': nombreLicences.add(1); break;
-            case 'master1': nombreMaster1.add(1); break;
-            case 'master2': nombreMaster2.add(1); break;
-            case 'doctorat': nombreDoctorat.add(1); break;
-            case 'postDoctorat': nombrePostDoctorat.add(1); break;
+            case 'licence': window.nombreLicences = nombreLicences.add(1); break; // (modif 30/05)
+            case 'master1': window.nombreMaster1 = nombreMaster1.add(1); break; // (modif 30/05)
+            case 'master2': window.nombreMaster2 = nombreMaster2.add(1); break; // (modif 30/05)
+            case 'doctorat': window.nombreDoctorat = nombreDoctorat.add(1); break; // (modif 30/05)
+            case 'postDoctorat': window.nombrePostDoctorat = nombrePostDoctorat.add(1); break; // (modif 30/05)
         }
 
         applyAllSkillEffects(); // Réapplique tous les effets (pour les bonus de production)
@@ -218,7 +288,7 @@ export function updatePrestigeUI(domElements) {
  */
 export function updatePrestigeButtonStates(domElements) {
     const { prestigeButton } = domElements;
-    const potentialPP = calculatePotentialPrestigePoints();
+    const potentialPP = calculatePPGained(); // (modif 30/05)
 
     if (!prestigeButton) return;
 

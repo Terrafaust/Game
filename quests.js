@@ -10,21 +10,24 @@
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (bonsPoints, images, nombreEleves,
  * nombreClasses, nombreProfesseur, totalClicks, totalPAEarned, prestigeCount,
- * showNotification, saveGameState, updateDisplay, applyAllSkillEffects),
- * ainsi que l'objet `completedQuests` pour suivre les quêtes terminées.
+ * saveGameState, applyAllSkillEffects, completedQuests), (modif 30/05)
  * - data.js : Contient les définitions des quêtes (questsData) incluant leurs conditions
  * de complétion et leurs récompenses.
  * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique aux quêtes (updateQuestsUI, renderQuests).
+ * de l'interface utilisateur spécifique aux quêtes (updateQuestsUI, renderQuests),et les fonctions `showNotification`, `updateDisplay`. (modif 30/05)
  *
  * Variables Clés (utilisées par quests.js, mais définies et gérées ailleurs) :
  * - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur, totalClicks,
  * totalPAEarned, prestigeCount : Variables d'état du jeu utilisées pour vérifier les conditions des quêtes.
- * - completedQuests : Objet pour suivre les quêtes déjà complétées par leur ID.
+ * - completedQuests : Objet pour suivre les quêtes déjà complétées par leur ID (défini dans core.js). (modif 30/05)
+ * - questsData : Tableau des définitions de toutes les quêtes (défini dans data.js). (modif 30/05)
+ *
+ * Variables Clés Définies et Exportées : (modif 30/05)
+ * - paMultiplierFromQuests : Multiplicateur de gain de PA cumulé provenant des récompenses de quêtes. (modif 30/05)
  *
  * Fonctions Clés Définies et Exportées :
- * - checkQuests() : Vérifie les conditions de toutes les quêtes non complétées et
- * marque celles qui sont terminées comme "complétées" ou "réclamables".
+ * - updateQuestProgress() : Vérifie les conditions de toutes les quêtes non complétées et
+ * marque celles qui sont terminées comme "complétées" ou "réclamables". (modif 30/05)
  * - claimQuestReward(questId) : Gère la logique de réclamation d'une récompense de quête,
  * ajoute les récompenses au joueur et marque la quête comme réclamée.
  * - updateQuestsUI(domElements) : Met à jour l'affichage des informations générales des quêtes
@@ -56,11 +59,12 @@ import {
     totalClicks,
     totalPAEarned,
     prestigeCount,
-    showNotification,
     saveGameState,
-    updateDisplay,
     applyAllSkillEffects,
-    completedQuests // Assurez-vous que cette variable est définie et exportée dans core.js
+    completedQuests, // Assurez-vous que cette variable est définie et exportée dans core.js
+    ascensionPoints, // (modif 30/05)
+    prestigePoints, // (modif 30/05)
+    studiesSkillPoints // (modif 30/05)
 } from './core.js'; // Assurez-vous que le chemin est correct
 
 // Importations des définitions de quêtes depuis data.js
@@ -70,15 +74,23 @@ import {
 
 // Importations des fonctions d'UI depuis ui.js
 import {
-    formatNumber
+    formatNumber,
+    showNotification, // (modif 30/05)
+    updateDisplay, // (modif 30/05)
+    updateQuestsUI, // (modif 30/05)
+    renderQuests // (modif 30/05)
 } from './ui.js'; // Assurez-vous que le chemin est correct
 
+// Variable pour le multiplicateur de PA des quêtes (modif 30/05)
+export let paMultiplierFromQuests = new Decimal(1); // (modif 30/05)
+
 /**
+ * Met à jour la progression des quêtes.
  * Vérifie les conditions de toutes les quêtes non complétées et
  * marque celles qui sont terminées comme "complétées" ou "réclamables".
  * Cette fonction est appelée par la boucle de jeu principale.
  */
-export function checkQuests() {
+export function updateQuestProgress() { // (modif 30/05)
     for (const questId in questsData) {
         const quest = questsData[questId];
 
@@ -156,19 +168,22 @@ export function claimQuestReward(questId) {
 
     // Ajouter les récompenses
     if (quest.rewards.bonsPoints) {
-        bonsPoints.add(new Decimal(quest.rewards.bonsPoints));
+        window.bonsPoints = bonsPoints.add(new Decimal(quest.rewards.bonsPoints)); // (modif 30/05)
     }
     if (quest.rewards.images) {
-        images.add(new Decimal(quest.rewards.images));
+        window.images = images.add(new Decimal(quest.rewards.images)); // (modif 30/05)
     }
     if (quest.rewards.studiesSkillPoints) {
-        studiesSkillPoints.add(new Decimal(quest.rewards.studiesSkillPoints));
+        window.studiesSkillPoints = studiesSkillPoints.add(new Decimal(quest.rewards.studiesSkillPoints)); // (modif 30/05)
     }
     if (quest.rewards.ascensionPoints) {
-        ascensionPoints.add(new Decimal(quest.rewards.ascensionPoints));
+        window.ascensionPoints = ascensionPoints.add(new Decimal(quest.rewards.ascensionPoints)); // (modif 30/05)
     }
     if (quest.rewards.prestigePoints) {
-        prestigePoints.add(new Decimal(quest.rewards.prestigePoints));
+        window.prestigePoints = prestigePoints.add(new Decimal(quest.rewards.prestigePoints)); // (modif 30/05)
+    }
+    if (quest.rewards.paMultiplier) { // (modif 30/05)
+        paMultiplierFromQuests = paMultiplierFromQuests.mul(new Decimal(quest.rewards.paMultiplier)); // (modif 30/05)
     }
     // Ajouter d'autres types de récompenses ici (ex: bonus permanents, déverrouillages)
 
@@ -247,6 +262,7 @@ export function renderQuests(domElements) {
                     ${quest.rewards.studiesSkillPoints ? `<li>${formatNumber(quest.rewards.studiesSkillPoints, 0)} Points d'Étude</li>` : ''}
                     ${quest.rewards.ascensionPoints ? `<li>${formatNumber(quest.rewards.ascensionPoints, 0)} Points d'Ascension</li>` : ''}
                     ${quest.rewards.prestigePoints ? `<li>${formatNumber(quest.rewards.prestigePoints, 0)} Points de Prestige</li>` : ''}
+                    ${quest.rewards.paMultiplier ? `<li>Multiplicateur de PA: x${formatNumber(quest.rewards.paMultiplier, 2)}</li>` : ''} (modif 30/05)
                     ${quest.rewards.unlocks ? `<li>Déverrouille : ${quest.rewards.unlocks.join(', ')}</li>` : ''}
                 </ul>
             </div>

@@ -1,191 +1,206 @@
-// Fiche Mémo : events.js
-// Description : Ce fichier est dédié à la gestion de tous les écouteurs d'événements (clicks, changes, etc.)
-// de l'interface utilisateur du jeu. Son rôle principal est d'attacher des gestionnaires d'événements
-// aux éléments DOM et d'appeler les fonctions de logique de jeu appropriées définies dans d'autres modules
-// (comme core.js, studies.js, automation.js, skills.js, settings.js, etc.).
-// Il ne contient aucune logique de jeu complexe, seulement la "colle" entre l'interface et le backend.
+/**
+ * events.js
+ *
+ * ------------------ Fiche Mémo : events.js -----------------------------
+ * Description : Ce fichier est dédié à la gestion de tous les écouteurs d'événements (clicks, changes, etc.)
+ * de l'interface utilisateur du jeu. Son rôle principal est d'attacher des gestionnaires d'événements
+ * aux éléments DOM et d'appeler les fonctions de logique de jeu appropriées définies dans d'autres modules
+ * (comme core.js, studies.js, automation.js, skills.js, settings.js, etc.).
+ * Il ne contient aucune logique de jeu complexe, seulement la "colle" entre l'interface et le backend.
+ *
+ * Dépendances :
+ * Ce fichier importe explicitement toutes les variables d'état et fonctions nécessaires depuis les modules "propriétaires".
+ *
+ * Variables Globales Accédées (définies dans core.js) :
+ * - bonsPoints, totalClicks, ascensionPoints, ascensionCount, totalPAEarned,
+ * prestigePoints, prestigeCount, studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints,
+ * studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels, secretSkillClicks,
+ * currentPurchaseMultiplier, ascensionUnlocked, prestigeUnlocked,
+ * disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
+ * multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, automationCategoryUnlocked,
+ * autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive,
+ * elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked, skillsButtonUnlocked,
+ * settingsButtonUnlocked, ascensionMenuButtonUnlocked, prestigeMenuButtonUnlocked,
+ * questsUnlocked, achievementsButtonUnlocked, nombreProfesseur, totalBonsPointsParSeconde, skillEffects.
+ *
+ * Fonctions de Logique (importées de core.js) :
+ * - saveGameState, checkUnlockConditions, applyAllSkillEffects, calculateTotalBPS, hardResetGame, performPurchase, formatNumber.
+ *
+ * Fonctions d'Automatisation (importées de automation.js) :
+ * - calculateAutomationCost.
+ *
+ * Fonctions de Compétences (importées de skills.js) :
+ * - handleSkillClick.
+ *
+ * Fonctions d'Ascension (importées de ascension.js) :
+ * - calculatePAGained, performAscension.
+ *
+ * Fonctions de Prestige (importées de prestige.js) :
+ * - calculatePPGained, performPrestige, getPrestigeBonusMultiplier.
+ *
+ * Fonctions de Paramètres (importées de settings.js) :
+ * - toggleTheme, toggleOfflineProgress, toggleMinimizeResources.
+ *
+ * Fonctions de Quêtes (importées de quests.js) :
+ * - updateQuestProgress, claimQuestReward.
+ *
+ * Fonctions de Succès (importées de achievements.js) :
+ * - checkAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, activeAchievementTooltip.
+ *
+ * Fonctions d'UI (importées de ui.js) :
+ * - updateDisplay, showNotification, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
+ * updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
+ * openTab, closeStatsModal, updateStatsDisplay, updateMultiplierButtons.
+ *
+ * Données (importées de data.js) :
+ * - skillsData, achievementsData, prestigePurchasesData.
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et récupérés directement ici) :
+ * Ce module récupère ses références DOM directement via `document.getElementById` pour les attacher aux écouteurs d'événements.
+ *
+ * Logique Générale :
+ * Ce fichier initialise tous les écouteurs d'événements une fois que le DOM est complètement chargé
+ * et que toutes les variables globales nécessaires sont initialisées.
+ */
 
-// Dépendances :
-// Ce fichier dépend de la disponibilité globale des variables et fonctions définies dans :
-// - core.js : Pour les fonctions principales du jeu (e.g., checkUnlockConditions, saveGameState, applyAllSkillEffects, calculateTotalBPS, calculateItemBPS,
-//   softResetGame, superSoftResetGame, hardResetGame, images, formatNumber).
-// - data.js : Pour les structures de données comme `skillsData`, `prestigePurchasesData`, `questsData`,
-//   `achievementsData`, `bonusPointThresholds`, `prime_PA`.
-// - ui.js : Pour les fonctions de mise à jour de l'affichage (e.g., updateButtonStates,
-//   updateAutomationButtonStates, updateSettingsButtonStates, renderQuests,
-//   renderAchievements, renderSkillsMenu, updateSectionVisibility, updateStatsDisplay,
-//   openTab, closeStatsModal, showAchievementTooltip, hideAchievementTooltip,
-//   toggleAchievementTooltip), mais aussi les fonctions d'affichage générale : updateDisplay, showNotification,
-// - studies.js : Pour les fonctions d'achat spécifiques aux études (e.g., performPurchase).
-// - automation.js : Pour les fonctions d'automatisation (e.g., runAutomation, calculateAutomationCost).
-// - skills.js : Pour la logique d'achat et de réinitialisation des compétences (e.g., handleSkillClick).
-// - ascension.js : Pour la logique d'ascension (e.g., calculatePAGained, performAscension).
-// - prestige.js : Pour la logique de prestige (e.g., calculatePPGained, getPrestigeBonusMultiplier,
-//   performPrestige, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
-//   calculateDoctoratCost, calculatePostDoctoratCost).
-// - settings.js : Pour la logique des paramètres (e.g., toggleTheme, toggleOfflineProgress,
-//   toggleMinimizeResources, openStats).
-// - quests.js : Pour la logique des quêtes.
-// - achievements.js : Pour la logique des succès (e.g., checkAchievements).
-//
-// Variables Globales Accédées (définies dans d'autres modules, principalement core.js et ui.js) :
-// - bonsPoints, totalClicks, ascensionPoints, ascensionCount, totalPAEarned,
-//   prestigePoints, prestigeCount, studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints,
-//   studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels, secretSkillClicks,
-//   currentPurchaseMultiplier, ascensionUnlocked, prestigeUnlocked,
-//   disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
-//   multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, automationCategoryUnlocked,
-//   autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive,
-//   elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked, skillsButtonUnlocked,
-//   settingsButtonUnlocked, ascensionMenuButtonUnlocked, prestigeMenuButtonUnlocked,
-//   questsUnlocked, achievementsButtonUnlocked, unlockedAchievements, permanentBpsBonusFromAchievements,
-//   paMultiplierFromQuests, nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat.
-// - Decimal (assumé global pour les calculs de nombres arbitraires)
-// - skillEffects (assumé global, probablement de core.js ou data.js)
-// - totalBonsPointsParSeconde (assumé global, probablement de core.js)
-// - clickBonsPointsDisplay, bonsPointsSpan, miniBonsPoints (assumés globaux, probablement de ui.js)
-// - activeAchievementTooltip (assumé global, probablement de ui.js)
-//
-// Éléments DOM Clés (référencés par ID, définis dans index.html) :
-// - Tous les éléments avec des IDs qui sont utilisés dans les addEventListener.
-//   Exemples : studiesTitleButton, acheterEleveButton, studiesTabBtn, confirmResetYesBtn, etc.
-//   Ces références sont supposées être déjà récupérées et disponibles globalement (e.g., via ui.js).
+// Importations des variables d'état et fonctions globales depuis core.js (modif 30/05)
+import {
+    bonsPoints, totalClicks, ascensionPoints, ascensionCount, totalPAEarned,
+    prestigePoints, prestigeCount, studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints,
+    studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels, secretSkillClicks,
+    currentPurchaseMultiplier, ascensionUnlocked, prestigeUnlocked,
+    disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
+    multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, automationCategoryUnlocked,
+    autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive,
+    elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked, skillsButtonUnlocked,
+    settingsButtonUnlocked, ascensionMenuButtonUnlocked, prestigeMenuButtonUnlocked,
+    questsUnlocked, achievementsButtonUnlocked, nombreProfesseur, totalBonsPointsParSeconde, skillEffects,
+    saveGameState, checkUnlockConditions, applyAllSkillEffects, calculateTotalBPS, hardResetGame, performPurchase, formatNumber
+} from './core.js';
 
-// Logique Générale :
-// Ce fichier initialise tous les écouteurs d'événements une fois que le DOM est complètement chargé
-// et que toutes les variables globales nécessaires sont initialisées.
+// Importations des fonctions d'automatisation (modif 30/05)
+import { calculateAutomationCost } from './automation.js';
 
-// --- Récupération des éléments DOM (Assumés globaux ou passés) ---
-// Ces variables sont supposées être déjà définies et accessibles globalement,
-// par exemple via le fichier ui.js qui les récupère avec document.getElementById.
-// Pour la clarté, certaines sont listées ici à titre indicatif.
-/*
-const studiesTitleButton = document.getElementById('studiesTitleButton');
-const acheterEleveButton = document.getElementById('acheterEleveButton');
-const acheterClasseButton = document.getElementById('acheterClasseButton');
-const acheterImageButton = document.getElementById('acheterImageButton');
-const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
-const acheterEcoleButton = document.getElementById('acheterEcoleButton');
-const acheterLyceeButton = document.getElementById('acheterLyceeButton');
-const acheterCollegeButton = document.getElementById('acheterCollegeButton');
-const acheterLicenceButton = document.getElementById('acheterLicenceButton');
-const acheterMaster1Button = document.getElementById('acheterMaster1Button');
-const acheterMaster2Button = document.getElementById('acheterMaster2Button');
-const acheterDoctoratButton = document.getElementById('acheterDoctoratButton');
-const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
+// Importations des fonctions de compétences (modif 30/05)
+import { handleSkillClick } from './skills.js';
 
-const themeToggleButton = document.getElementById('themeToggleButton');
-const resetProgressionButton = document.getElementById('resetProgressionButton');
-const offlineProgressToggle = document.getElementById('offlineProgressToggle');
-const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
-const statsButton = document.getElementById('statsButton');
-const statsModal = document.getElementById('statsModal'); // The modal container itself
+// Importations des fonctions d'ascension (modif 30/05)
+import { calculatePAGained, performAscension } from './ascension.js';
 
-const ascensionTitleButton = document.getElementById('ascensionTitleButton');
-const confirmAscensionYesBtn = document.getElementById('confirmAscensionYes');
-const confirmAscensionNoBtn = document.getElementById('confirmAscensionNo');
+// Importations des fonctions de prestige (modif 30/05)
+import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier } from './prestige.js';
 
-const prestigeTitleButton = document.getElementById('prestigeTitleButton');
-const confirmPrestigeYesBtn = document.getElementById('confirmPrestigeYes');
-const confirmPrestigeNoBtn = document.getElementById('confirmPrestigeNo');
-const disablePrestigeWarningCheckbox = document.getElementById('disablePrestigeWarningCheckbox');
+// Importations des fonctions de paramètres (modif 30/05)
+import { toggleTheme, toggleOfflineProgress, toggleMinimizeResources } from './settings.js';
 
-const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton');
-const unlockmaxPurchaseButton = document.getElementById('unlockmaxPurchaseButton');
-const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
-const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton');
+// Importations des fonctions de quêtes (modif 30/05)
+import { updateQuestProgress, claimQuestReward } from './quests.js';
 
-const autoEleveBtn = document.getElementById('autoEleveBtn');
-const autoClasseBtn = document.getElementById('autoClasseBtn');
-const autoImageBtn = document.getElementById('autoImageBtn');
-const autoProfesseurBtn = document.getElementById('autoProfesseurBtn');
+// Importations des fonctions de succès (modif 30/05)
+import { checkAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, unlockedAchievements, activeAchievementTooltip } from './achievements.js'; // activeAchievementTooltip est exporté par achievements.js
 
-const multiplierButtonsContainer = document.getElementById('multiplierButtonsContainer'); // Parent for delegation
-const studiesSkillsGrid = document.getElementById('studiesSkillsGrid'); // Parent for delegation
-const ascensionSkillsGrid = document.getElementById('ascensionSkillsGrid'); // Parent for delegation
-const prestigeSkillsGrid = document.getElementById('prestigeSkillsGrid'); // Parent for delegation
+// Importations des fonctions d'UI (modif 30/05)
+import {
+    updateDisplay, showNotification, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
+    updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
+    openTab, closeStatsModal, updateStatsDisplay, updateMultiplierButtons, openStatsModal // openStats est maintenant openStatsModal de ui.js
+} from './ui.js';
 
-const resetSkillsButton = document.getElementById('resetSkillsButton');
-const buyAllSkillsButton = document.getElementById('buyAllSkillsButton');
+// Importations des données (modif 30/05)
+import { skillsData, achievementsData, prestigePurchasesData } from './data.js';
 
-const studiesTabBtn = document.getElementById('studiesTabBtn');
-const automationTabBtn = document.getElementById('automationTabBtn');
-const skillsTabBtn = document.getElementById('skillsTabBtn');
-const settingsTabBtn = document.getElementById('settingsTabBtn');
-const ascensionTabBtn = document.getElementById('ascensionTabBtn');
-const prestigeTabBtn = document.getElementById('prestigeTabBtn');
-const questsTabBtn = document.getElementById('questsTabBtn');
-const achievementsTabBtn = document.getElementById('achievementsTabBtn');
-
-const studiesMainContainer = document.getElementById('studiesMainContainer');
-const automationMainContainer = document.getElementById('automationMainContainer');
-const skillsContainer = document.getElementById('skillsContainer');
-const settingsContainer = document.getElementById('settingsContainer');
-const ascensionMenuContainer = document.getElementById('ascensionMenuContainer');
-const prestigeMenuContainer = document.getElementById('prestigeMenuContainer');
-const questsContainer = document.getElementById('questsContainer');
-const achievementsContainer = document.getElementById('achievementsContainer');
-
-const achievementTooltip = document.getElementById('achievementTooltip');
-const achievementsGrid = document.getElementById('achievementsGrid');
-
-const paGainedDisplay = document.getElementById('paGainedDisplay');
-const ascensionModalTitle = document.getElementById('ascensionModalTitle');
-const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning');
-const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning');
-const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox');
-const confirmAscensionModal = document.getElementById('confirmAscensionModal');
-const confirmPrestigeModal = document.getElementById('confirmPrestigeModal');
-const prestigeWarningText = document.getElementById('prestigeWarningText');
-const prestigePointsGainedDisplay = document.getElementById('prestigePointsGainedDisplay'); // Assumed new element for prestige points display
-
-// Assumed global from core.js / data.js
-// let bonsPoints;
-// let totalClicks;
-// let images;
-// let ascensionPoints;
-// let ascensionCount;
-// let totalPAEarned;
-// let prestigePoints;
-// let prestigeCount;
-// let studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints;
-// let studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels;
-// let secretSkillClicks;
-// let currentPurchaseMultiplier;
-// let ascensionUnlocked, prestigeUnlocked, multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, automationCategoryUnlocked;
-// let autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive;
-// let elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked;
-// let skillsButtonUnlocked, settingsButtonUnlocked, ascensionMenuButtonUnlocked, prestigeMenuButtonUnlocked;
-// let questsUnlocked, achievementsButtonUnlocked;
-// let unlockedAchievements;
-// let nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat;
-// let skillEffects; // From core.js/data.js
-// let totalBonsPointsParSeconde; // From core.js
-// let nombreProfesseur; // From core.js
-// let questsData; // From data.js
-// let achievementsData; // From data.js
-// let prestigePurchasesData; // From data.js
-// let prime_PA; // From data.js
-// let newSettingsUnlocked; // Assumed global for the new settings unlock state
-// let activeAchievementTooltip; // Assumed global for achievement tooltip state
-*/
 
 /**
  * Initialise tous les écouteurs d'événements pour le jeu.
  * Cette fonction doit être appelée une fois que le DOM est complètement chargé
  * et que toutes les variables globales nécessaires sont initialisées.
  */
-import { toggleTheme, toggleOfflineProgress, toggleMinimizeResources, openStats } from './settings.js';
-import { hardResetGame, images, saveGameState, updateSettingsButtonStates, updateSectionVisibility, openStatsModal, closeStatsModal, checkUnlockConditions, formatNumber, calculateTotalBPS, applyAllSkillEffects, updateButtonStates } from './core.js';
-import { performPurchase } from './studies.js';
-import { handleSkillClick } from './skills.js';
-import { calculatePAGained, performAscension } from './ascension.js';
-import { calculatePPGained, getPrestigeBonusMultiplier, performPrestige } from './prestige.js'; // Import functions from prestige.js
-import { calculateAutomationCost } from './automation.js'; // Import calculateAutomationCost from automation.js
-import { openTab, updateMultiplierButtons, updateDisplay, showNotification, renderSkillsMenu, renderQuests, renderAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip } from './ui.js'; // Import all necessary UI functions
-import { skillsData, achievementsData } from './data.js'; // Import data needed for skills and achievements
-
 export function initEventListeners() {
+    // --- Récupération des éléments DOM (modif 30/05) ---
+    const studiesTitleButton = document.getElementById('studiesTitleButton');
+    const acheterEleveButton = document.getElementById('acheterEleveButton');
+    const acheterClasseButton = document.getElementById('acheterClasseButton');
+    const acheterImageButton = document.getElementById('acheterImageButton');
+    const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
+    const acheterEcoleButton = document.getElementById('acheterEcoleButton');
+    const acheterLyceeButton = document.getElementById('acheterLyceeButton');
+    const acheterCollegeButton = document.getElementById('acheterCollegeButton');
+    const acheterLicenceButton = document.getElementById('acheterLicenceButton');
+    const acheterMaster1Button = document.getElementById('acheterMaster1Button');
+    const acheterMaster2Button = document.getElementById('acheterMaster2Button');
+    const acheterDoctoratButton = document.getElementById('acheterDoctoratButton');
+    const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
+
+    const themeToggleButton = document.getElementById('themeToggleButton');
+    const resetProgressionButton = document.getElementById('resetProgressionButton');
+    const offlineProgressToggle = document.getElementById('offlineProgressToggle');
+    const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
+    const statsButton = document.getElementById('statsButton');
+    const statsModal = document.getElementById('statsModal');
+
+    const ascensionTitleButton = document.getElementById('ascensionTitleButton');
+    const confirmAscensionYesBtn = document.getElementById('confirmAscensionYes');
+    const confirmAscensionNoBtn = document.getElementById('confirmAscensionNo');
+
+    const prestigeTitleButton = document.getElementById('prestigeTitleButton');
+    const confirmPrestigeYesBtn = document.getElementById('confirmPrestigeYes');
+    const confirmPrestigeNoBtn = document.getElementById('confirmPrestigeNo');
+    const disablePrestigeWarningCheckbox = document.getElementById('disablePrestigeWarningCheckbox');
+
+    const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton');
+    const unlockmaxPurchaseButton = document.getElementById('unlockmaxPurchaseButton');
+    const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
+    const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton');
+
+    const autoEleveBtn = document.getElementById('autoEleveBtn');
+    const autoClasseBtn = document.getElementById('autoClasseBtn');
+    const autoImageBtn = document.getElementById('autoImageBtn');
+    const autoProfesseurBtn = document.getElementById('autoProfesseurBtn');
+
+    const multiplierButtonsContainer = document.getElementById('multiplierButtonsContainer');
+    const studiesSkillsGrid = document.getElementById('studiesSkillsGrid');
+    const ascensionSkillsGrid = document.getElementById('ascensionSkillsGrid');
+    const prestigeSkillsGrid = document.getElementById('prestigeSkillsGrid');
+
+    const resetSkillsButton = document.getElementById('resetSkillsButton');
+    const buyAllSkillsButton = document.getElementById('buyAllSkillsButton');
+
+    const studiesTabBtn = document.getElementById('studiesTabBtn');
+    const automationTabBtn = document.getElementById('automationTabBtn');
+    const skillsTabBtn = document.getElementById('skillsTabBtn');
+    const settingsTabBtn = document.getElementById('settingsTabBtn');
+    const ascensionTabBtn = document.getElementById('ascensionTabBtn');
+    const prestigeTabBtn = document.getElementById('prestigeTabBtn');
+    const questsTabBtn = document.getElementById('questsTabBtn');
+    const achievementsTabBtn = document.getElementById('achievementsTabBtn');
+
+    const studiesMainContainer = document.getElementById('studiesMainContainer');
+    const automationMainContainer = document.getElementById('automationMainContainer');
+    const skillsContainer = document.getElementById('skillsContainer');
+    const settingsContainer = document.getElementById('settingsContainer');
+    const ascensionMenuContainer = document.getElementById('ascensionMenuContainer');
+    const prestigeMenuContainer = document.getElementById('prestigeMenuContainer');
+    const questsContainer = document.getElementById('questsContainer');
+    const achievementsContainer = document.getElementById('achievementsContainer');
+
+    const achievementTooltip = document.getElementById('achievementTooltip');
+    const achievementsGrid = document.getElementById('achievementsGrid');
+
+    const paGainedDisplay = document.getElementById('paGainedDisplay');
+    const ascensionModalTitle = document.getElementById('ascensionModalTitle');
+    const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning');
+    const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning');
+    const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox');
+    const confirmAscensionModal = document.getElementById('confirmAscensionModal');
+    const confirmPrestigeModal = document.getElementById('confirmPrestigeModal');
+    const prestigeWarningText = document.getElementById('prestigeWarningText');
+    const prestigePointsGainedDisplay = document.getElementById('prestigePointsGainedDisplay');
+
+    const clickBonsPointsDisplay = document.getElementById('clickBonsPointsDisplay');
+    const bonsPointsSpan = document.getElementById('bonsPointsSpan');
+    const miniBonsPoints = document.getElementById('miniBonsPoints');
+
+
     // --- Écouteurs d'événements pour les achats ---
     studiesTitleButton.addEventListener('click', () => {
         totalClicks = totalClicks.add(1); // Incrémenter le total des clics
@@ -461,7 +476,7 @@ export function initEventListeners() {
 
     toggleMinimalistResourcesButton.addEventListener('click', () => toggleMinimizeResources());
 
-    statsButton.addEventListener('click', () => openStats());
+    statsButton.addEventListener('click', () => openStatsModal()); // (modif 30/05)
 
     // Fermer la modale des statistiques en cliquant à l'extérieur
     statsModal.addEventListener('click', (event) => {
@@ -479,8 +494,8 @@ export function initEventListeners() {
         const paGained = calculatePAGained();
         paGainedDisplay.textContent = `${formatNumber(paGained, 0)} PA`;
 
-        const currentAscensionBonus = new Decimal(1).add(ascensionCount.mul(totalPAEarned).mul(0.01)).add(skillEffects.ascensionBonusIncrease.mul(ascensionCount));
-        const newAscensionBonus = new Decimal(1).add(ascensionCount.add(1).mul(totalPAEarned.add(paGained)).mul(0.01)).add(skillEffects.ascensionBonusIncrease.mul(ascensionCount.add(1)));
+        const currentAscensionMultiplier = new Decimal(1).add(ascensionCount.mul(totalPAEarned).mul(0.01)).add(skillEffects.ascensionBonusIncrease.mul(ascensionCount));
+        const newAscensionMultiplier = new Decimal(1).add(ascensionCount.add(1).mul(totalPAEarned.add(paGained)).mul(0.01)).add(skillEffects.ascensionBonusIncrease.mul(ascensionCount.add(1))); // (modif 30/05)
 
         if (ascensionCount.eq(0) || !disableAscensionWarning) { // Afficher l'avertissement complet pour la première ascension ou si non désactivé
             ascensionModalTitle.textContent = "Ascensionner ?";
@@ -493,7 +508,7 @@ export function initEventListeners() {
             if (paGainText) paGainText.innerHTML = `${formatNumber(paGained, 0)} PA`;
 
             const bonusCalcText = document.querySelector('#firstAscensionWarning li:nth-child(4) span');
-            if (bonusCalcText) bonusCalcText.innerHTML = `Bonus d'Ascension</span> permanent qui augmentera votre production totale de Bons Points par seconde. Ce bonus est calculé comme suit :<br><span style="font-weight: bold;">1 + (Nombre total d'ascensions) x (PA totaux gagnés) x 0.01</span>. Ancien bonus: ${formatNumber(currentAscensionBonus, 2)}x à Nouveau bonus: ${formatNumber(newAscensionBonus, 2)}x.`;
+            if (bonusCalcText) bonusCalcText.innerHTML = `Bonus d'Ascension</span> permanent qui augmentera votre production totale de Bons Points par seconde. Ce bonus est calculé comme suit :<br><span style="font-weight: bold;">1 + (Nombre total d'ascensions) x (PA totaux gagnés) x 0.01</span>. Ancien bonus: ${formatNumber(currentAscensionMultiplier, 2)}x à Nouveau bonus: ${formatNumber(newAscensionMultiplier, 2)}x.`; // (modif 30/05)
 
         } else { // Afficher l'avertissement simplifié
             ascensionModalTitle.textContent = "Ascensionner ?";
@@ -502,7 +517,7 @@ export function initEventListeners() {
             subsequentAscensionWarningDiv.innerHTML = `
                 Vous êtes sur le point d'Ascensionner !<br>
                 Cela vous rapportera <span class="ascension-points-color">${formatNumber(paGained, 0)} PA</span>.<br>
-                Le bonus d'Ascension passera de <span class="ascension-points-color">${formatNumber(currentAscensionBonus, 2)}x</span> à <span class="ascension-points-color">${formatNumber(newAscensionBonus, 2)}x</span>.
+                Le bonus d'Ascension passera de <span class="ascension-points-color">${formatNumber(currentAscensionMultiplier, 2)}x</span> à <span class="ascension-points-color">${formatNumber(newAscensionMultiplier, 2)}x</span>.
             `;
         }
         confirmAscensionModal.style.display = 'flex';
@@ -589,11 +604,11 @@ export function initEventListeners() {
 
         const ppGained = calculatePPGained(currentTotalPAEarned, currentAscensionCount);
         // getPrestigeBonusMultiplier doit prendre en compte le type de bonus ('bps' ou 'pa')
-        const currentPrestigeBonusBPS = getPrestigeBonusMultiplier('bps');
-        const newPrestigeBonusBPS = getPrestigeBonusMultiplier('bps', prestigeCount.add(1), prestigePoints.add(ppGained));
+        const currentPrestigeBonusBPS = getPrestigeBonusMultiplier('bps', prestigeCount); // (modif 30/05)
+        const newPrestigeBonusBPS = getPrestigeBonusMultiplier('bps', prestigeCount.add(1)); // (modif 30/05)
 
-        const currentPrestigeBonusPA = getPrestigeBonusMultiplier('pa');
-        const newPrestigeBonusPA = getPrestigeBonusMultiplier('pa', prestigeCount.add(1), prestigePoints.add(ppGained));
+        const currentPrestigeBonusPA = getPrestigeBonusMultiplier('pa', prestigeCount); // (modif 30/05)
+        const newPrestigeBonusPA = getPrestigeBonusMultiplier('pa', prestigeCount.add(1)); // (modif 30/05)
 
         prestigePointsGainedDisplay.textContent = `${formatNumber(ppGained, 0)} PP`; // Mise à jour de l'affichage
 

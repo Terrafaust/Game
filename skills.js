@@ -10,12 +10,12 @@
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (studiesSkillPoints, ascensionSkillPoints,
  * prestigeSkillPoints, skillEffects, studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels,
- *  saveGameState, checkUnlockConditions, applyAllSkillEffects,
+ *  saveGameState, checkUnlockConditions, applyAllSkillEffects, formatNumber
  * totalClicks, nombreProfesseur, prestigeCount).
  * - data.js : Contient les définitions des compétences (skillsData) incluant leurs coûts,
  * effets, et conditions de déverrouillage.
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique aux compétences (updateSkillsUI, renderSkillsMenu) et générale (updateDisplay), et (
+ * - ui.js : Pour la mise à jour de l'interface utilisateur spécifique aux compétences 
+ * (updateSkillsUI, renderSkillsMenu) et générale (updateDisplay), et (
  * showNotification)
  *
  * Variables Clés (utilisées par skills.js, mais définies et gérées ailleurs) :
@@ -59,6 +59,7 @@ import {
     prestigeCount,
     saveGameState,
     checkUnlockConditions,
+    formatNumber,
     applyAllSkillEffects
 } from './core.js';
 
@@ -66,7 +67,6 @@ import { skillsData } from './data.js';
 
 // Importation des fonctions d'UI (assurez-vous qu'elles sont exportées par ui.js)
 import { 
-    formatNumber,
     showNotification,
     updateDisplay
 } from './ui.js';

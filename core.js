@@ -129,9 +129,9 @@ import { calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost
          elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem, ProfesseurBpsPerItem } from './studies.js';
 import { calculateAutomationCost, runAutomation } from './automation.js';
 import { skillsData } from './data.js'; // skillsData est défini dans data.js
-import { calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js';
-import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
-import { checkQuests, updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests } from './quests.js';
+import { calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js'; // (modif 30/05)
+import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js'; // (modif 30/05)
+import { updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests } from './quests.js'; // (modif 30/05)
 import { checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements } from './achievements.js';
 // CORRECTION: applyAllSkillEffects et updateCachedMultipliers sont définis et exportés par core.js,
 // donc ils ne doivent PAS être importés de ui.js.
@@ -139,7 +139,7 @@ import { checkAchievements, achievementsData, unlockedAchievements, permanentBps
 import { updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
          updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
          openTab, closeStatsModal, updateStatsDisplay,
-         showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, showNotification } from './ui.js';
+         showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, showNotification } from './ui.js'; // (modif 30/05)
 import { prime_PA, prestigePurchasesData } from './data.js'; // prime_PA et prestigePurchasesData sont définis dans data.js
 
 // --- Fonctions Utilitaires ---
@@ -530,7 +530,7 @@ export function loadGameState() {
         nombreDoctorat = new Decimal(gameState.nombreDoctorat || 0);
         nombrePostDoctorat = new Decimal(gameState.nombrePostDoctorat || 0);
 
-        lastUpdate = gameState.lastUpdate || Date.now(); // Charger le dernier timestamp de sauvegarde
+        lastUpdate = gameState.lastUpdate || Date.now(); // Enregistrer le timestamp de la sauvegarde
         unlockedAchievements = gameState.unlockedAchievements || {};
         permanentBpsBonusFromAchievements = new Decimal(gameState.permanentBpsBonusFromAchievements || 0);
         completedQuests = gameState.completedQuests || {};
@@ -875,7 +875,7 @@ export function calculateTotalBPS() {
     const currentAscensionMultiplier = ascensionBonus.times(skillEffects.ascensionBonusIncrease.add(1));
 
     // Multiplicateur de Prestige sur BPS
-    const prestigeBpsMultiplier = getPrestigeBonusMultiplier('bps', prestigeCount, prestigePoints);
+    const prestigeBpsMultiplier = getPrestigeBonusMultiplier('bps', prestigeCount); // (modif 30/05)
 
     // Multiplicateur permanent des succès
     const achievementBpsMultiplier = permanentBpsBonusFromAchievements.add(1);
@@ -969,7 +969,7 @@ export function checkUnlockConditions() {
         questsUnlocked = true;
         showNotification("Quêtes débloquées !");
         updateSectionVisibility();
-        checkQuests(); // Initialiser les quêtes
+        updateQuestProgress(); // (modif 30/05) Initialiser les quêtes
     }
 
     // Déverrouillage des succès
@@ -1143,7 +1143,7 @@ export function initializeGame() {
         updateButtonStates(); // Mettre à jour les états des boutons d'achat
         updateAutomationButtonStates();
         updateSettingsButtonStates();
-        checkQuests(); // Vérifier la progression des quêtes
+        updateQuestProgress(); // (modif 30/05) Vérifier la progression des quêtes
         checkAchievements(); // Vérifier les succès
 
         // Production de Bons Points
@@ -1415,18 +1415,18 @@ export function initializeGame() {
 // Importations depuis './data.js':
 //   - skillsData, prime_PA, prestigePurchasesData
 // Importations depuis './ascension.js':
-//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost
+//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost (modif 30/05)
 // Importations depuis './prestige.js':
-//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
+//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost (modif 30/05)
 // Importations depuis './quests.js':
-//   - checkQuests, updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests
+//   - updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests (modif 30/05)
 // Importations depuis './achievements.js':
 //   - checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements
 // Importations depuis './ui.js':
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
 //     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
 //     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
-//     hideAchievementTooltip, toggleAchievementTooltip, showNotification
+//     hideAchievementTooltip, toggleAchievementTooltip, showNotification (modif 30/05)
 //
 // Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.
