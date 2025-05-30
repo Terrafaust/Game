@@ -9,12 +9,11 @@
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
- * autoClasseActive, autoImageActive, autoProfesseurActive), aux fonctions de notification
- * (showNotification), de sauvegarde (saveGameState), de mise à jour de l'affichage global
- * (updateDisplay), à la fonction d'achat générique (performPurchase), et à la fonction
+ * autoClasseActive, autoImageActive, autoProfesseurActive),  de sauvegarde (saveGameState),  à la fonction d'achat générique (performPurchase), et à la fonction
  * de formatage des nombres (formatNumber).
  * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
- * - ui.js : Fournit la fonction de mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
+ * - ui.js : Fournit la fonction de mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).aux fonctions de notification
+ * (showNotification),de mise à jour de l'affichage global  * (updateDisplay),
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -48,7 +47,6 @@ import {
     autoImageActive,
     autoProfesseurActive,
     saveGameState,
-    updateDisplay,
     performPurchase,
     skillEffects,
     formatNumber
@@ -60,7 +58,8 @@ import {
 // Importations des fonctions d'UI depuis ui.js (pour updateAutomationButtonStates)
 import {
     updateAutomationButtonStates, // This function is defined in ui.js
-    showNotification
+    showNotification,
+    updateDisplay
 } from './ui.js';
 /**
  * Exécute les achats pour toutes les automatisations actives.
