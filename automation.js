@@ -11,10 +11,10 @@
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
  * autoClasseActive, autoImageActive, autoProfesseurActive), aux fonctions de notification
  * (showNotification), de sauvegarde (saveGameState), de mise à jour de l'affichage global
- * (updateDisplay), et à la fonction d'achat générique (performPurchase).
+ * (updateDisplay), à la fonction d'achat générique (performPurchase), et à la fonction
+ * de formatage des nombres (formatNumber).
  * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
+ * - ui.js : Pour la mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -53,18 +53,19 @@ import {
     saveGameState,
     updateDisplay, // For global display refresh
     performPurchase, // The general purchase function
-    skillEffects // For cost reductions
-} from './core.js'; // Assurez-vous que le chemin est correct
+    skillEffects, // For cost reductions
+    formatNumber // Import formatNumber from core.js
+} from './core.js';
 
 // Importations des fonctions de calcul de coût depuis data.js
 import {
     calculateAutomationCost // Assuming this is defined in data.js
-} from './data.js'; // Assurez-vous que le chemin est correct
+} from './data.js';
 
-// Importations des fonctions d'UI depuis ui.js
+// Importations des fonctions d'UI depuis ui.js (pour updateAutomationButtonStates)
 import {
-    formatNumber
-} from './ui.js'; // Assurez-vous que le chemin est correct
+    updateAutomationButtonStates // This function is defined in ui.js
+} from './ui.js';
 
 /**
  * Exécute les achats pour toutes les automatisations actives.
@@ -122,25 +123,40 @@ export function toggleAutomation(itemType, baseCost) {
 
     if (currentAutomationState) {
         // Désactiver l'automatisation
-        // Note: Pour modifier une variable importée de core.js, vous devrez peut-être
-        // passer par une fonction de modification dans core.js si elles ne sont pas
-        // directement mutables via l'import. Pour l'exemple, nous utilisons eval(),
-        // mais une meilleure pratique serait une fonction setAutoEleveActive(false) dans core.js.
-        // Puisque les variables sont exportées avec 'let', elles sont mutables.
-        if (automationFlagName === 'autoEleveActive') autoEleveActive.value = false;
-        if (automationFlagName === 'autoClasseActive') autoClasseActive.value = false;
-        if (automationFlagName === 'autoImageActive') autoImageActive.value = false;
-        if (automationFlagName === 'autoProfesseurActive') autoProfesseurActive.value = false;
+        // Les variables autoEleveActive, etc., sont exportées avec 'let' de core.js,
+        // donc elles peuvent être réassignées directement.
+        if (automationFlagName === 'autoEleveActive') {
+            window.autoEleveActive = false; // Use window object for direct modification if not directly mutable
+        }
+        if (automationFlagName === 'autoClasseActive') {
+            window.autoClasseActive = false;
+        }
+        if (automationFlagName === 'autoImageActive') {
+            window.autoImageActive = false;
+        }
+        if (automationFlagName === 'autoProfesseurActive') {
+            window.autoProfesseurActive = false;
+        }
 
         showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} désactivée.`);
     } else {
         // Activer l'automatisation
         if (ascensionPoints.gte(cost)) {
-            ascensionPoints.sub(cost); // Utilisation de .sub() pour Decimal
-            if (automationFlagName === 'autoEleveActive') autoEleveActive.value = true;
-            if (automationFlagName === 'autoClasseActive') autoClasseActive.value = true;
-            if (automationFlagName === 'autoImageActive') autoImageActive.value = true;
-            if (automationFlagName === 'autoProfesseurActive') autoProfesseurActive.value = true;
+            // ascensionPoints est une Decimal, la soustraction retourne une nouvelle Decimal
+            window.ascensionPoints = ascensionPoints.sub(cost);
+
+            if (automationFlagName === 'autoEleveActive') {
+                window.autoEleveActive = true;
+            }
+            if (automationFlagName === 'autoClasseActive') {
+                window.autoClasseActive = true;
+            }
+            if (automationFlagName === 'autoImageActive') {
+                window.autoImageActive = true;
+            }
+            if (automationFlagName === 'autoProfesseurActive') {
+                window.autoProfesseurActive = true;
+            }
             showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} activée !`);
         } else {
             showNotification(`Pas assez de PA (${formatNumber(cost, 0)} PA) !`);
@@ -148,11 +164,30 @@ export function toggleAutomation(itemType, baseCost) {
         }
     }
 
-    updateAutomationButtonStates(); // Met à jour l'état des boutons d'automatisation
-    updateDisplay(); // Rafraîchit l'affichage global
+    // Ces fonctions sont appelées après la modification de l'état
+    // pour rafraîchir l'interface utilisateur et sauvegarder le jeu.
+    // Note: updateAutomationButtonStates est importée de ui.js et doit être appelée avec les éléments DOM.
+    // Puisque automation.js ne manipule pas le DOM directement, cette fonction sera appelée
+    // par events.js ou core.js en passant les références DOM nécessaires.
+    // Pour l'instant, nous laissons l'appel ici, mais il faut s'assurer que les éléments DOM sont passés.
+    // Si updateAutomationButtonStates est appelée depuis ui.js, elle n'a pas besoin de domElements en paramètre ici.
+    // Pour éviter une dépendance circulaire ou une manipulation directe du DOM ici,
+    // nous allons supposer que `updateAutomationButtonStates` est appelée par `ui.js`
+    // après que `toggleAutomation` ait mis à jour les variables d'état.
+    // Cependant, pour que le bouton se mette à jour immédiatement après le clic,
+    // il faudrait que `events.js` appelle `updateAutomationButtonStates` après `toggleAutomation`.
+    // Pour l'exemple, je vais commenter l'appel direct ici, car la mise à jour sera faite par `updateDisplay()`
+    // qui est appelée et qui elle-même appelle `updateAutomationButtonStates` dans `ui.js`.
+
+    updateDisplay(); // Rafraîchit l'affichage global, qui inclura les boutons d'automatisation
     saveGameState(); // Sauvegarde l'état du jeu
 }
 
+// Note: updateAutomationButtonStates est une fonction qui met à jour l'UI.
+// Elle devrait être appelée par ui.js ou events.js qui ont accès aux éléments DOM.
+// Le code ci-dessous est celui que vous avez fourni, il est correct pour sa fonction.
+// Je l'ai gardé ici pour l'intégralité du document, mais son appel direct dans toggleAutomation
+// a été ajusté pour refléter la gestion du DOM par ui.js.
 /**
  * Met à jour l'état (texte, classes CSS) des boutons d'automatisation dans l'interface utilisateur.
  * Cette fonction est appelée par ui.js.

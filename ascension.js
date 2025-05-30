@@ -11,13 +11,14 @@
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (bonsPointsTotal, ascensionCount,
- * ascensionPoints, totalPAEarned, showNotification, saveGameState, updateDisplay,
- * checkUnlockConditions, resetGameState, applyAllSkillEffects), et aux flags de déverrouillage
- * du menu d'Ascension.
+ * ascensionPoints, totalPAEarned, saveGameState, updateDisplay,
+ * checkUnlockConditions, resetGameState, applyAllSkillEffects, ascensionUnlocked),
+ * et la fonction de formatage des nombres (formatNumber).
  * - data.js : Contient les définitions des coûts et bonus liés à l'Ascension,
- * ainsi que les seuils pour gagner des PA.
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique à l'Ascension (updateAscensionUI, updateAscensionButtonStates).
+ * ainsi que les seuils pour gagner des PA (ASCENSION_POINT_THRESHOLD, ASCENSION_BASE_COST_MULTIPLIER).
+ * - ui.js : Fournit la fonction de notification (showNotification) et est responsable
+ * d'appeler les fonctions de mise à jour de l'interface utilisateur spécifiques à l'Ascension
+ * (updateAscensionUI, updateAscensionButtonStates) en leur passant les éléments DOM.
  *
  * Variables Clés (utilisées par ascension.js, mais définies et gérées ailleurs) :
  * - bonsPointsTotal : Total cumulé de Bons Points gagnés sur toutes les parties, utilisé pour calculer les PA.
@@ -55,25 +56,25 @@ import {
     ascensionCount,
     ascensionPoints,
     totalPAEarned,
-    showNotification,
     saveGameState,
     updateDisplay,
     checkUnlockConditions,
-    resetGameState, // Fonction de réinitialisation du jeu
+    softResetGame, // Correction: Utiliser softResetGame pour la réinitialisation d'Ascension
     applyAllSkillEffects,
-    ascensionUnlocked // Flag de déverrouillage du menu d'Ascension
-} from './core.js'; // Assurez-vous que le chemin est correct
+    ascensionUnlocked, // Flag de déverrouillage du menu d'Ascension
+    formatNumber // Import formatNumber from core.js
+} from './core.js';
 
 // Importations des fonctions de calcul de coût/bonus depuis data.js
 import {
     ASCENSION_POINT_THRESHOLD, // Seuil de BP total pour gagner 1 PA
     ASCENSION_BASE_COST_MULTIPLIER // Multiplicateur pour le coût des PA (si applicable)
-} from './data.js'; // Assurez-vous que le chemin est correct
+} from './data.js';
 
 // Importations des fonctions d'UI depuis ui.js
 import {
-    formatNumber
-} from './ui.js'; // Assurez-vous que le chemin est correct
+    showNotification // Import showNotification from ui.js
+} from './ui.js';
 
 /**
  * Calcule le nombre de Points d'Ascension que le joueur gagnerait s'il effectuait une Ascension maintenant.
@@ -105,26 +106,22 @@ export function performAscension() {
     }
 
     // Confirmation de l'Ascension (utilisation d'une notification personnalisée au lieu d'alert/confirm)
-    // Pour une implémentation complète, ceci nécessiterait une modale de confirmation dans ui.js.
-    // Pour l'instant, nous procédons directement après la vérification des points.
     showNotification(`Ascension en cours ! Vous gagnez ${formatNumber(potentialPA, 0)} Points d'Ascension.`);
 
     // Incrémenter le compteur d'Ascension
-    ascensionCount.add(1); // Utilisation de .add() pour Decimal
+    window.ascensionCount = ascensionCount.add(1); // Assigner le nouveau Decimal
 
     // Ajouter les Points d'Ascension gagnés
-    ascensionPoints.add(potentialPA); // Utilisation de .add() pour Decimal
-    totalPAEarned.add(potentialPA); // Utilisation de .add() pour Decimal
+    window.ascensionPoints = ascensionPoints.add(potentialPA); // Assigner le nouveau Decimal
+    window.totalPAEarned = totalPAEarned.add(potentialPA); // Assigner le nouveau Decimal
 
     // Réinitialiser l'état du jeu (sauf les bonus permanents et les PA)
-    resetGameState(true); // Passer 'true' pour indiquer une réinitialisation d'Ascension
+    softResetGame(); // Appelle la fonction de soft reset de core.js
 
     // Appliquer tous les effets de compétences (y compris les bonus permanents d'Ascension)
     applyAllSkillEffects();
 
-    // Mettre à jour l'interface utilisateur
-    updateAscensionUI();
-    updateAscensionButtonStates();
+    // Mettre à jour l'interface utilisateur via updateDisplay qui orchestrera les appels UI
     updateDisplay(); // Rafraîchit l'affichage global
 
     // Sauvegarder l'état du jeu

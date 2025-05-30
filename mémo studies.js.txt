@@ -29,20 +29,15 @@
 //   - calculateTotalBPS: Fonction pour recalculer la production totale de BP/s.
 //   - studiesSkillPoints: Points de compétence d'études.
 //   - ascensionSkillPoints: Points de compétence d'ascension (mis à jour lors de l'achat de Professeur).
-//   - ascensionSkillsUnlocked: Flag pour débloquer le panneau de compétences d'Ascension.
 //   - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat: Quantités des achats de prestige affectant la production d'études.
 //   - prestigeCount, prestigePoints: Compteurs et monnaie de prestige affectant la production.
 //   - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked: Flags de déverrouillage des options d'achat d'études.
+//   - formatNumber: Fonction utilitaire pour formater les nombres.
 //
-// Importations des fonctions de calcul de coût et des données de prestige depuis data.js:
-//   - calculateNextEleveCost: Calcule le coût du prochain Élève.
-//   - calculateNextClasseCost: Calcule le coût de la prochaine Classe.
-//   - calculateNextImageCost: Calcule le coût de la prochaine Image.
-//   - calculateNextProfessorCost: Calcule le coût du prochain Professeur.
+// Importations des données de prestige depuis data.js:
 //   - prestigePurchasesData: Données des achats de prestige (pour les prérequis).
 //
 // Importations des fonctions d'UI depuis ui.js:
-//   - formatNumber: Fonction utilitaire pour formater les nombres.
 //   - updateDisplay: Fonction pour rafraîchir l'affichage global de l'interface.
 //   - showNotification: Fonction pour afficher des notifications à l'utilisateur.
 //
@@ -52,6 +47,24 @@
 // export let bonsPointsParSecondeClasses;   // Production de BP/s générée spécifiquement par les Classes.
 //
 // ------------------ Fonctions Clés Définies et Exportées ------------------
+//
+// export function calculateNextEleveCost(count)
+//   // Calcule le coût du prochain Élève.
+//
+// export function calculateNextClasseCost(count)
+//   // Calcule le coût de la prochaine Classe.
+//
+// export function calculateNextImageCost(count)
+//   // Calcule le coût de la prochaine Image.
+//
+// export function calculateNextProfessorCost(count)
+//   // Calcule le coût du prochain Professeur.
+//
+// export function elevesBpsPerItem
+//   // Valeur de base de BP/s par Élève.
+//
+// export function classesBpsPerItem
+//   // Valeur de base de BP/s par Classe.
 //
 // export function calculateStudiesBPS()
 //   // Calcule la production de Bons Points par seconde générée spécifiquement par les élèves et les classes.

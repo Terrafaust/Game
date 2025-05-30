@@ -29,20 +29,15 @@
 //   - calculateTotalBPS: Fonction pour recalculer la production totale de BP/s.
 //   - studiesSkillPoints: Points de compétence d'études.
 //   - ascensionSkillPoints: Points de compétence d'ascension (mis à jour lors de l'achat de Professeur).
-//   - ascensionSkillsUnlocked: Flag pour débloquer le panneau de compétences d'Ascension.
 //   - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat: Quantités des achats de prestige affectant la production d'études.
 //   - prestigeCount, prestigePoints: Compteurs et monnaie de prestige affectant la production.
 //   - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked: Flags de déverrouillage des options d'achat d'études.
+//   - formatNumber: Fonction utilitaire pour formater les nombres.
 //
-// Importations des fonctions de calcul de coût et des données de prestige depuis data.js:
-//   - calculateNextEleveCost: Calcule le coût du prochain Élève.
-//   - calculateNextClasseCost: Calcule le coût de la prochaine Classe.
-//   - calculateNextImageCost: Calcule le coût de la prochaine Image.
-//   - calculateNextProfessorCost: Calcule le coût du prochain Professeur.
+// Importations des données de prestige depuis data.js:
 //   - prestigePurchasesData: Données des achats de prestige (pour les prérequis).
 //
 // Importations des fonctions d'UI depuis ui.js:
-//   - formatNumber: Fonction utilitaire pour formater les nombres.
 //   - updateDisplay: Fonction pour rafraîchir l'affichage global de l'interface.
 //   - showNotification: Fonction pour afficher des notifications à l'utilisateur.
 //
@@ -52,6 +47,24 @@
 // export let bonsPointsParSecondeClasses;   // Production de BP/s générée spécifiquement par les Classes.
 //
 // ------------------ Fonctions Clés Définies et Exportées ------------------
+//
+// export function calculateNextEleveCost(count)
+//   // Calcule le coût du prochain Élève.
+//
+// export function calculateNextClasseCost(count)
+//   // Calcule le coût de la prochaine Classe.
+//
+// export function calculateNextImageCost(count)
+//   // Calcule le coût de la prochaine Image.
+//
+// export function calculateNextProfessorCost(count)
+//   // Calcule le coût du prochain Professeur.
+//
+// export function elevesBpsPerItem
+//   // Valeur de base de BP/s par Élève.
+//
+// export function classesBpsPerItem
+//   // Valeur de base de BP/s par Classe.
 //
 // export function calculateStudiesBPS()
 //   // Calcule la production de Bons Points par seconde générée spécifiquement par les élèves et les classes.
@@ -110,7 +123,6 @@ import {
     calculateTotalBPS,
     studiesSkillPoints,
     ascensionSkillPoints,
-    ascensionSkillsUnlocked, // Pour débloquer le panneau de compétences d'Ascension
     nombreLicences,
     nombreMaster1,
     nombreMaster2,
@@ -120,24 +132,81 @@ import {
     elevesUnlocked,
     classesUnlocked,
     imagesUnlocked,
-    ProfesseurUnlocked
+    ProfesseurUnlocked,
+    formatNumber // Import formatNumber from core.js
 } from './core.js';
 
-// Importations des fonctions de calcul de coût et des données de prestige depuis data.js
+// Importations des données de prestige depuis data.js
 import {
-    calculateNextEleveCost,
-    calculateNextClasseCost,
-    calculateNextImageCost,
-    calculateNextProfessorCost,
     prestigePurchasesData
 } from './data.js';
 
 // Importations des fonctions d'UI depuis ui.js
 import {
-    formatNumber,
     updateDisplay, // Pour rafraîchir l'affichage global après une action
     showNotification // Importation corrigée de showNotification depuis ui.js
 } from './ui.js';
+
+// --- Fonctions de calcul de coût (Définies et exportées par studies.js) ---
+export const elevesBpsPerItem = new Decimal(0.5);
+export const classesBpsPerItem = new Decimal(25);
+
+/**
+ * Calcule le coût du prochain Élève.
+ * @param {Decimal} count - Le nombre actuel d'Élèves.
+ * @returns {Decimal} Le coût du prochain Élève.
+ */
+export function calculateNextEleveCost(count) {
+    let baseCost = new Decimal(10);
+    let multiplier = new Decimal(1.15);
+    let cost = baseCost.mul(multiplier.pow(count));
+    // Appliquer les réductions de coût des compétences
+    cost = cost.mul(new Decimal(1).sub(skillEffects.eleveCostReduction)).mul(new Decimal(1).sub(skillEffects.allCostReduction));
+    return cost.floor();
+}
+
+/**
+ * Calcule le coût de la prochaine Classe.
+ * @param {Decimal} count - Le nombre actuel de Classes.
+ * @returns {Decimal} Le coût de la prochaine Classe.
+ */
+export function calculateNextClasseCost(count) {
+    let baseCost = new Decimal(100);
+    let multiplier = new Decimal(1.2);
+    let cost = baseCost.mul(multiplier.pow(count));
+    // Appliquer les réductions de coût des compétences
+    cost = cost.mul(new Decimal(1).sub(skillEffects.classeCostReduction)).mul(new Decimal(1).sub(skillEffects.allCostReduction));
+    return cost.floor();
+}
+
+/**
+ * Calcule le coût de la prochaine Image.
+ * @param {Decimal} count - Le nombre actuel d'Images.
+ * @returns {Decimal} Le coût de la prochaine Image.
+ */
+export function calculateNextImageCost(count) {
+    let baseCost = new Decimal(1000);
+    let multiplier = new Decimal(1.25);
+    let cost = baseCost.mul(multiplier.pow(count));
+    // Appliquer les réductions de coût des compétences
+    cost = cost.mul(new Decimal(1).sub(skillEffects.imageCostReduction)).mul(new Decimal(1).sub(skillEffects.allCostReduction));
+    return cost.floor();
+}
+
+/**
+ * Calcule le coût du prochain Professeur.
+ * @param {Decimal} count - Le nombre actuel de Professeurs.
+ * @returns {Decimal} Le coût du prochain Professeur.
+ */
+export function calculateNextProfessorCost(count) {
+    let baseCost = new Decimal(10); // Coût en images
+    let multiplier = new Decimal(1.3);
+    let cost = baseCost.mul(multiplier.pow(count));
+    // Appliquer les réductions de coût des compétences
+    cost = cost.mul(new Decimal(1).sub(skillEffects.ProfesseurCostReduction)).mul(new Decimal(1).sub(skillEffects.allCostReduction));
+    return cost.floor();
+}
+
 
 // Variables pour les productions par item (calculées ici et utilisées globalement)
 export let bonsPointsParSecondeEleves = new Decimal(0);
@@ -176,18 +245,18 @@ export function calculateStudiesBPS() {
  * Cette fonction est appelée par events.js.
  */
 export function handleStudyClick() {
-    totalClicks = totalClicks.add(1); // Incrémente le nombre total de clics
+    window.totalClicks = totalClicks.add(1); // Incrémente le nombre total de clics
 
     calculateTotalBPS(); // Recalcule la production totale de BP par seconde (incluant les études)
     const dynamicBonus = totalBonsPointsParSeconde.mul(0.1); // Calcule le bonus dynamique basé sur le total BPS
     const clickValue = skillEffects.clickBonsPointsBonus.add(dynamicBonus);
 
     if (clickValue.gt(0)) {
-        bonsPoints.assign(bonsPoints.plus(clickValue)); // Correction: Réaffecter le résultat de plus()
+        window.bonsPoints = bonsPoints.plus(clickValue); // Correction: Réaffecter le résultat de plus()
     } else {
         // Si clickValue est zéro ou négatif, assurez-vous qu'au moins 1 BP est gagné
         if (clickValue.eq(0)) {
-            bonsPoints.assign(bonsPoints.plus(1)); // Correction: Réaffecter le résultat de plus()
+            window.bonsPoints = bonsPoints.plus(1); // Correction: Réaffecter le résultat de plus()
         } else {
             console.warn("[Clic Étudier] clickValue est négatif. BP non augmentés par ce clic spécifique.", clickValue.toString());
         }
@@ -288,52 +357,22 @@ export function performStudyPurchase(itemType, quantityRequested, isAutomated = 
     if (quantityToBuy.gt(0)) {
         // Décrémenter la ressource
         if (resourceToDecrement === 'bonsPoints') {
-            bonsPoints.assign(bonsPoints.sub(totalCost));
+            window.bonsPoints = bonsPoints.sub(totalCost);
         } else if (resourceToDecrement === 'images') {
-            images.assign(images.sub(totalCost));
+            window.images = images.sub(totalCost);
         }
 
         // Incrémenter le compteur de l'objet
         switch (itemType) {
-            case 'eleve': nombreEleves.assign(nombreEleves.add(quantityToBuy)); break;
-            case 'classe': nombreClasses.assign(nombreClasses.add(quantityToBuy)); break;
-            case 'image': images.assign(images.add(quantityToBuy)); break;
+            case 'eleve': window.nombreEleves = nombreEleves.add(quantityToBuy); break;
+            case 'classe': window.nombreClasses = nombreClasses.add(quantityToBuy); break;
+            case 'image': window.images = images.add(quantityToBuy); break;
             case 'Professeur':
-                nombreProfesseur.assign(nombreProfesseur.add(quantityToBuy));
+                window.nombreProfesseur = nombreProfesseur.add(quantityToBuy);
                 const oldAscensionSkillPoints = new Decimal(ascensionSkillPoints); // Stocke l'ancienne valeur
-                ascensionSkillPoints.assign(ascensionSkillPoints.add(quantityToBuy)); // Ajoute des points de compétence d'Ascension
+                window.ascensionSkillPoints = ascensionSkillPoints.add(quantityToBuy); // Ajoute des points de compétence d'Ascension
                 showNotification(`+${formatNumber(quantityToBuy,0)} Point(s) de Compétence d'Ascension !`);
-
-                // Débloque le panneau de compétences d'Ascension si ce n'est pas déjà fait
-                // Note: ascensionSkillsUnlocked doit être une variable exportée et gérée dans core.js ou ui.js
-                // Pour cet exemple, je l'ai ajoutée à l'importation de core.js.
-                if (!ascensionSkillsUnlocked && ascensionSkillPoints.gt(oldAscensionSkillPoints)) {
-                    // Assuming ascensionSkillsUnlocked is a boolean and directly assignable
-                    // If it's part of a larger state object, it needs to be updated accordingly.
-                    // For now, directly assigning as per the existing pattern.
-                    // This might need adjustment based on how ascensionSkillsUnlocked is truly managed.
-                    // For now, I'll assume it's a simple boolean export.
-                    // If it's a state variable in a React component, this direct assignment won't work.
-                    // If it's a global variable, it needs to be mutable (e.g., `let`).
-                    // Given the context, it's likely a global `let` variable.
-                    // If it's part of core.js, it should be updated via a setter or directly if exported as `let`.
-                    // For simplicity, I'm assuming it's a global `let` variable that can be directly assigned.
-                    // If it's a property of `skillEffects` or similar, it needs to be updated differently.
-                    // Given the current structure, it's likely a simple global flag.
-                    // If this is a flag in core.js, it should be updated there.
-                    // For now, assuming it's a direct mutable export from core.js.
-                    // However, if it's not exported by core.js, this will cause an error.
-                    // Let's assume it's exported from core.js as `let ascensionSkillsUnlocked`.
-                    // If not, it needs to be handled in core.js or ui.js.
-                    // For now, I'll keep the direct assignment.
-                    // If this causes issues, we'd need to re-evaluate its management.
-                    // It's better to manage such flags in core.js and have ui.js read them.
-                    // I will remove the direct assignment here and rely on checkUnlockConditions
-                    // to handle the unlocking of the ascension skills panel.
-                    // The notification will still be shown.
-                    // ascensionSkillsUnlocked = true; // Removed direct assignment
-                    showNotification("Panneau Compétences d'Ascension débloqué !");
-                }
+                // Le déverrouillage du panneau de compétences d'Ascension est géré par checkUnlockConditions dans core.js
                 break;
         }
 

@@ -1,0 +1,51 @@
+/**
+ * ascension.js
+ *
+ * ------------------ Fiche Mémo : ascension.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées au mécanisme
+ * d'Ascension dans le jeu. L'Ascension permet au joueur de réinitialiser une partie de sa progression
+ * en échange de Points d'Ascension (PA), qui peuvent ensuite être utilisés pour débloquer
+ * des bonus permanents ou des automatisations. Ce module calcule les PA gagnés,
+ * déclenche la réinitialisation du jeu et met à jour les éléments d'interface utilisateur
+ * liés à l'Ascension.
+ *
+ * Dépendances :
+ * - core.js : Fournit l'accès aux variables d'état globales (bonsPointsTotal, ascensionCount,
+ * ascensionPoints, totalPAEarned, saveGameState, updateDisplay,
+ * checkUnlockConditions, resetGameState, applyAllSkillEffects, ascensionUnlocked),
+ * et la fonction de formatage des nombres (formatNumber).
+ * - data.js : Contient les définitions des coûts et bonus liés à l'Ascension,
+ * ainsi que les seuils pour gagner des PA (ASCENSION_POINT_THRESHOLD, ASCENSION_BASE_COST_MULTIPLIER).
+ * - ui.js : Fournit la fonction de notification (showNotification) et est responsable
+ * d'appeler les fonctions de mise à jour de l'interface utilisateur spécifiques à l'Ascension
+ * (updateAscensionUI, updateAscensionButtonStates) en leur passant les éléments DOM.
+ *
+ * Variables Clés (utilisées par ascension.js, mais définies et gérées ailleurs) :
+ * - bonsPointsTotal : Total cumulé de Bons Points gagnés sur toutes les parties, utilisé pour calculer les PA.
+ * - ascensionCount : Nombre de fois que le joueur a effectué une Ascension.
+ * - ascensionPoints : Monnaie d'Ascension actuelle du joueur.
+ * - totalPAEarned : Total cumulé de Points d'Ascension gagnés sur toutes les Ascensions.
+ * - ascensionUnlocked : Flag booléen indiquant si le menu d'Ascension est débloqué.
+ *
+ * Fonctions Clés Définies et Exportées :
+ * - calculatePotentialAscensionPoints() : Calcule le nombre de Points d'Ascension que le joueur
+ * gagnerait s'il effectuait une Ascension maintenant, basé sur bonsPointsTotal.
+ * - performAscension() : Exécute le processus d'Ascension, réinitialise le jeu,
+ * ajoute les PA gagnés et déclenche les mises à jour nécessaires.
+ * - updateAscensionUI(domElements) : Met à jour l'affichage des informations d'Ascension
+ * dans l'interface utilisateur.
+ * - updateAscensionButtonStates(domElements) : Met à jour l'état (texte, classes CSS)
+ * du bouton d'Ascension en fonction de la possibilité d'ascender.
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+ * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateAscensionUI` et
+ * `updateAscensionButtonStates`) reçoivent les références DOM nécessaires ou que les éléments
+ * soient globalement accessibles (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
+ *
+ * Logique Générale :
+ * Ce module est le cœur de la progression "soft reset". Il assure que l'Ascension est
+ * un processus clair et impactant, récompensant le joueur pour sa progression globale
+ * et lui permettant de débloquer de nouvelles couches de jeu. Il est appelé par `events.js`
+ * pour l'interaction utilisateur et par la boucle de jeu pour les mises à jour visuelles.
+ */

@@ -747,71 +747,121 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 */
 
 
- --- ------------------ Fiche Mémo : studies.js -----------------------------
- * Description : Ce fichier encapsule toute la logique spécifique aux achats et à la production
- * liés aux études dans le jeu. Il gère les calculs de production de Bons Points
- * par les Élèves et les Classes, la logique d'achat pour les Élèves, Classes,
- * Images et Professeurs, ainsi que la gestion du clic principal "Étudier sagement".
- * Il interagit avec les données du jeu, l'état global et les fonctions d'interface
- * définies dans d'autres modules.
- *
- * Dépendances :
- * - core.js : Fournit l'accès aux variables d'état globales (bonsPoints, images, nombreEleves,
- * nombreClasses, nombreProfesseur, totalClicks, skillEffects, currentPurchaseMultiplier,
- * studiesSkillPoints, ascensionSkillPoints, nombreLicences, nombreMaster1, nombreMaster2,
- * nombreDoctorat, prestigeCount, prestigePoints, elevesUnlocked, classesUnlocked,
- * imagesUnlocked, ProfesseurUnlocked), aux fonctions de notification (showNotification),
- * de sauvegarde (saveGameState), de vérification de déverrouillage (checkUnlockConditions),
- * et de recalcul global (applyAllSkillEffects, calculateTotalBPS).
- * - data.js : Contient les fonctions de calcul des coûts d'achat (calculateNextEleveCost,
- * calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost)
- * et les définitions des achats de prestige (prestigePurchasesData) nécessaires
- * pour les calculs de production (ex: Professeur, Doctorat, Master).
- * - ui.js : Pour les fonctions de mise à jour de l'interface utilisateur spécifiques aux études
- * (updateStudiesButtonStates, updateStudiesSectionVisibility) et le formatage des nombres (formatNumber).
- *
- * Variables Clés (utilisées par studies.js, mais définies et gérées ailleurs) :
- * - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur : Ressources principales.
- * - totalClicks : Compteur de clics.
- * - skillEffects : Objet contenant les effets cumulés de toutes les compétences.
- * - currentPurchaseMultiplier : Multiplicateur d'achat actuel (x1, x10, x100, max).
- * - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked : Flags de déverrouillage
- * des options d'achat d'études.
- * - totalBonsPointsParSeconde : Production totale de BP/s (calculée dans core.js).
- * - studiesSkillPoints, ascensionSkillPoints : Points de compétence (mis à jour lors de l'achat de Professeur).
- * - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, prestigeCount, prestigePoints :
- * Variables d'achats de prestige affectant la production d'études.
- *
- * Fonctions Clés Définies et Exportées :
- * - calculateStudiesBPS() : Calcule et retourne la production de Bons Points par seconde
- * générée spécifiquement par les élèves et les classes.
- * - handleStudyClick() : Gère la logique du clic sur le bouton "Étudier sagement",
- * incluant l'incrémentation des Bons Points et du compteur de clics.
- * - performStudyPurchase(itemType, quantityRequested, isAutomated) : Exécute la logique
- * d'achat pour les Élèves, Classes, Images et Professeurs, décrémente les ressources
- * et incrémente les quantités d'objets achetés.
- * - updateStudiesButtonStates() : Met à jour l'état (texte, classes can-afford/cannot-afford)
- * des boutons d'achat liés aux études.
- * - updateStudiesSectionVisibility() : Contrôle la visibilité des sections d'achat
- * spécifiques aux études.
- *
- * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
- * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
- * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateStudiesButtonStates`)
- * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
- * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
- *
- * Logique Générale :
- * Ce module se concentre sur les interactions directes et les calculs de production
- * liés à la progression initiale du jeu. Il ne contient pas d'écouteurs d'événements
- * directs, mais expose des fonctions qui sont appelées par `events.js` en réponse
- * aux interactions de l'utilisateur.
- */
+
+
+
+// ------------------ Fiche Mémo : studies.js ----------------------------
+//
+// Description : Ce fichier encapsule toute la logique spécifique aux achats et à la production
+// liés aux études dans le jeu. Il gère les calculs de production de Bons Points
+// par les Élèves et les Classes, la logique d'achat pour les Élèves, Classes,
+// Images et Professeurs, ainsi que la gestion du clic principal "Étudier sagement".
+// Il interagit avec les données du jeu, l'état global et les fonctions d'interface
+// définies dans d'autres modules.
+//
+// Objectif : Centraliser les mécanismes de progression liés aux études, en assurant
+// les calculs de production, la gestion des coûts, et l'interaction avec l'interface
+// utilisateur et l'état global du jeu.
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// Importations des variables d'état et fonctions globales depuis core.js:
+//   - bonsPoints: La monnaie principale du jeu.
+//   - images: La ressource "Images" utilisée pour acheter des Professeurs.
+//   - nombreEleves: Le nombre actuel d'Élèves possédés.
+//   - nombreClasses: Le nombre actuel de Classes possédées.
+//   - nombreProfesseur: Le nombre actuel de Professeurs possédés.
+//   - totalBonsPointsParSeconde: La production totale de BP/s, utilisée pour le bonus de clic.
+//   - totalClicks: Le compteur total des clics sur le bouton "Étudier".
+//   - skillEffects: L'objet contenant tous les multiplicateurs et bonus des compétences.
+//   - currentPurchaseMultiplier: Le multiplicateur d'achat sélectionné (x1, x10, x100, max).
+//   - checkUnlockConditions: Fonction pour vérifier les conditions de déverrouillage.
+//   - saveGameState: Fonction pour sauvegarder l'état du jeu.
+//   - applyAllSkillEffects: Fonction pour réappliquer tous les effets de compétences et bonus.
+//   - calculateTotalBPS: Fonction pour recalculer la production totale de BP/s.
+//   - studiesSkillPoints: Points de compétence d'études.
+//   - ascensionSkillPoints: Points de compétence d'ascension (mis à jour lors de l'achat de Professeur).
+//   - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat: Quantités des achats de prestige affectant la production d'études.
+//   - prestigeCount, prestigePoints: Compteurs et monnaie de prestige affectant la production.
+//   - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked: Flags de déverrouillage des options d'achat d'études.
+//   - formatNumber: Fonction utilitaire pour formater les nombres.
+//
+// Importations des données de prestige depuis data.js:
+//   - prestigePurchasesData: Données des achats de prestige (pour les prérequis).
+//
+// Importations des fonctions d'UI depuis ui.js:
+//   - updateDisplay: Fonction pour rafraîchir l'affichage global de l'interface.
+//   - showNotification: Fonction pour afficher des notifications à l'utilisateur.
+//
+// ------------------ Variables Clés Définies et Exportées ------------------
+//
+// export let bonsPointsParSecondeEleves;    // Production de BP/s générée spécifiquement par les Élèves.
+// export let bonsPointsParSecondeClasses;   // Production de BP/s générée spécifiquement par les Classes.
+//
+// ------------------ Fonctions Clés Définies et Exportées ------------------
+//
+// export function calculateNextEleveCost(count)
+//   // Calcule le coût du prochain Élève.
+//
+// export function calculateNextClasseCost(count)
+//   // Calcule le coût de la prochaine Classe.
+//
+// export function calculateNextImageCost(count)
+//   // Calcule le coût de la prochaine Image.
+//
+// export function calculateNextProfessorCost(count)
+//   // Calcule le coût du prochain Professeur.
+//
+// export function elevesBpsPerItem
+//   // Valeur de base de BP/s par Élève.
+//
+// export function classesBpsPerItem
+//   // Valeur de base de BP/s par Classe.
+//
+// export function calculateStudiesBPS()
+//   // Calcule la production de Bons Points par seconde générée spécifiquement par les élèves et les classes.
+//   // Prend en compte les multiplicateurs des Professeurs (Licences, compétences) et les boosts de classe
+//   // (Master I, Master II, compétences).
+//   // Les résultats sont stockés dans `bonsPointsParSecondeEleves` et `bonsPointsParSecondeClasses`.
+//
+// export function handleStudyClick()
+//   // Gère la logique du clic sur le bouton "Étudier sagement".
+//   // Incrémente le compteur de clics (`totalClicks`).
+//   // Calcule un bonus de BP basé sur la production totale (`totalBonsPointsParSeconde`) et les `skillEffects`.
+//   // Ajoute les BP gagnés à `bonsPoints`.
+//   // Vérifie les déverrouillages, met à jour les états des boutons d'études et sauvegarde le jeu.
+//
+// export function performStudyPurchase(itemType, quantityRequested, isAutomated = false)
+//   // Exécute la logique d'achat pour les Élèves, Classes, Images et Professeurs.
+//   // - itemType: Le type d'objet à acheter ('eleve', 'classe', 'image', 'Professeur').
+//   // - quantityRequested: La quantité à acheter (Decimal, nombre, ou 'max').
+//   // - isAutomated: Booléen indiquant si l'achat est automatisé (affecte les notifications).
+//   // Détermine la ressource nécessaire, calcule le coût total en fonction de la quantité demandée
+//   // (y compris l'achat "max").
+//   // Si l'achat est possible, déduit la ressource, incrémente le compteur d'objets,
+//   // met à jour les points de compétence d'Ascension (pour les Professeurs),
+//   // applique les effets de compétences, met à jour l'interface et sauvegarde le jeu.
+//   // Affiche une notification si l'achat n'est pas automatisé.
+//
+// export function updateStudiesButtonStates(domElements)
+//   // Met à jour l'état visuel (texte, classes CSS 'can-afford'/'cannot-afford')
+//   // des boutons d'achat liés aux études (Élève, Classe, Image, Professeur).
+//   // Met également à jour l'affichage du bonus de BP par clic.
+//   // - domElements: Un objet contenant les références aux éléments DOM nécessaires
+//   //   (ex: { acheterEleveButton, acheterClasseButton, ... }).
+//
+// export function updateStudiesSectionVisibility(domElements)
+//   // Contrôle la visibilité des sections d'achat spécifiques aux études
+//   // en fonction des flags de déverrouillage (`elevesUnlocked`, `classesUnlocked`, etc.).
+//   // - domElements: Un objet contenant les références aux éléments DOM nécessaires
+//   //   (ex: { achatEleveSection, achatClasseSection, ... }).
+//
+// ---------------------------------------------------------------------
 
 
 
 
------------------- Fiche Mémo : automation.js -----------------------------
+ * ------------------ Fiche Mémo : automation.js -----------------------------
  * Description : Ce fichier gère toute la logique et les fonctionnalités liées à l'automatisation
  * des achats dans le jeu. Il permet d'activer ou de désactiver l'automatisation pour
  * les Élèves, Classes, Images et Professeurs, de calculer les coûts associés à ces automatisations,
@@ -821,10 +871,10 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
  * autoClasseActive, autoImageActive, autoProfesseurActive), aux fonctions de notification
  * (showNotification), de sauvegarde (saveGameState), de mise à jour de l'affichage global
- * (updateDisplay), et à la fonction d'achat générique (performPurchase).
+ * (updateDisplay), à la fonction d'achat générique (performPurchase), et à la fonction
+ * de formatage des nombres (formatNumber).
  * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
+ * - ui.js : Pour la mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -851,7 +901,6 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * Il est appelé par `events.js` pour les interactions utilisateur et par la boucle de jeu
  * principale (`core.js`) pour l'exécution périodique des automatisations.
  */
-
 
 
 
@@ -901,7 +950,7 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 
 
 
-       ------------------ Fiche Mémo : ascension.js -----------------------------
+ * ------------------ Fiche Mémo : ascension.js -----------------------------
  * Description : Ce fichier gère toute la logique et les fonctionnalités liées au mécanisme
  * d'Ascension dans le jeu. L'Ascension permet au joueur de réinitialiser une partie de sa progression
  * en échange de Points d'Ascension (PA), qui peuvent ensuite être utilisés pour débloquer
@@ -911,13 +960,14 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (bonsPointsTotal, ascensionCount,
- * ascensionPoints, totalPAEarned, showNotification, saveGameState, updateDisplay,
- * checkUnlockConditions, resetGameState, applyAllSkillEffects), et aux flags de déverrouillage
- * du menu d'Ascension.
+ * ascensionPoints, totalPAEarned, saveGameState, updateDisplay,
+ * checkUnlockConditions, resetGameState, applyAllSkillEffects, ascensionUnlocked),
+ * et la fonction de formatage des nombres (formatNumber).
  * - data.js : Contient les définitions des coûts et bonus liés à l'Ascension,
- * ainsi que les seuils pour gagner des PA.
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique à l'Ascension (updateAscensionUI, updateAscensionButtonStates).
+ * ainsi que les seuils pour gagner des PA (ASCENSION_POINT_THRESHOLD, ASCENSION_BASE_COST_MULTIPLIER).
+ * - ui.js : Fournit la fonction de notification (showNotification) et est responsable
+ * d'appeler les fonctions de mise à jour de l'interface utilisateur spécifiques à l'Ascension
+ * (updateAscensionUI, updateAscensionButtonStates) en leur passant les éléments DOM.
  *
  * Variables Clés (utilisées par ascension.js, mais définies et gérées ailleurs) :
  * - bonsPointsTotal : Total cumulé de Bons Points gagnés sur toutes les parties, utilisé pour calculer les PA.
