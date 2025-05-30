@@ -1,4 +1,7 @@
------------------- Fiche Mémo : automation.js -----------------------------
+/**
+ * automation.js
+ *
+ * ------------------ Fiche Mémo : automation.js -----------------------------
  * Description : Ce fichier gère toute la logique et les fonctionnalités liées à l'automatisation
  * des achats dans le jeu. Il permet d'activer ou de désactiver l'automatisation pour
  * les Élèves, Classes, Images et Professeurs, de calculer les coûts associés à ces automatisations,
@@ -8,10 +11,10 @@
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
  * autoClasseActive, autoImageActive, autoProfesseurActive), aux fonctions de notification
  * (showNotification), de sauvegarde (saveGameState), de mise à jour de l'affichage global
- * (updateDisplay), et à la fonction d'achat générique (performPurchase).
+ * (updateDisplay), à la fonction d'achat générique (performPurchase), et à la fonction
+ * de formatage des nombres (formatNumber).
  * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
+ * - ui.js : Pour la mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
