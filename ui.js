@@ -34,7 +34,7 @@
 //     `studiesSkillsUnlocked`, `ascensionSkillsUnlocked`, `prestigeSkillsUnlocked`.
 //   - Fonctions utilitaires/de calcul : `formatNumber` (utilisée pour l'affichage numérique),
 //     `applyAllSkillEffects`, `updateCachedMultipliers`, `calculateTotalBPS`, `checkUnlockConditions`,
-//     `updateButtonStates`.
+//     `updateButtonStates`,`themeOptionUnlocked`.
 //   - Multiplicateurs de structures d'ascension : `ecoleMultiplier`, `lyceeMultiplier`, `collegeMultiplier`.
 //   Impact : Fournit toutes les données dynamiques et les fonctions de base pour que l'UI puisse
 //            afficher l'état actuel du jeu et réagir aux changements.
@@ -72,7 +72,7 @@
 //   Impact : Permet à `ui.js` de déclencher l'achat d'une compétence via `handleSkillClick`.
 //
 // - De './settings.js' :
-//   - Variables d'état : `isDayTheme`, `themeOptionUnlocked`.
+//   - Variables d'état : `isDayTheme`.
 //   Impact : Permet à `ui.js` de mettre à jour l'affichage des contrôles de thème et de mode.
 //
 // - De './quests.js' : (maj 30/05 Quete)
