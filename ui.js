@@ -380,7 +380,7 @@ import {
     nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat,
     skillEffects, permanentBpsBonusFromAchievements, paMultiplierFromQuests,
     formatNumber, applyAllSkillEffects, updateCachedMultipliers, calculateTotalBPS,
-    checkUnlockConditions, updateButtonStates,
+    checkUnlockConditions, updateButtonStates, themeOptionUnlocked,
     // Variables de déverrouillage spécifiques aux lycées/collèges et compétences
     lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked
 } from './core.js'; // Importe les variables d'état et fonctions principales de core.js
@@ -393,7 +393,7 @@ import { calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCos
 import { getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
          calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
 import { buySkill } from './skills.js'; // Importe la fonction buySkill
-import { isDayTheme, themeOptionUnlocked } from './settings.js'; // Importe les variables de thème (maj 30/05 - Imports)
+import { isDayTheme } from './settings.js'; // Importe les variables de thème (maj 30/05 - Imports)
 import { renderQuests as renderQuestsFromQuestsJS, updateQuestsUI as updateQuestsUIFromQuestsJS } from './quests.js'; // (maj 30/05 Quete)
 
 // Assumes Decimal is globally available from break_infinity.min.js
