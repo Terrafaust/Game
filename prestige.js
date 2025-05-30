@@ -11,7 +11,7 @@
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (totalPAEarned, prestigeCount,
- * prestigePoints, nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, formatNumber
+ * prestigePoints, nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat,
  * nombrePostDoctorat, saveGameState, checkUnlockConditions, resetGameState, applyAllSkillEffects, prestigeUnlocked).
  * - data.js : Contient les définitions des seuils pour gagner des PP (PRESTIGE_POINT_THRESHOLD)
  * et les données des achats de prestige (prestigePurchasesData), incluant leurs coûts et effets.

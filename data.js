@@ -1,30 +1,135 @@
-// Fiche Mémo : data.js
-// Description : Ce fichier centralise toutes les données statiques et de configuration du jeu.
-// Cela inclut les coûts de base des améliorations, les productions de base,
-// les définitions complètes des compétences (études, ascension, prestige),
-// les définitions des achats de prestige, les définitions des quêtes,
-// et d'autres seuils ou valeurs constantes.
-// Ce fichier n'effectue aucune logique de jeu ni de modification d'état,
-// il fournit simplement les données brutes que d'autres modules (comme core.js, studies.js, skills.js)
-// utiliseront pour leurs calculs et leur logique.
+// ------------------ Fiche Mémo : data.js -----------------------------
+//
+// Description : Ce fichier est le dépôt central de toutes les données statiques et de configuration du jeu.
+// Il contient les valeurs de base pour les coûts des améliorations, les productions des unités,
+// les définitions complètes des arbres de compétences (Études, Ascension, Prestige),
+// les détails des achats de Prestige, les définitions des quêtes,
+// et d'autres constantes ou seuils importants pour la progression du jeu.
+//
+// Objectif : Fournir une source unique et fiable pour toutes les données numériques et structurelles
+// du jeu qui ne changent pas dynamiquement pendant une partie.
+// Ce fichier ne contient aucune logique de jeu active (calculs, modifications d'état) ;
+// il est purement déclaratif.
+//
+// ------------------ Dépendances ------------------
+//
+// // break_infinity.min.js : La bibliothèque Decimal est importée pour gérer les très grands nombres.
+// //                         Toutes les valeurs numériques importantes sont converties en objets Decimal
+// //                         dès leur définition ici pour assurer une précision illimitée.
+//
+// ------------------ Variables Clés Définies et Exportées ------------------
+//
+// // export const initialCosts : Objet JavaScript contenant les coûts de base initiaux pour chaque type d'achat.
+// //   Chaque propriété de cet objet représente un type d'unité ou d'amélioration.
+// //   La valeur associée est un objet Decimal représentant le coût de base de la première unité de ce type.
+// //   Ces coûts servent de point de départ pour les calculs de prix dynamiques effectués dans les modules de logique
+// //   tels que studies.js et ascension.js, où ils sont ajustés par des multiplicateurs et des réductions.
+// //   Propriétés :
+// //     - eleve (Decimal) : Coût de base pour acquérir un Élève.
+// //     - classe (Decimal) : Coût de base pour acquérir une Classe.
+// //     - image (Decimal) : Coût de base pour acquérir une Image.
+// //     - Professeur (Decimal) : Coût de base pour acquérir un Professeur, exprimé en Images.
+// //     - ecole (Decimal) : Coût de base pour acquérir une École, exprimé en Points d'Ascension (PA).
+// //     - lycee (Decimal) : Coût de base pour acquérir un Lycée, exprimé en Points d'Ascension (PA).
+// //     - college (Decimal) : Coût de base pour acquérir un Collège, exprimé en Points d'Ascension (PA).
+// //     - licence (Decimal) : Coût de base pour acquérir une Licence, exprimé en Points de Prestige (PP).
+// //     - master1 (Decimal) : Coût de base pour acquérir un Master I, exprimé en Points de Prestige (PP).
+// //     - master2 (Decimal) : Coût de base pour acquérir un Master II, exprimé en Points de Prestige (PP).
+// //     - doctorat (Decimal) : Coût de base pour acquérir un Doctorat, exprimé en Points de Prestige (PP).
+// //     - postDoctorat (Decimal) : Coût de base pour acquérir un Post-Doctorat, exprimé en Points de Prestige (PP).
+//
+// // export const baseProductions : Objet JavaScript définissant la production de base de chaque unité.
+// //   Ces valeurs représentent la quantité de Bons Points par seconde (BP/s) ou le multiplicateur
+// //   de production de base fourni par une seule unité de chaque type.
+// //   Ces productions de base sont ensuite augmentées par des multiplicateurs provenant des compétences,
+// //   de l'Ascension et du Prestige dans le module core.js.
+// //   Propriétés :
+// //     - eleveBps (Decimal) : Production de BP/s générée par un Élève.
+// //     - classeBps (Decimal) : Production de BP/s générée par une Classe.
+// //     - imageBpsMultiplier (Decimal) : Multiplicateur appliqué à la production totale de BP/s par Image.
+// //     - ProfesseurClassMultiplier (Decimal) : Multiplicateur appliqué à la production des Classes par Professeur.
+//
+// // export const skillsData : Objet complexe contenant les définitions structurées de tous les arbres de compétences du jeu.
+// //   Il est organisé par catégories principales : 'studies' (Études), 'ascension' (Ascension), et 'prestige' (Prestige).
+// //   Chaque catégorie est un tableau de compétences.
+// //   Chaque compétence est un objet avec les propriétés suivantes :
+// //     - id (string) : L'identifiant unique de la compétence, utilisé pour le suivi de son niveau et de ses prérequis.
+// //     - name (string) : Le nom affiché de la compétence dans l'interface utilisateur.
+// //     - description (string) : Une brève explication de l'effet de la compétence.
+// //     - cost (number) : Le coût en points de compétence de la catégorie correspondante pour débloquer cette compétence.
+// //     - maxLevel (number) : Le niveau maximal que cette compétence peut atteindre.
+// //     - tier (number) : Le niveau ou la "rangée" de la compétence dans son arbre, influençant son positionnement visuel.
+// //     - prerequisites (array of strings) : Une liste des id de compétences qui doivent être entièrement débloquées
+// //                                         (atteindre leur maxLevel) avant que cette compétence ne puisse être achetée.
+// //     - effect (function) : Une fonction de rappel qui est exécutée lorsque la compétence est achetée ou que son niveau change.
+// //                           Elle prend deux arguments : level (le niveau actuel de la compétence) et skillEffects
+// //                           (l'objet global des effets cumulés défini dans core.js).
+// //                           Cette fonction modifie directement les propriétés de skillEffects pour appliquer les bonus de la compétence.
+//
+// // export const prestigePurchasesData : Tableau d'objets définissant toutes les améliorations permanentes
+// //                                    qui peuvent être achetées avec la monnaie de Prestige (Points de Prestige - PP).
+// //   Chaque achat de prestige est un objet avec les propriétés suivantes :
+// //     - id (string) : L'identifiant unique de l'achat de prestige.
+// //     - name (string) : Le nom affiché de l'amélioration de prestige.
+// //     - baseCost (Decimal) : Le coût de base de la première unité de cette amélioration, exprimé en PP.
+// //     - costMultiplier (Decimal) : Le multiplicateur appliqué au coût pour chaque achat successif de cette amélioration.
+// //     - getEffectValue (function) : Une fonction qui calcule la valeur numérique de l'effet de l'amélioration
+// //                                   en fonction de son level actuel. Utilisée pour l'affichage de l'effet.
+// //     - effect (function) : Une fonction de rappel qui prend le niveau actuel de l'amélioration et l'objet skillEffects.
+// //                           Elle modifie directement les propriétés de skillEffects pour appliquer le bonus permanent de l'amélioration.
+// //     - getMinClasses (function, spécifique à 'doctorat') : Une fonction utilitaire pour le Doctorat,
+// //                                                           calculant le nombre minimum de classes après Ascension
+// //                                                           en fonction du niveau de Doctorat.
+// //     - prerequisites (function) : Une fonction qui retourne true si les conditions préalables à l'achat
+// //                                  de cette amélioration sont remplies, false sinon.
+// //   Achats de prestige définis : 'licence', 'master1', 'master2', 'doctorat', 'postDoctorat'.
+//
+// // export const questsData : Tableau d'objets définissant toutes les quêtes disponibles dans le jeu.
+// //   Chaque quête est un objectif que le joueur peut accomplir pour obtenir des récompenses.
+// //   Chaque quête est un objet avec les propriétés suivantes :
+// //     - id (string) : L'identifiant unique de la quête.
+// //     - name (string) : Le nom affiché de la quête.
+// //     - description (string) : Le texte décrivant l'objectif à atteindre pour compléter la quête.
+// //     - condition (function) : Une fonction qui prend en arguments les variables d'état du jeu pertinentes
+// //                              (ex: totalClicks, nombreEleves, ascensionCount, totalPAEarned, prestigeCount)
+// //                              et retourne true si l'objectif de la quête est atteint.
+// //     - reward (object) : Un objet décrivant la récompense de la quête. Il a les propriétés :
+// //       - type (string) : Le type de récompense (ex: 'studiesSkillPoints', 'ascensionSkillPoints', 'prestigeSkillPoints', 'paMultiplier', 'ppMultiplier').
+// //       - amount (Decimal) : La quantité de la récompense.
+// //     - rewardText (string) : Une chaîne de caractères décrivant la récompense pour l'affichage dans l'interface.
+// //     - current (number) : Un champ optionnel pour suivre la progression actuelle de la quête (non sauvegardé par défaut, géré par quests.js).
+// //     - unlocked (boolean) : Un champ optionnel indiquant si la quête est débloquée ou visible (non sauvegardé par défaut, géré par quests.js).
+// //     - permanent (boolean) : Un indicateur si la quête persiste à travers les réinitialisations (Ascension/Prestige) ou si elle est réinitialisée.
+//
+// // export const bonusPointThresholds : Tableau d'objets Decimal définissant les seuils de Bons Points (BP)
+// //                                   que le joueur doit atteindre pour gagner des Points de Compétence d'Études supplémentaires.
+// //                                   Chaque valeur dans le tableau représente un seuil successif, et le joueur gagne
+// //                                   un point de compétence à chaque fois qu'un nouveau seuil est dépassé.
+//
+// // export const prime_PA : Constante Decimal représentant la valeur de base utilisée dans le calcul
+// //                       des Points d'Ascension (PA) gagnés lors d'une Ascension.
+// //                       Elle sert de multiplicateur ou de base pour la formule de gain de PA.
+//
+// // export const ASCENSION_POINT_THRESHOLD : Constante Decimal qui définit le seuil de Bons Points Total
+// //                                        requis pour gagner 1 Point d'Ascension (PA) lors d'une Ascension.
+// //                                        Cette valeur est fondamentale pour déterminer la quantité de PA
+// //                                        obtenue par le joueur en fonction de sa progression cumulée.
+//
+// ------------------ Fonctions de Calcul de Coût (RETIREES DE CE FICHIER) ------------------
+//
+// // Note Importante : Les fonctions de calcul de coût telles que calculateNextImageCost et calculateAutomationCost
+// //                  ont été retirées de data.js. Ce fichier est strictement destiné aux données statiques.
+// //                  Les fonctions de calcul de coût doivent être définies dans les modules de logique
+// //                  qui les utilisent (par exemple, studies.js pour calculateNextImageCost
+// //                  et automation.js pour calculateAutomationCost).
+// //                  Cela assure une meilleure séparation des préoccupations et une architecture plus propre.
+//
+// ---------------------------------------------------------------------
 
-// Dépendances :
-// - break_infinity.min.js : La bibliothèque `Decimal` est supposée être globalement disponible
-//                           pour la gestion des grands nombres.
-//                           Les valeurs numériques sont converties en objets Decimal ici.
-
-// Variables Clés Définies et Exportées :
-// - initialCosts : Coûts de base des éléments achetables.
-// - baseProductions : Productions de base par élément.
-// - skillsData : Définitions complètes de tous les arbres de compétences.
-// - prestigePurchasesData : Définitions des améliorations de prestige.
-// - questsData : Définitions de toutes les quêtes.
-// - bonusPointThresholds : Seuils de Bons Points pour gagner des points de compétence d'études.
-// - prime_PA : Valeur de base pour le calcul des Points d'Ascension.
-// - calculateNextImageCost : Fonction pour calculer le coût de la prochaine image.
-// - calculateAutomationCost : Fonction pour calculer le coût de la prochaine automatisation.
+import { Decimal } from './break_infinity.min.js';
 
 // --- Coûts Initiaux de Base ---
+// Ces coûts sont les valeurs de départ pour les calculs de prix dans les modules respectifs.
 export const initialCosts = {
     eleve: new Decimal(10),
     classe: new Decimal(100),
@@ -41,44 +146,13 @@ export const initialCosts = {
 };
 
 // --- Productions de Base ---
+// Ces valeurs définissent la production de base de chaque unité.
 export const baseProductions = {
     eleveBps: new Decimal(0.1),
     classeBps: new Decimal(1),
     imageBpsMultiplier: new Decimal(0.01), // Multiplicateur pour la production totale de BP/s par image
     ProfesseurClassMultiplier: new Decimal(0.1), // Multiplicateur pour la production des classes par professeur
 };
-
-// --- Fonctions de Calcul de Coût (ajoutées pour résoudre les erreurs d'import) ---
-
-/**
- * Calcule le coût de la prochaine image à acheter.
- * @param {Decimal} currentImages - Le nombre actuel d'images possédées.
- * @returns {Decimal} Le coût de la prochaine image.
- */
-export function calculateNextImageCost(currentImages) {
-    // Exemple de logique de coût : coût de base * (multiplicateur de coût ^ nombre actuel)
-    // Vous devrez ajuster cette logique pour correspondre à votre jeu.
-    const baseCost = initialCosts.image;
-    const costMultiplier = new Decimal(1.15); // Exemple de multiplicateur de coût
-    return baseCost.times(costMultiplier.pow(currentImages));
-}
-
-/**
- * Calcule le coût de la prochaine amélioration d'automatisation.
- * @param {Decimal} currentAutomationLevel - Le niveau actuel de l'automatisation.
- * @returns {Decimal} Le coût de la prochaine amélioration d'automatisation.
- */
-export function calculateAutomationCost(currentAutomationLevel) {
-    // Exemple de logique de coût : coût de base * (multiplicateur de coût ^ niveau actuel)
-    // Vous devrez ajuster cette logique pour correspondre à votre jeu.
-    // Pour l'exemple, nous allons utiliser un coût de base pour l'automatisation.
-    // Si l'automatisation a des types différents (eleve, classe, image, professeur),
-    // vous devrez passer le type en argument pour calculer le coût spécifique.
-    const baseCost = new Decimal(10000); // Coût de base arbitraire pour l'automatisation
-    const costMultiplier = new Decimal(1.5); // Exemple de multiplicateur de coût
-    return baseCost.times(costMultiplier.pow(currentAutomationLevel));
-}
-
 
 // --- Définitions des Compétences ---
 // Chaque fonction 'effect' prend le niveau de la compétence et l'objet 'skillEffects' en argument.
@@ -263,61 +337,72 @@ export const skillsData = {
 };
 
 // --- Définitions des Achats de Prestige ---
-export const prestigePurchasesData = {
-    licence: {
+export const prestigePurchasesData = [ // Changed to array to match common usage in UI/logic
+    {
         id: 'licence',
         name: 'Licence',
         baseCost: new Decimal(100),
         costMultiplier: new Decimal(1.5),
-        effect: (level, skillEffects) => { skillEffects.licenceProfMultiplier = skillEffects.licenceProfMultiplier.add(new Decimal(0.01).times(level)); } // 1% de boost au multiplicateur Professeur par niveau
+        getEffectValue: (level) => new Decimal(1).add(new Decimal(0.01).times(level)), // Example: 1% per level
+        effect: (level, skillEffects) => { skillEffects.licenceProfMultiplier = skillEffects.licenceProfMultiplier.add(new Decimal(0.01).times(level)); }, // 1% de boost au multiplicateur Professeur par niveau
+        prerequisites: () => true // No prerequisites for now, adjust as needed
     },
-    master1: {
+    {
         id: 'master1',
         name: 'Master I',
         baseCost: new Decimal(200),
         costMultiplier: new Decimal(1.5),
-        effect: (level, skillEffects) => { skillEffects.master1ClassProduction = skillEffects.master1ClassProduction.add(new Decimal(0.01).times(level)); } // 1% de boost à la production des Classes par Prof par niveau
+        getEffectValue: (level) => new Decimal(1).add(new Decimal(0.01).times(level)), // Example: 1% per level
+        effect: (level, skillEffects) => { skillEffects.master1ClassProduction = skillEffects.master1ClassProduction.add(new Decimal(0.01).times(level)); }, // 1% de boost à la production des Classes par Prof par niveau
+        prerequisites: () => true
     },
-    master2: {
+    {
         id: 'master2',
         name: 'Master II',
         baseCost: new Decimal(1000),
         costMultiplier: new Decimal(1.5),
-        effect: (level, skillEffects) => { skillEffects.master2ClassProduction = skillEffects.master2ClassProduction.add(new Decimal(0.01).times(level)); } // 1% de boost à la production des Classes par PP par niveau
+        getEffectValue: (level) => new Decimal(1).add(new Decimal(0.01).times(level)), // Example: 1% per level
+        effect: (level, skillEffects) => { skillEffects.master2ClassProduction = skillEffects.master2ClassProduction.add(new Decimal(0.01).times(level)); }, // 1% de boost à la production des Classes par PP par niveau
+        prerequisites: () => true
     },
-    doctorat: {
+    {
         id: 'doctorat',
         name: 'Doctorat',
         baseCost: new Decimal(1000),
         costMultiplier: new Decimal(1.5),
+        getEffectValue: (level) => new Decimal(1).add(new Decimal(0.01).times(level)), // Example: 1% per level
         effect: (level, skillEffects) => {
             skillEffects.doctoratBPSBonus = skillEffects.doctoratBPSBonus.add(new Decimal(0.01).times(level)); // 1% de boost BP/s par niveau
-            skillEffects.doctoratMinClasses = level * 5; // 5 classes min après Ascension par niveau
-        }
+            // skillEffects.doctoratMinClasses = level * 5; // This direct assignment is problematic, should be part of a calculation in core.js if needed
+        },
+        getMinClasses: (level) => level * 5, // Helper to get min classes based on level
+        prerequisites: () => true // Example prerequisite, adjust as needed
     },
-    postDoctorat: {
+    {
         id: 'postDoctorat',
         name: 'Post-Doctorat',
         baseCost: new Decimal(10000),
         costMultiplier: new Decimal(1.5),
-        effect: (level, skillEffects) => { skillEffects.postDoctoratPAGain = skillEffects.postDoctoratPAGain.add(new Decimal(0.01).times(level)); } // 1% de boost au gain de PA par Ascension par niveau
+        getEffectValue: (level) => new Decimal(1).add(new Decimal(0.01).times(level)), // Example: 1% per level
+        effect: (level, skillEffects) => { skillEffects.postDoctoratPAGain = skillEffects.postDoctoratPAGain.add(new Decimal(0.01).times(level)); }, // 1% de boost au gain de PA par Ascension par niveau
+        prerequisites: () => true
     },
-};
+];
 
 // --- Définitions des Quêtes ---
-export const questsData = {
-    'click_10': {
+export const questsData = [ // Changed to array to match common usage in UI/logic
+    {
         id: 'click_10',
         name: 'Premiers Clics',
         description: 'Cliquez 10 fois sur "Étudier sagement".',
         condition: (totalClicks) => totalClicks.gte(10),
         reward: { type: 'studiesSkillPoints', amount: new Decimal(1) },
         rewardText: '1 Point de Compétence Études',
-        current: 0, // Suivi de la progression (non sauvegardé si non permanent)
-        unlocked: false, // État de déverrouillage
-        permanent: false, // Si la quête est permanente (ne se réinitialise pas à l'Ascension)
+        current: 0,
+        unlocked: false,
+        permanent: false,
     },
-    'eleves_10': {
+    {
         id: 'eleves_10',
         name: 'Petite Classe',
         description: 'Achetez 10 Élèves.',
@@ -328,7 +413,7 @@ export const questsData = {
         unlocked: false,
         permanent: false,
     },
-    'classes_1': {
+    {
         id: 'classes_1',
         name: 'Première Salle',
         description: 'Achetez 1 Salle de classe.',
@@ -339,7 +424,7 @@ export const questsData = {
         unlocked: false,
         permanent: false,
     },
-    'professeur_1': {
+    {
         id: 'professeur_1',
         name: 'Le Mentor',
         description: 'Achetez 1 Professeur.',
@@ -348,9 +433,9 @@ export const questsData = {
         rewardText: '1 Point de Compétence Ascension',
         current: 0,
         unlocked: false,
-        permanent: true, // Cette quête est permanente
+        permanent: true,
     },
-    'ascension_1': {
+    {
         id: 'ascension_1',
         name: 'Renaissance Académique',
         description: 'Effectuez votre première Ascension.',
@@ -359,9 +444,9 @@ export const questsData = {
         rewardText: '1 Point de Compétence Prestige',
         current: 0,
         unlocked: false,
-        permanent: true, // Cette quête est permanente
+        permanent: true,
     },
-    'total_pa_100': {
+    {
         id: 'total_pa_100',
         name: 'Richesse Académique',
         description: 'Gagnez un total de 100 PA.',
@@ -372,7 +457,7 @@ export const questsData = {
         unlocked: false,
         permanent: true,
     },
-    'prestige_1': {
+    {
         id: 'prestige_1',
         name: 'Le Savoir Ultime',
         description: 'Effectuez votre premier Prestige.',
@@ -383,7 +468,7 @@ export const questsData = {
         unlocked: false,
         permanent: true,
     },
-};
+];
 
 // --- Seuils de Bons Points pour les Points de Compétence d'Études ---
 export const bonusPointThresholds = [
@@ -411,3 +496,6 @@ export const bonusPointThresholds = [
 
 // --- Valeur de Base pour le Calcul des PA ---
 export const prime_PA = new Decimal(2);
+
+// --- Seuil de Bons Points Total pour gagner 1 Point d'Ascension ---
+export const ASCENSION_POINT_THRESHOLD = new Decimal("1e10");
