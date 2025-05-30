@@ -52,7 +52,7 @@ MonJeuIncremental/
 //   Impact : Fournit les données utilisées par tous les modules de logique.
 //
 // - ui.js : Gestion de l'interface utilisateur, mise à jour de l'affichage des ressources,
-//           états des boutons, visibilité des sections.
+//           états des boutons, visibilité des sections, notifications, et modales (stats, logs). (maj 31/05 debug + log)
 //   Impact : Manipule la visibilité des éléments DOM définis ici (ex: `display: none;`).
 //             Interagit avec les éléments de sélection de thème et de mode jour/nuit.
 //
@@ -88,6 +88,9 @@ MonJeuIncremental/
 //               changements d'état, etc.).
 //   Impact : Attache les gestionnaires d'événements à la plupart des éléments DOM interactifs
 //             définis dans ce fichier.
+//
+// - logger.js : Système de journalisation pour enregistrer les erreurs, avertissements et informations. (maj 31/05 debug + log)
+//   Impact : Permet de stocker et récupérer des messages pour le débogage. (maj 31/05 debug + log)
 //
 // ------------------ Variables Clés (JavaScript) ------------------
 //
@@ -163,6 +166,8 @@ MonJeuIncremental/
 //     Impact : Géré par `core.js` et `events.js`.
 //   - Paramètres divers : `offlineProgressToggle` (checkbox), `toggleMinimalistResources` (bouton), `statsButton` (bouton).
 //     Impact : Gérés par `settings.js` et `events.js`.
+//   - Bouton "Voir les Logs": `showLogsButton`. (maj 31/05 debug + log)
+//     Impact : Ouvre une modale pour afficher les logs du jeu. (maj 31/05 debug + log)
 //
 // - `<div id="ascensionMenuContainer">` : Section pour le mécanisme d'ascension.
 //   - Titre cliquable d'ascension : `ascensionTitleButton`.
@@ -226,6 +231,12 @@ MonJeuIncremental/
 //       `statsAscensionPoints`, `statsPrestigePoints`, `statsEleveCostReduction`, etc.
 //     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
 //
+// - `<div id="logModal">` : Modale pour l'affichage des logs du jeu. (maj 31/05 debug + log)
+//   - Bouton de fermeture : `close-button`. (maj 31/05 debug + log)
+//   - Contenu des logs : `logContent`. (maj 31/05 debug + log)
+//   - Boutons d'action : `copyLogsButton`, `clearLogsButton`. (maj 31/05 debug + log)
+//   Impact : Sa visibilité et son contenu sont gérés par `ui.js`. (maj 31/05 debug + log)
+//
 // ------------------ Notes Spécifiques ------------------
 //
 // - Ordre des scripts : L'ordre d'inclusion des balises `<script type="module">` est crucial
@@ -244,6 +255,7 @@ MonJeuIncremental/
 //
 // ---------------------------------------------------------------------
 -->
+
 
 
 
@@ -1059,6 +1071,57 @@ MonJeuIncremental/
 // utilisateur reflète fidèlement l'état actuel du jeu et permet des interactions fluides,
 // sans contenir de logique de jeu métier (calculs de production, achats, réinitialisations).
 //
+// ------------------ Fonctions Exportées ------------------
+//
+// export function updateDisplay()
+//   // Met à jour l'affichage de toutes les ressources et compteurs principaux.
+//
+// export function updateButtonStates()
+//   // Met à jour l'état (activé/désactivé) des boutons d'achat en fonction des ressources disponibles.
+//
+// export function updateSectionVisibility()
+//   // Gère la visibilité des différentes sections du jeu (classes, images, automatisation, etc.)
+//   // en fonction des variables de déverrouillage de `core.js`.
+//
+// export function updateAutomationButtonStates()
+//   // Met à jour l'état des checkboxes et des boutons d'achat d'automatisation.
+//
+// export function updateSettingsButtonStates()
+//   // Met à jour l'état des éléments de l'interface des paramètres.
+//
+// export function renderSkillsMenu()
+//   // Rend (ou re-rend) l'arbre de compétences, affichant les compétences débloquées et achetées.
+//
+// export function renderQuests()
+//   // Rend (ou re-rend) la liste des quêtes, affichant leur progression et leur état.
+//
+// export function renderAchievements()
+//   // Rend (ou re-rend) la liste des succès, affichant leur état (débloqué/non débloqué).
+//
+// export function openTab(tabElement)
+//   // Ouvre un onglet spécifique du jeu, en cachant les autres.
+//
+// export function closeStatsModal()
+//   // Ferme la modale des statistiques.
+//
+// export function updateStatsDisplay()
+//   // Met à jour le contenu de la modale des statistiques.
+//
+// export function showNotification(message, duration = 3000)
+//   // Affiche une notification temporaire au joueur.
+//
+// export function openLogModal()
+//   // Ouvre la modale affichant les logs du jeu et les rend. (maj 31/05 debug + log)
+//
+// export function closeLogModal()
+//   // Ferme la modale des logs. (maj 31/05 debug + log)
+//
+// export function renderLogs()
+//   // Récupère les logs et les affiche dans la modale des logs. (maj 31/05 debug + log)
+//
+// export function copyLogsToClipboard()
+//   // Copie le contenu des logs affichés dans le presse-papiers. (maj 31/05 debug + log)
+//
 // ------------------ Dépendances (Imports) ------------------
 //
 // Ce module importe des variables d'état et des fonctions depuis d'autres fichiers JavaScript.
@@ -1073,7 +1136,7 @@ MonJeuIncremental/
 //     `prestigeSkillLevels`, `secretSkillClicks`, `offlineProgressEnabled`, `minimizeResourcesActive`,
 //     `disableAscensionWarning`, `firstAscensionPerformed`, `disablePrestigeWarning`,
 //     `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`,
-//     `skillEffects`, `permanentBpsBonusFromAchievements`, `paMultiplierFromQuests`.
+//     `skillEffects`, `permanentBpsBonusFromAchievements`, `paMultiplierFromQuêtes`.
 //   - Flags de déverrouillage : `elevesUnlocked`, `classesUnlocked`, `imagesUnlocked`, `ProfesseurUnlocked`,
 //     `ascensionUnlocked`, `prestigeUnlocked`, `skillsButtonUnlocked`, `settingsButtonUnlocked`,
 //     `automationCategoryUnlocked`, `questsUnlocked`, `achievementsButtonUnlocked`, `newSettingsUnlocked`,
@@ -1122,6 +1185,10 @@ MonJeuIncremental/
 // - De './quests.js' : (maj 30/05 Quete)
 //   - Fonctions : `renderQuests` (pour le rendu des quêtes), `updateQuestsUI` (pour la mise à jour des compteurs de quêtes). (maj 30/05 Quete)
 //   Impact : Permet de gérer le rendu et la mise à jour de l'interface des quêtes. (maj 30/05 Quete)
+//
+// - De './logger.js': (maj 31/05 debug + log)
+//   - Fonctions : `getLogs`, `clearLogs`. (maj 31/05 debug + log)
+//   Impact : Permet de récupérer et effacer les logs du jeu. (maj 31/05 debug + log)
 //
 // - `break_infinity.min.js` : La bibliothèque `Decimal` est supposée être globalement disponible.
 //   Impact : Essentielle pour tous les calculs et affichages de nombres très grands.
@@ -1201,7 +1268,7 @@ MonJeuIncremental/
 //
 // - `updateSettingsButtonStates()` :
 //   Description : Met à jour le texte et les classes CSS des boutons et sélecteurs
-//   liés aux paramètres du jeu (thème, réinitialisation, ressources minimalistes, statistiques).
+//   liés aux paramètres du jeu (thème, réinitialisation, ressources minimalistes, statistiques, logs). (maj 31/05 debug + log)
 //   Appelée par : `updateDisplay`, `openTab` (lors de l'ouverture de l'onglet paramètres).
 //   Impact : Assure que les contrôles des paramètres sont à jour.
 //
@@ -1308,6 +1375,26 @@ MonJeuIncremental/
 //   Appelée par : `openStatsModal`.
 //   Impact : Fournit une vue d'ensemble chiffrée de la partie du joueur.
 //
+// - `openLogModal()`: (maj 31/05 debug + log)
+//   Description : Ouvre la modale des logs et appelle `renderLogs()` pour afficher les logs. (maj 31/05 debug + log)
+//   Appelée par : `events.js` (clic sur le bouton "Voir les Logs"). (maj 31/05 debug + log)
+//   Impact : Permet au joueur de consulter les messages de journalisation du jeu. (maj 31/05 debug + log)
+//
+// - `closeLogModal()`: (maj 31/05 debug + log)
+//   Description : Ferme la modale des logs. (maj 31/05 debug + log)
+//   Appelée par : Bouton de fermeture dans la modale des logs. (maj 31/05 debug + log)
+//   Impact : Masque la modale des logs. (maj 31/05 debug + log)
+//
+// - `renderLogs()`: (maj 31/05 debug + log)
+//   Description : Récupère les logs depuis `logger.js` et les formate pour l'affichage dans la modale. (maj 31/05 debug + log)
+//   Appelée par : `openLogModal` et le bouton "Effacer les Logs". (maj 31/05 debug + log)
+//   Impact : Affiche le contenu des logs en temps réel. (maj 31/05 debug + log)
+//
+// - `copyLogsToClipboard()`: (maj 31/05 debug + log)
+//   Description : Copie le texte affiché dans la modale des logs vers le presse-papiers de l'utilisateur. (maj 31/05 debug + log)
+//   Appelée par : Bouton "Copier les Logs" dans la modale des logs. (maj 31/05 debug + log)
+//   Impact : Facilite le partage des logs pour le débogage. (maj 31/05 debug + log)
+//
 // ------------------ Éléments DOM Clés (référencés par ID) ------------------
 //
 // Ce module interagit directement avec de nombreux éléments HTML définis dans `index.html`.
@@ -1377,6 +1464,12 @@ MonJeuIncremental/
 //   - `#offlineProgressSetting`, `#minimizeResourcesSetting`, `#statsButtonSetting`.
 //   - `#themeSelector`, `#dayModeButton`, `#nightModeButton`, `#themeSelectionSetting`, `#dayNightModeSetting`.
 //   - `#resetProgressionButton`.
+//   - `#showLogsButton` (bouton pour ouvrir la modale des logs). (maj 31/05 debug + log)
+// - Modale des logs : (maj 31/05 debug + log)
+//   - `#logModal` (le conteneur de la modale des logs). (maj 31/05 debug + log)
+//   - `#logContent` (l'élément `pre` pour afficher le texte des logs). (maj 31/05 debug + log)
+//   - `#copyLogsButton` (bouton pour copier les logs). (maj 31/05 debug + log)
+//   - `#clearLogsButton` (bouton pour effacer les logs). (maj 31/05 debug + log)
 //
 // ------------------ Logique Générale ------------------
 //
@@ -1404,7 +1497,6 @@ MonJeuIncremental/
 //   `ui.js` ne fait que "lire" l'état et "écrire" sur l'interface.
 //
 // ---------------------------------------------------------------------
-
 
 
 

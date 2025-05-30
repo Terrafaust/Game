@@ -11,6 +11,57 @@
 // utilisateur reflète fidèlement l'état actuel du jeu et permet des interactions fluides,
 // sans contenir de logique de jeu métier (calculs de production, achats, réinitialisations).
 //
+// ------------------ Fonctions Exportées ------------------
+//
+// export function updateDisplay()
+//   // Met à jour l'affichage de toutes les ressources et compteurs principaux.
+//
+// export function updateButtonStates()
+//   // Met à jour l'état (activé/désactivé) des boutons d'achat en fonction des ressources disponibles.
+//
+// export function updateSectionVisibility()
+//   // Gère la visibilité des différentes sections du jeu (classes, images, automatisation, etc.)
+//   // en fonction des variables de déverrouillage de `core.js`.
+//
+// export function updateAutomationButtonStates()
+//   // Met à jour l'état des checkboxes et des boutons d'achat d'automatisation.
+//
+// export function updateSettingsButtonStates()
+//   // Met à jour l'état des éléments de l'interface des paramètres.
+//
+// export function renderSkillsMenu()
+//   // Rend (ou re-rend) l'arbre de compétences, affichant les compétences débloquées et achetées.
+//
+// export function renderQuests()
+//   // Rend (ou re-rend) la liste des quêtes, affichant leur progression et leur état.
+//
+// export function renderAchievements()
+//   // Rend (ou re-rend) la liste des succès, affichant leur état (débloqué/non débloqué).
+//
+// export function openTab(tabElement)
+//   // Ouvre un onglet spécifique du jeu, en cachant les autres.
+//
+// export function closeStatsModal()
+//   // Ferme la modale des statistiques.
+//
+// export function updateStatsDisplay()
+//   // Met à jour le contenu de la modale des statistiques.
+//
+// export function showNotification(message, duration = 3000)
+//   // Affiche une notification temporaire au joueur.
+//
+// export function openLogModal()
+//   // Ouvre la modale affichant les logs du jeu et les rend. (maj 31/05 debug + log)
+//
+// export function closeLogModal()
+//   // Ferme la modale des logs. (maj 31/05 debug + log)
+//
+// export function renderLogs()
+//   // Récupère les logs et les affiche dans la modale des logs. (maj 31/05 debug + log)
+//
+// export function copyLogsToClipboard()
+//   // Copie le contenu des logs affichés dans le presse-papiers. (maj 31/05 debug + log)
+//
 // ------------------ Dépendances (Imports) ------------------
 //
 // Ce module importe des variables d'état et des fonctions depuis d'autres fichiers JavaScript.
@@ -25,7 +76,7 @@
 //     `prestigeSkillLevels`, `secretSkillClicks`, `offlineProgressEnabled`, `minimizeResourcesActive`,
 //     `disableAscensionWarning`, `firstAscensionPerformed`, `disablePrestigeWarning`,
 //     `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`,
-//     `skillEffects`, `permanentBpsBonusFromAchievements`, `paMultiplierFromQuests`.
+//     `skillEffects`, `permanentBpsBonusFromAchievements`, `paMultiplierFromQuêtes`.
 //   - Flags de déverrouillage : `elevesUnlocked`, `classesUnlocked`, `imagesUnlocked`, `ProfesseurUnlocked`,
 //     `ascensionUnlocked`, `prestigeUnlocked`, `skillsButtonUnlocked`, `settingsButtonUnlocked`,
 //     `automationCategoryUnlocked`, `questsUnlocked`, `achievementsButtonUnlocked`, `newSettingsUnlocked`,
@@ -74,6 +125,10 @@
 // - De './quests.js' : (maj 30/05 Quete)
 //   - Fonctions : `renderQuests` (pour le rendu des quêtes), `updateQuestsUI` (pour la mise à jour des compteurs de quêtes). (maj 30/05 Quete)
 //   Impact : Permet de gérer le rendu et la mise à jour de l'interface des quêtes. (maj 30/05 Quete)
+//
+// - De './logger.js': (maj 31/05 debug + log)
+//   - Fonctions : `getLogs`, `clearLogs`. (maj 31/05 debug + log)
+//   Impact : Permet de récupérer et effacer les logs du jeu. (maj 31/05 debug + log)
 //
 // - `break_infinity.min.js` : La bibliothèque `Decimal` est supposée être globalement disponible.
 //   Impact : Essentielle pour tous les calculs et affichages de nombres très grands.
@@ -153,7 +208,7 @@
 //
 // - `updateSettingsButtonStates()` :
 //   Description : Met à jour le texte et les classes CSS des boutons et sélecteurs
-//   liés aux paramètres du jeu (thème, réinitialisation, ressources minimalistes, statistiques).
+//   liés aux paramètres du jeu (thème, réinitialisation, ressources minimalistes, statistiques, logs). (maj 31/05 debug + log)
 //   Appelée par : `updateDisplay`, `openTab` (lors de l'ouverture de l'onglet paramètres).
 //   Impact : Assure que les contrôles des paramètres sont à jour.
 //
@@ -260,6 +315,26 @@
 //   Appelée par : `openStatsModal`.
 //   Impact : Fournit une vue d'ensemble chiffrée de la partie du joueur.
 //
+// - `openLogModal()`: (maj 31/05 debug + log)
+//   Description : Ouvre la modale des logs et appelle `renderLogs()` pour afficher les logs. (maj 31/05 debug + log)
+//   Appelée par : `events.js` (clic sur le bouton "Voir les Logs"). (maj 31/05 debug + log)
+//   Impact : Permet au joueur de consulter les messages de journalisation du jeu. (maj 31/05 debug + log)
+//
+// - `closeLogModal()`: (maj 31/05 debug + log)
+//   Description : Ferme la modale des logs. (maj 31/05 debug + log)
+//   Appelée par : Bouton de fermeture dans la modale des logs. (maj 31/05 debug + log)
+//   Impact : Masque la modale des logs. (maj 31/05 debug + log)
+//
+// - `renderLogs()`: (maj 31/05 debug + log)
+//   Description : Récupère les logs depuis `logger.js` et les formate pour l'affichage dans la modale. (maj 31/05 debug + log)
+//   Appelée par : `openLogModal` et le bouton "Effacer les Logs". (maj 31/05 debug + log)
+//   Impact : Affiche le contenu des logs en temps réel. (maj 31/05 debug + log)
+//
+// - `copyLogsToClipboard()`: (maj 31/05 debug + log)
+//   Description : Copie le texte affiché dans la modale des logs vers le presse-papiers de l'utilisateur. (maj 31/05 debug + log)
+//   Appelée par : Bouton "Copier les Logs" dans la modale des logs. (maj 31/05 debug + log)
+//   Impact : Facilite le partage des logs pour le débogage. (maj 31/05 debug + log)
+//
 // ------------------ Éléments DOM Clés (référencés par ID) ------------------
 //
 // Ce module interagit directement avec de nombreux éléments HTML définis dans `index.html`.
@@ -329,6 +404,12 @@
 //   - `#offlineProgressSetting`, `#minimizeResourcesSetting`, `#statsButtonSetting`.
 //   - `#themeSelector`, `#dayModeButton`, `#nightModeButton`, `#themeSelectionSetting`, `#dayNightModeSetting`.
 //   - `#resetProgressionButton`.
+//   - `#showLogsButton` (bouton pour ouvrir la modale des logs). (maj 31/05 debug + log)
+// - Modale des logs : (maj 31/05 debug + log)
+//   - `#logModal` (le conteneur de la modale des logs). (maj 31/05 debug + log)
+//   - `#logContent` (l'élément `pre` pour afficher le texte des logs). (maj 31/05 debug + log)
+//   - `#copyLogsButton` (bouton pour copier les logs). (maj 31/05 debug + log)
+//   - `#clearLogsButton` (bouton pour effacer les logs). (maj 31/05 debug + log)
 //
 // ------------------ Logique Générale ------------------
 //
@@ -376,7 +457,7 @@ import {
     nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat,
     skillEffects, permanentBpsBonusFromAchievements, paMultiplierFromQuests,
     formatNumber, applyAllSkillEffects, updateCachedMultipliers, calculateTotalBPS, isDayTheme, 
-    checkUnlockConditions, themeOptionUnlocked, // Removed updateButtonStates from core.js import
+    checkUnlockConditions, themeOptionUnlocked,
     // Variables de déverrouillage spécifiques aux lycées/collèges et compétences
     lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked
 } from './core.js'; // Importe les variables d'état et fonctions principales de core.js
@@ -389,7 +470,8 @@ import { calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCos
 import { getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
          calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
 import { buySkill } from './skills.js'; // Importe la fonction buySkill
-import { renderQuests as renderQuestsFromQuestsJS, updateQuestsUI as updateQuestsUIFromQuestsJS } from './quests.js'; // (maj 30/05 Quete)
+import { renderQuests as renderQuestsFromQuestsJS, updateQuestsUI as updateQuestsUIFromQuestsJS } from './quests.js';
+import { getLogs, clearLogs } from './logger.js'; // Importation des fonctions de log (maj 31/05 debug + log)
 
 // Assumes Decimal is globally available from break_infinity.min.js
 
@@ -495,14 +577,14 @@ export function updateButtonStates() {
 export function updateDisplay() {
     // Mise à jour des ressources principales
     const bonsPointsElement = document.getElementById('bonsPoints');
-    if (bonsPointsElement) bonsPointsElement.textContent = formatNumber(bonsPoints, 0); // (maj 30/05 - Robustesse DOM)
+    if (bonsPointsElement) bonsPointsElement.textContent = formatNumber(bonsPoints, 0);
 
     const totalBpsInlineElement = document.getElementById('totalBpsInline');
-    if (totalBpsInlineElement) totalBpsInlineElement.textContent = formatNumber(totalBonsPointsParSeconde, 1); // (maj 30/05 - Robustesse DOM)
+    if (totalBpsInlineElement) totalBpsInlineElement.textContent = formatNumber(totalBonsPointsParSeconde, 1);
 
     const imagesDisplayElement = document.getElementById('imagesDisplay');
     const imagesCountElement = document.getElementById('imagesCount');
-    if (imagesDisplayElement && imagesCountElement) { // (maj 30/05 - Robustesse DOM)
+    if (imagesDisplayElement && imagesCountElement) {
         if (imagesUnlocked) {
             imagesDisplayElement.style.display = 'block';
             imagesCountElement.textContent = formatNumber(images, 0);
@@ -513,7 +595,7 @@ export function updateDisplay() {
 
     const nombreProfesseurDisplayElement = document.getElementById('nombreProfesseurDisplay');
     const nombreProfesseurElement = document.getElementById('nombreProfesseur');
-    if (nombreProfesseurDisplayElement && nombreProfesseurElement) { // (maj 30/05 - Robustesse DOM)
+    if (nombreProfesseurDisplayElement && nombreProfesseurElement) {
         if (ProfesseurUnlocked) {
             nombreProfesseurDisplayElement.style.display = 'block';
             nombreProfesseurElement.textContent = formatNumber(nombreProfesseur, 0);
@@ -521,6 +603,7 @@ export function updateDisplay() {
             nombreProfesseurDisplayElement.style.display = 'none';
         }
     }
+
 
     // Mise à jour des ressources d'Ascension
     const currentAscensionPointsDisplayElement = document.getElementById('currentAscensionPointsDisplay');
@@ -532,7 +615,7 @@ export function updateDisplay() {
     const ascensionBonusValueElement = document.getElementById('ascensionBonusValue');
 
     if (currentAscensionPointsDisplayElement && ascensionPointsCountElement && totalPAEarnedSpanInlineElement &&
-        ascensionCountDisplayElement && ascensionCountSpanElement && ascensionBonusDisplayElement && ascensionBonusValueElement) { // (maj 30/05 - Robustesse DOM)
+        ascensionCountDisplayElement && ascensionCountSpanElement && ascensionBonusDisplayElement && ascensionBonusValueElement) {
         if (ascensionUnlocked || ascensionCount.gt(0)) {
             currentAscensionPointsDisplayElement.style.display = 'block';
             ascensionPointsCountElement.textContent = formatNumber(ascensionPoints, 0);
@@ -557,7 +640,7 @@ export function updateDisplay() {
     const prestigeCountDisplayElement = document.getElementById('prestigeCountDisplay');
     const prestigeCountSpanElement = document.getElementById('prestigeCountSpan');
 
-    if (prestigePointsDisplayElement && prestigePointsCountElement && prestigeCountDisplayElement && prestigeCountSpanElement) { // (maj 30/05 - Robustesse DOM)
+    if (prestigePointsDisplayElement && prestigePointsCountElement && prestigeCountDisplayElement && prestigeCountSpanElement) {
         if (prestigeUnlocked || prestigeCount.gt(0)) {
             prestigePointsDisplayElement.style.display = 'block';
             prestigePointsCountElement.textContent = formatNumber(prestigePoints, 0);
@@ -577,7 +660,7 @@ export function updateDisplay() {
     const nombreElevesElement = document.getElementById('nombreEleves');
     const elevesBpsPerItemElement = document.getElementById('elevesBpsPerItem');
 
-    if (achatEleveSection && acheterEleveButton && nombreElevesElement && elevesBpsPerItemElement) { // (maj 30/05 - Robustesse DOM)
+    if (achatEleveSection && acheterEleveButton && nombreElevesElement && elevesBpsPerItemElement) {
         if (elevesUnlocked) {
             achatEleveSection.style.display = 'block';
             const coutEleveActuel = calculateNextEleveCost(nombreEleves);
@@ -594,7 +677,7 @@ export function updateDisplay() {
     const nombreClassesElement = document.getElementById('nombreClasses');
     const classesBpsPerItemElement = document.getElementById('classesBpsPerItem');
 
-    if (achatClasseSection && acheterClasseButton && nombreClassesElement && classesBpsPerItemElement) { // (maj 30/05 - Robustesse DOM)
+    if (achatClasseSection && acheterClasseButton && nombreClassesElement && classesBpsPerItemElement) {
         if (classesUnlocked) {
             achatClasseSection.style.display = 'block';
             const coutClasseActuel = calculateNextClasseCost(nombreClasses);
@@ -608,7 +691,7 @@ export function updateDisplay() {
 
     const achatImageSection = document.getElementById('achatImageSection');
     const acheterImageButton = document.getElementById('acheterImageButton');
-    if (achatImageSection && acheterImageButton) { // (maj 30/05 - Robustesse DOM)
+    if (achatImageSection && acheterImageButton) {
         if (imagesUnlocked) {
             achatImageSection.style.display = 'block';
             const coutImageActuel = calculateNextImageCost(images);
@@ -620,7 +703,7 @@ export function updateDisplay() {
 
     const achatProfesseurSection = document.getElementById('achatProfesseurSection');
     const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
-    if (achatProfesseurSection && acheterProfesseurButton) { // (maj 30/05 - Robustesse DOM)
+    if (achatProfesseurSection && acheterProfesseurButton) {
         if (ProfesseurUnlocked) {
             achatProfesseurSection.style.display = 'block';
             const coutProfesseurActuel = calculateNextProfessorCost(nombreProfesseur);
@@ -633,7 +716,7 @@ export function updateDisplay() {
     // Mise à jour du bouton de clic principal
     const studiesTitleButton = document.getElementById('studiesTitleButton');
     const clickBonsPointsDisplay = document.getElementById('clickBonsPointsDisplay');
-    if (studiesTitleButton && clickBonsPointsDisplay) { // (maj 30/05 - Robustesse DOM)
+    if (studiesTitleButton && clickBonsPointsDisplay) {
         clickBonsPointsDisplay.textContent = `+${formatNumber(skillEffects.clickBonsPointsBonus.add(1), bonsPoints.lt(1000) ? 1 : 0)} BP`; // Use skillEffects.clickBonsPointsBonus
     }
 
@@ -645,14 +728,14 @@ export function updateDisplay() {
     const nombreEcoles = document.getElementById('nombreEcoles');
     const ecoleMultiplierElement = document.getElementById('ecoleMultiplier');
 
-    if (ascensionMenuPACount && acheterEcoleButton && coutEcole && nombreEcoles && ecoleMultiplierElement) { // (maj 30/05 - Robustesse DOM)
+    if (ascensionMenuPACount && acheterEcoleButton && coutEcole && nombreEcoles && ecoleMultiplierElement) {
         if (ascensionMenuButtonUnlocked) {
             ascensionMenuPACount.textContent = formatNumber(ascensionPoints, 0);
 
             const coutEcoleActuel = calculateNextEcoleCost(schoolCount);
             coutEcole.textContent = `${formatNumber(coutEcoleActuel, 0)} PA`;
             nombreEcoles.textContent = formatNumber(schoolCount, 0);
-            ecoleMultiplierElement.textContent = `${formatNumber(skillEffects.ecoleMultiplier, 2)}x`; // (maj 30/05 débug v2)
+            ecoleMultiplierElement.textContent = `${formatNumber(skillEffects.ecoleMultiplier, 2)}x`;
         }
     }
 
@@ -662,13 +745,13 @@ export function updateDisplay() {
     const nombreLyceesDisplay = document.getElementById('nombreLyceesDisplay');
     const lyceeMultiplierDisplay = document.getElementById('lyceeMultiplierDisplay');
 
-    if (achatLyceeSection && acheterLyceeButton && nombreLyceesDisplay && lyceeMultiplierDisplay) { // (maj 30/05 - Robustesse DOM)
+    if (achatLyceeSection && acheterLyceeButton && nombreLyceesDisplay && lyceeMultiplierDisplay) {
         if (lyceesUnlocked) {
             achatLyceeSection.style.display = 'block';
             const coutLyceeActuel = calculateNextLyceeCost(nombreLycees);
             acheterLyceeButton.innerHTML = `Lycée : <span class="ascension-points-color">${formatNumber(coutLyceeActuel, 0)} PA</span>`;
             nombreLyceesDisplay.textContent = formatNumber(nombreLycees, 0);
-            lyceeMultiplierDisplay.textContent = `${formatNumber(skillEffects.lyceeMultiplier, 2)}x`; // (maj 30/05 débug v2)
+            lyceeMultiplierDisplay.textContent = `${formatNumber(skillEffects.lyceeMultiplier, 2)}x`;
         } else {
             achatLyceeSection.style.display = 'none';
         }
@@ -680,13 +763,13 @@ export function updateDisplay() {
     const nombreCollegesDisplay = document.getElementById('nombreCollegesDisplay');
     const collegeMultiplierDisplay = document.getElementById('collegeMultiplierDisplay');
 
-    if (achatCollegeSection && acheterCollegeButton && nombreCollegesDisplay && collegeMultiplierDisplay) { // (maj 30/05 - Robustesse DOM)
+    if (achatCollegeSection && acheterCollegeButton && nombreCollegesDisplay && collegeMultiplierDisplay) {
         if (collegesUnlocked) {
             achatCollegeSection.style.display = 'block';
             const coutCollegeActuel = calculateNextCollegeCost(nombreColleges);
             acheterCollegeButton.innerHTML = `Collège : <span class="ascension-points-color">${formatNumber(coutCollegeActuel, 0)} PA</span>`;
             nombreCollegesDisplay.textContent = formatNumber(nombreColleges, 0);
-            collegeMultiplierDisplay.textContent = `${formatNumber(skillEffects.collegeMultiplier, 2)}x`; // (maj 30/05 débug v2)
+            collegeMultiplierDisplay.textContent = `${formatNumber(skillEffects.collegeMultiplier, 2)}x`;
         } else {
             achatCollegeSection.style.display = 'none';
         }
@@ -699,28 +782,28 @@ export function updateDisplay() {
     const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
     const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton');
 
-    if (unlockMultiPurchaseButton) { // (maj 30/05 - Robustesse DOM)
+    if (unlockMultiPurchaseButton) {
         unlockMultiPurchaseButton.style.display = multiPurchaseOptionUnlocked ? 'none' : 'block';
         if (!multiPurchaseOptionUnlocked) {
             unlockMultiPurchaseButton.classList.toggle('can-afford', ascensionPoints.gte(10));
             unlockMultiPurchaseButton.classList.toggle('cannot-afford', ascensionPoints.lt(10));
         }
     }
-    if (unlockmaxPurchaseButton) { // (maj 30/05 - Robustesse DOM)
+    if (unlockmaxPurchaseButton) {
         unlockmaxPurchaseButton.style.display = maxPurchaseOptionUnlocked ? 'none' : 'block';
         if (!maxPurchaseOptionUnlocked) {
             unlockmaxPurchaseButton.classList.toggle('can-afford', ascensionPoints.gte(100));
             unlockmaxPurchaseButton.classList.toggle('cannot-afford', ascensionPoints.lt(100));
         }
     }
-    if (unlockNewSettingsButton) { // (maj 30/05 - Robustesse DOM)
+    if (unlockNewSettingsButton) {
         unlockNewSettingsButton.style.display = newSettingsUnlocked ? 'none' : 'block';
         if (!newSettingsUnlocked) {
             unlockNewSettingsButton.classList.toggle('can-afford', ascensionPoints.gte(10));
             unlockNewSettingsButton.classList.toggle('cannot-afford', ascensionPoints.lt(10));
         }
     }
-    if (unlockAutomationCategoryButton) { // (maj 30/05 - Robustesse DOM)
+    if (unlockAutomationCategoryButton) {
         unlockAutomationCategoryButton.style.display = automationCategoryUnlocked ? 'none' : 'block';
         if (!automationCategoryUnlocked) {
             // Assuming calculateAutomationCost(1000) is the cost for unlocking automation category
@@ -733,7 +816,7 @@ export function updateDisplay() {
 
     // Mise à jour des éléments de la section "Prestige"
     const prestigeMenuPPCount = document.getElementById('prestigeMenuPPCount');
-    if (prestigeMenuPPCount) { // (maj 30/05 - Robustesse DOM)
+    if (prestigeMenuPPCount) {
         if (prestigeUnlocked) {
             prestigeMenuPPCount.textContent = formatNumber(prestigePoints, 0);
 
@@ -741,7 +824,7 @@ export function updateDisplay() {
             const acheterLicenceButton = document.getElementById('acheterLicenceButton');
             const nombreLicencesElement = document.getElementById('nombreLicences');
             const licenceBoostElement = document.getElementById('licenceBoost');
-            if (acheterLicenceButton && nombreLicencesElement && licenceBoostElement) { // (maj 30/05 - Robustesse DOM)
+            if (acheterLicenceButton && nombreLicencesElement && licenceBoostElement) {
                 acheterLicenceButton.innerHTML = `Licence : <span class="prestige-points-color">${formatNumber(licenceData.cost, 0)} PP</span>`;
                 nombreLicencesElement.textContent = formatNumber(nombreLicences, 0);
                 licenceBoostElement.textContent = `${formatNumber(licenceData.getEffectValue().sub(1).mul(100), 2)}%`;
@@ -752,7 +835,7 @@ export function updateDisplay() {
             const acheterMaster1Button = document.getElementById('acheterMaster1Button');
             const nombreMaster1Element = document.getElementById('nombreMaster1');
             const master1BoostElement = document.getElementById('master1Boost');
-            if (acheterMaster1Button && nombreMaster1Element && master1BoostElement) { // (maj 30/05 - Robustesse DOM)
+            if (acheterMaster1Button && nombreMaster1Element && master1BoostElement) {
                 acheterMaster1Button.innerHTML = `Master I : <span class="prestige-points-color">${formatNumber(master1Data.cost, 0)} PP</span>`;
                 nombreMaster1Element.textContent = formatNumber(nombreMaster1, 0);
                 master1BoostElement.textContent = `${formatNumber(master1Data.getEffectValue().sub(1).mul(100), 2)}%`;
@@ -763,7 +846,7 @@ export function updateDisplay() {
             const acheterMaster2Button = document.getElementById('acheterMaster2Button');
             const nombreMaster2Element = document.getElementById('nombreMaster2');
             const master2BoostElement = document.getElementById('master2Boost');
-            if (acheterMaster2Button && nombreMaster2Element && master2BoostElement) { // (maj 30/05 - Robustesse DOM)
+            if (acheterMaster2Button && nombreMaster2Element && master2BoostElement) {
                 acheterMaster2Button.innerHTML = `Master II : <span class="prestige-points-color">${formatNumber(master2Data.cost, 0)} PP</span>`;
                 nombreMaster2Element.textContent = formatNumber(nombreMaster2, 0);
                 master2BoostElement.textContent = `${formatNumber(master2Data.getEffectValue().sub(1).mul(100), 2)}%`;
@@ -775,7 +858,7 @@ export function updateDisplay() {
             const nombreDoctoratElement = document.getElementById('nombreDoctorat');
             const doctoratBoostElement = document.getElementById('doctoratBoost');
             const doctoratMinClassesElement = document.getElementById('doctoratMinClasses');
-            if (acheterDoctoratButton && nombreDoctoratElement && doctoratBoostElement && doctoratMinClassesElement) { // (maj 30/05 - Robustesse DOM)
+            if (acheterDoctoratButton && nombreDoctoratElement && doctoratBoostElement && doctoratMinClassesElement) {
                 acheterDoctoratButton.innerHTML = `Doctorat : <span class="prestige-points-color">${formatNumber(doctoratData.cost, 0)} PP</span>`;
                 nombreDoctoratElement.textContent = formatNumber(nombreDoctorat, 0);
                 doctoratBoostElement.textContent = `${formatNumber(doctoratData.getEffectValue().sub(1).mul(100), 2)}%`;
@@ -787,7 +870,7 @@ export function updateDisplay() {
             const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
             const nombrePostDoctoratElement = document.getElementById('nombrePostDoctorat');
             const postDoctoratBoostElement = document.getElementById('postDoctoratBoost');
-            if (acheterPostDoctoratButton && nombrePostDoctoratElement && postDoctoratBoostElement) { // (maj 30/05 - Robustesse DOM)
+            if (acheterPostDoctoratButton && nombrePostDoctoratElement && postDoctoratBoostElement) {
                 acheterPostDoctoratButton.innerHTML = `Post-Doctorat : <span class="prestige-points-color">${formatNumber(postDoctoratData.cost, 0)} PP</span>`;
                 nombrePostDoctoratElement.textContent = formatNumber(nombrePostDoctorat, 0);
                 postDoctoratBoostElement.textContent = `${formatNumber(postDoctoratData.getEffectValue().sub(1).mul(100), 2)}%`;
@@ -805,20 +888,20 @@ export function updateDisplay() {
     const miniPrestigePoints = document.getElementById('miniPrestigePoints');
     const miniPrestigeCount = document.getElementById('miniPrestigeCount');
 
-    if (miniBonsPoints) miniBonsPoints.textContent = formatNumber(bonsPoints, 0); // (maj 30/05 - Robustesse DOM)
-    if (miniImages) miniImages.textContent = formatNumber(images, 0); // (maj 30/05 - Robustesse DOM)
-    if (miniProfesseur) miniProfesseur.textContent = formatNumber(nombreProfesseur, 0); // (maj 30/05 - Robustesse DOM)
-    if (miniAscensionPoints) miniAscensionPoints.textContent = formatNumber(ascensionPoints, 0); // (maj 30/05 - Robustesse DOM)
-    if (miniAscensionCount) miniAscensionCount.textContent = formatNumber(ascensionCount, 0); // (maj 30/05 - Robustesse DOM)
-    if (miniPrestigePoints) miniPrestigePoints.textContent = formatNumber(prestigePoints, 0); // (maj 30/05 - Robustesse DOM)
-    if (miniPrestigeCount) miniPrestigeCount.textContent = formatNumber(prestigeCount, 0); // (maj 30/05 - Robustesse DOM)
+    if (miniBonsPoints) miniBonsPoints.textContent = formatNumber(bonsPoints, 0);
+    if (miniImages) miniImages.textContent = formatNumber(images, 0);
+    if (miniProfesseur) miniProfesseur.textContent = formatNumber(nombreProfesseur, 0);
+    if (miniAscensionPoints) miniAscensionPoints.textContent = formatNumber(ascensionPoints, 0);
+    if (miniAscensionCount) miniAscensionCount.textContent = formatNumber(ascensionCount, 0);
+    if (miniPrestigePoints) miniPrestigePoints.textContent = formatNumber(prestigePoints, 0);
+    if (miniPrestigeCount) miniPrestigeCount.textContent = formatNumber(prestigeCount, 0);
 
 
     // Appelle les fonctions de mise à jour des états des boutons
     updateMultiplierButtons();
     updateAutomationButtonStates();
     updateSettingsButtonStates();
-    updateButtonStates(); // Appel de la fonction déplacée ici (maj 30/05 - debug)
+    updateButtonStates();
 }
 
 /**
@@ -859,63 +942,63 @@ export function showNotification(message, type = 'info', duration = 5000) {
 export function updateSectionVisibility() {
     // Visibilité des boutons de navigation latérale
     const automationTabBtn = document.getElementById('automationTabBtn');
-    if (automationTabBtn) automationTabBtn.style.display = automationCategoryUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (automationTabBtn) automationTabBtn.style.display = automationCategoryUnlocked ? 'block' : 'none';
 
     const skillsTabBtn = document.getElementById('skillsTabBtn');
-    if (skillsTabBtn) skillsTabBtn.style.display = skillsButtonUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (skillsTabBtn) skillsTabBtn.style.display = skillsButtonUnlocked ? 'block' : 'none';
 
     const settingsTabBtn = document.getElementById('settingsTabBtn');
-    if (settingsTabBtn) settingsTabBtn.style.display = settingsButtonUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (settingsTabBtn) settingsTabBtn.style.display = settingsButtonUnlocked ? 'block' : 'none';
 
     const ascensionTabBtn = document.getElementById('ascensionTabBtn');
-    if (ascensionTabBtn) ascensionTabBtn.style.display = ascensionMenuButtonUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (ascensionTabBtn) ascensionTabBtn.style.display = ascensionMenuButtonUnlocked ? 'block' : 'none';
 
     const prestigeTabBtn = document.getElementById('prestigeTabBtn');
-    if (prestigeTabBtn) prestigeTabBtn.style.display = prestigeUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (prestigeTabBtn) prestigeTabBtn.style.display = prestigeUnlocked ? 'block' : 'none';
 
     const questsTabBtn = document.getElementById('questsTabBtn');
-    if (questsTabBtn) questsTabBtn.style.display = questsUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (questsTabBtn) questsTabBtn.style.display = questsUnlocked ? 'block' : 'none';
 
     const achievementsTabBtn = document.getElementById('achievementsTabBtn');
-    if (achievementsTabBtn) achievementsTabBtn.style.display = achievementsButtonUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (achievementsTabBtn) achievementsTabBtn.style.display = achievementsButtonUnlocked ? 'block' : 'none';
 
     const statsButton = document.getElementById('statsButton');
-    if (statsButton) statsButton.style.display = statsButtonUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (statsButton) statsButton.style.display = statsButtonUnlocked ? 'block' : 'none';
 
     // Visibilité des options d'achat multiples
     const purchaseMultiplierSelection = document.getElementById('purchaseMultiplierSelection');
-    if (purchaseMultiplierSelection) purchaseMultiplierSelection.style.display = multiPurchaseOptionUnlocked ? 'flex' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (purchaseMultiplierSelection) purchaseMultiplierSelection.style.display = multiPurchaseOptionUnlocked ? 'flex' : 'none';
 
     const setMultiplierXmax = document.getElementById('setMultiplierXmax');
-    if (setMultiplierXmax) setMultiplierXmax.style.display = maxPurchaseOptionUnlocked ? 'inline-block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (setMultiplierXmax) setMultiplierXmax.style.display = maxPurchaseOptionUnlocked ? 'inline-block' : 'none';
 
 
     // Visibilité des sections d'achat dans "Études"
     // Ces éléments sont déjà gérés dans updateDisplay, mais cette fonction assure la visibilité initiale des conteneurs
     const achatEleveSection = document.getElementById('achatEleveSection');
-    if (achatEleveSection) achatEleveSection.style.display = elevesUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (achatEleveSection) achatEleveSection.style.display = elevesUnlocked ? 'block' : 'none';
 
     const achatClasseSection = document.getElementById('achatClasseSection');
-    if (achatClasseSection) achatClasseSection.style.display = classesUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (achatClasseSection) achatClasseSection.style.display = classesUnlocked ? 'block' : 'none';
 
     const achatImageSection = document.getElementById('achatImageSection');
-    if (achatImageSection) achatImageSection.style.display = imagesUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (achatImageSection) achatImageSection.style.display = imagesUnlocked ? 'block' : 'none';
 
     const achatProfesseurSection = document.getElementById('achatProfesseurSection');
-    if (achatProfesseurSection) achatProfesseurSection.style.display = ProfesseurUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (achatProfesseurSection) achatProfesseurSection.style.display = ProfesseurUnlocked ? 'block' : 'none';
 
     // Visibilité des sections d'achat dans "Ascension"
     const achatLyceeSection = document.getElementById('achatLyceeSection');
-    if (achatLyceeSection) achatLyceeSection.style.display = lyceesUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (achatLyceeSection) achatLyceeSection.style.display = lyceesUnlocked ? 'block' : 'none';
 
     const achatCollegeSection = document.getElementById('achatCollegeSection');
-    if (achatCollegeSection) achatCollegeSection.style.display = collegesUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (achatCollegeSection) achatCollegeSection.style.display = collegesUnlocked ? 'block' : 'none';
 
 
     // Basculement de l'affichage des ressources (normal vs. minimaliste)
     const mainResourcesDisplay = document.getElementById('mainResourcesDisplay');
     const minimalistResources = document.getElementById('minimalistResources');
-    if (mainResourcesDisplay && minimalistResources) { // (maj 30/05 - Robustesse DOM)
+    if (mainResourcesDisplay && minimalistResources) {
         mainResourcesDisplay.style.display = minimizeResourcesActive ? 'none' : 'flex';
         minimalistResources.style.display = minimizeResourcesActive ? 'flex' : 'none';
     }
@@ -926,9 +1009,9 @@ export function updateSectionVisibility() {
     const minimizeResourcesSetting = document.getElementById('minimizeResourcesSetting');
     const statsButtonSetting = document.getElementById('statsButtonSetting');
 
-    if (offlineProgressSetting) offlineProgressSetting.style.display = newSettingsUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
-    if (minimizeResourcesSetting) minimizeResourcesSetting.style.display = newSettingsUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
-    if (statsButtonSetting) statsButtonSetting.style.display = newSettingsUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (offlineProgressSetting) offlineProgressSetting.style.display = newSettingsUnlocked ? 'block' : 'none';
+    if (minimizeResourcesSetting) minimizeResourcesSetting.style.display = newSettingsUnlocked ? 'block' : 'none';
+    if (statsButtonSetting) statsButtonSetting.style.display = newSettingsUnlocked ? 'block' : 'none';
     // Note: statsButtonSetting est lié à newSettingsUnlocked, pas directement à statsButtonUnlocked pour la visibilité du conteneur.
     // La visibilité du bouton lui-même est gérée par statsButtonUnlocked dans updateSettingsButtonStates ou updateDisplay.
 
@@ -941,7 +1024,7 @@ export function updateSectionVisibility() {
  */
 export function updateMultiplierButtons() {
     const multiplierButtonsContainer = document.getElementById('multiplierButtonsContainer');
-    if (!multiplierButtonsContainer) return; // (maj 30/05 - Robustesse DOM)
+    if (!multiplierButtonsContainer) return;
 
     const multiplierButtons = multiplierButtonsContainer.querySelectorAll('.multiplier-button');
     multiplierButtons.forEach(button => {
@@ -963,11 +1046,11 @@ export function updateAutomationButtonStates() {
     const autoImageBtn = document.getElementById('autoImageBtn');
     const autoProfesseurBtn = document.getElementById('autoProfesseurBtn');
 
-    if (autoEleveBtn) { // (maj 30/05 - Robustesse DOM)
+    if (autoEleveBtn) {
         if (autoEleveActive) {
             autoEleveBtn.textContent = "Désactiver Auto Élèves";
             autoEleveBtn.classList.add('automation-active');
-            autoEleveBtn.classList.remove('can-afford', 'cannot-afford'); // (maj 30/05 - Style & thèmes)
+            autoEleveBtn.classList.remove('can-afford', 'cannot-afford');
         } else {
             autoEleveBtn.innerHTML = `Automatiser Élèves : <span class="ascension-points-color">${formatNumber(calculateAutomationCost(100), 0)} PA</span>`;
             autoEleveBtn.classList.remove('automation-active');
@@ -976,11 +1059,11 @@ export function updateAutomationButtonStates() {
         }
     }
 
-    if (autoClasseBtn) { // (maj 30/05 - Robustesse DOM)
+    if (autoClasseBtn) {
         if (autoClasseActive) {
             autoClasseBtn.textContent = "Désactiver Auto Classes";
             autoClasseBtn.classList.add('automation-active');
-            autoClasseBtn.classList.remove('can-afford', 'cannot-afford'); // (maj 30/05 - Style & thèmes)
+            autoClasseBtn.classList.remove('can-afford', 'cannot-afford');
         } else {
             autoClasseBtn.innerHTML = `Automatiser Classes : <span class="ascension-points-color">${formatNumber(calculateAutomationCost(500), 0)} PA</span>`;
             autoClasseBtn.classList.remove('automation-active');
@@ -989,11 +1072,11 @@ export function updateAutomationButtonStates() {
         }
     }
 
-    if (autoImageBtn) { // (maj 30/05 - Robustesse DOM)
+    if (autoImageBtn) {
         if (autoImageActive) {
             autoImageBtn.textContent = "Désactiver Auto Images";
             autoImageBtn.classList.add('automation-active');
-            autoImageBtn.classList.remove('can-afford', 'cannot-afford'); // (maj 30/05 - Style & thèmes)
+            autoImageBtn.classList.remove('can-afford', 'cannot-afford');
         } else {
             autoImageBtn.innerHTML = `Automatiser Images : <span class="ascension-points-color">${formatNumber(calculateAutomationCost(10000), 0)} PA</span>`;
             autoImageBtn.classList.remove('automation-active');
@@ -1002,11 +1085,11 @@ export function updateAutomationButtonStates() {
         }
     }
 
-    if (autoProfesseurBtn) { // (maj 30/05 - Robustesse DOM)
+    if (autoProfesseurBtn) {
         if (autoProfesseurActive) {
             autoProfesseurBtn.textContent = "Désactiver Auto Profs";
             autoProfesseurBtn.classList.add('automation-active');
-            autoProfesseurBtn.classList.remove('can-afford', 'cannot-afford'); // (maj 30/05 - Style & thèmes)
+            autoProfesseurBtn.classList.remove('can-afford', 'cannot-afford');
         } else {
             autoProfesseurBtn.innerHTML = `Automatiser Professeur${nombreProfesseur.gt(1) ? 's' : ''} : <span class="ascension-points-color">${formatNumber(calculateAutomationCost(100000), 0)} PA</span>`;
             autoProfesseurBtn.classList.remove('automation-active');
@@ -1023,26 +1106,31 @@ export function updateAutomationButtonStates() {
 export function updateSettingsButtonStates() {
     const resetProgressionButton = document.getElementById('resetProgressionButton');
     const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
-    const statsButton = document.getElementById('statsButton'); // (maj 30/05 - Robustesse DOM)
+    const statsButton = document.getElementById('statsButton');
 
-    // Mise à jour des contrôles de thème et mode Jour/Nuit (maj 30/05 - Thème & style)
+    // Mise à jour des contrôles de thème et mode Jour/Nuit
     updateThemeAndModeDisplay();
 
-    if (resetProgressionButton) { // (maj 30/05 - Robustesse DOM)
+    if (resetProgressionButton) {
         resetProgressionButton.classList.toggle('can-afford', images.gte(10));
         resetProgressionButton.classList.toggle('cannot-afford', images.lt(10));
     }
 
-    if (toggleMinimalistResourcesButton) { // (maj 30/05 - Robustesse DOM)
+    if (toggleMinimalistResourcesButton) {
         toggleMinimalistResourcesButton.textContent = minimizeResourcesActive ? "Afficher les ressources complètes" : "Minimiser la section ressources";
     }
 
-    if (statsButton) { // (maj 30/05 - Robustesse DOM)
+    if (statsButton) {
         statsButton.style.display = statsButtonUnlocked ? 'block' : 'none';
     }
 
-    // Le toggle pour la progression hors ligne est une checkbox, son état est géré directement par le `checked`
-    // de l'input dans events.js, pas besoin de le styliser ici.
+    // Visibilité du bouton "Voir les Logs" (maj 31/05 debug + log)
+    const showLogsButton = document.getElementById('showLogsButton');
+    if (showLogsButton) {
+        // Le bouton des logs est toujours visible si la section des paramètres est débloquée.
+        // Ou vous pouvez ajouter une condition spécifique si vous voulez qu'il se débloque plus tard.
+        showLogsButton.style.display = settingsButtonUnlocked ? 'block' : 'none';
+    }
 }
 
 /**
@@ -1054,7 +1142,7 @@ export function updateThemeAndModeDisplay() {
     const dayModeButton = document.getElementById('dayModeButton');
     const nightModeButton = document.getElementById('nightModeButton');
 
-    if (themeSelector) { // (maj 30/05 - Robustesse DOM)
+    if (themeSelector) {
         // Sélectionne l'option du thème actuel
         // La classe de thème est appliquée au body par settings.js, nous la lisons ici.
         const currentThemeClass = document.body.classList.value.split(' ').find(cls => cls.includes('-theme'));
@@ -1065,7 +1153,7 @@ export function updateThemeAndModeDisplay() {
         }
     }
 
-    if (dayModeButton && nightModeButton) { // (maj 30/05 - Robustesse DOM)
+    if (dayModeButton && nightModeButton) {
         // Met à jour la classe 'active' pour les boutons Jour/Nuit
         if (isDayTheme) {
             dayModeButton.classList.add('active');
@@ -1080,8 +1168,8 @@ export function updateThemeAndModeDisplay() {
     const themeSelectionSetting = document.getElementById('themeSelectionSetting');
     const dayNightModeSetting = document.getElementById('dayNightModeSetting');
 
-    if (themeSelectionSetting) themeSelectionSetting.style.display = themeOptionUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
-    if (dayNightModeSetting) dayNightModeSetting.style.display = themeOptionUnlocked ? 'block' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (themeSelectionSetting) themeSelectionSetting.style.display = themeOptionUnlocked ? 'block' : 'none';
+    if (dayNightModeSetting) dayNightModeSetting.style.display = themeOptionUnlocked ? 'block' : 'none';
 }
 
 
@@ -1094,30 +1182,30 @@ export function renderSkillsMenu() {
     const prestigePanel = document.getElementById('prestigePanel');
 
     // Contrôle la visibilité des panneaux de compétences
-    if (studiesPanel) studiesPanel.style.display = studiesSkillsUnlocked ? 'flex' : 'none'; // (maj 30/05 - Robustesse DOM)
-    if (ascensionPanel) ascensionPanel.style.display = ascensionSkillsUnlocked ? 'flex' : 'none'; // (maj 30/05 - Robustesse DOM)
-    if (prestigePanel) prestigePanel.style.display = prestigeSkillsUnlocked ? 'flex' : 'none'; // (maj 30/05 - Robustesse DOM)
+    if (studiesPanel) studiesPanel.style.display = studiesSkillsUnlocked ? 'flex' : 'none';
+    if (ascensionPanel) ascensionPanel.style.display = ascensionSkillsUnlocked ? 'flex' : 'none';
+    if (prestigePanel) prestigePanel.style.display = prestigeSkillsUnlocked ? 'flex' : 'none';
 
     // Met à jour les points de compétence disponibles
     const studiesSkillsPointsCount = document.getElementById('studiesSkillsPointsCount');
-    if (studiesSkillsPointsCount) studiesSkillsPointsCount.textContent = formatNumber(studiesSkillPoints, 0); // (maj 30/05 - Robustesse DOM)
+    if (studiesSkillsPointsCount) studiesSkillsPointsCount.textContent = formatNumber(studiesSkillPoints, 0);
 
     const ascensionSkillsPointsCount = document.getElementById('ascensionSkillsPointsCount');
-    if (ascensionSkillsPointsCount) ascensionSkillsPointsCount.textContent = formatNumber(ascensionSkillPoints, 0); // (maj 30/05 - Robustesse DOM)
+    if (ascensionSkillsPointsCount) ascensionSkillsPointsCount.textContent = formatNumber(ascensionSkillPoints, 0);
 
     const prestigeSkillsPointsCount = document.getElementById('prestigeSkillsPointsCount');
-    if (prestigeSkillsPointsCount) prestigeSkillsPointsCount.textContent = formatNumber(prestigeSkillPoints, 0); // (maj 30/05 - Robustesse DOM)
+    if (prestigeSkillsPointsCount) prestigeSkillsPointsCount.textContent = formatNumber(prestigeSkillPoints, 0);
 
 
     // Rend chaque panneau de compétences
     const studiesSkillsGrid = document.getElementById('studiesSkillsGrid');
-    if (studiesSkillsGrid) renderSkillPanel('studies', studiesSkillsGrid, studiesSkillLevels, studiesSkillPoints, studiesSkillsUnlocked); // (maj 30/05 - Robustesse DOM)
+    if (studiesSkillsGrid) renderSkillPanel('studies', studiesSkillsGrid, studiesSkillLevels, studiesSkillPoints, studiesSkillsUnlocked);
 
     const ascensionSkillsGrid = document.getElementById('ascensionSkillsGrid');
-    if (ascensionSkillsGrid) renderSkillPanel('ascension', ascensionSkillsGrid, ascensionSkillLevels, ascensionSkillPoints, ascensionSkillsUnlocked); // (maj 30/05 - Robustesse DOM)
+    if (ascensionSkillsGrid) renderSkillPanel('ascension', ascensionSkillsGrid, ascensionSkillLevels, ascensionSkillPoints, ascensionSkillsUnlocked);
 
     const prestigeSkillsGrid = document.getElementById('prestigeSkillsGrid');
-    if (prestigeSkillsGrid) renderSkillPanel('prestige', prestigeSkillsGrid, prestigeSkillLevels, prestigeSkillPoints, prestigeSkillsUnlocked); // (maj 30/05 - Robustesse DOM)
+    if (prestigeSkillsGrid) renderSkillPanel('prestige', prestigeSkillsGrid, prestigeSkillLevels, prestigeSkillPoints, prestigeSkillsUnlocked);
 }
 
 /**
@@ -1135,7 +1223,7 @@ function renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPa
     }
 
     const skillsInPanel = skillsData[panelType];
-    if (!skillsInPanel || skillsInPanel.length === 0) { // (maj 30/05 - Robustesse)
+    if (!skillsInPanel || skillsInPanel.length === 0) {
         console.warn(`No skills defined for panel type: ${panelType}`);
         return;
     }
@@ -1167,7 +1255,7 @@ function renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPa
                 // Vérifie si le prérequis est au niveau max
                 return prereqSkill && (skillLevels[prereqId] || 0) >= prereqSkill.maxLevel;
             }) : true;
-            const isLocked = !canUnlockTier || !prerequisitesMet || skillPoints.lt(1) || isMaxLevel; // (maj 30/05 - Logique prérequis)
+            const isLocked = !canUnlockTier || !prerequisitesMet || skillPoints.lt(1) || isMaxLevel;
 
             const skillBox = document.createElement('div');
             skillBox.classList.add('skill-box');
@@ -1189,7 +1277,7 @@ function renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPa
                 tooltipMessages.push(`<span style="color:red;">Débloquez l'étage précédent</span>`);
             }
             if (!prerequisitesMet) {
-                tooltipMessages.push(`<span style="color:red;">Prérequis non remplis</span>`); // (maj 30/05 - Logique prérequis)
+                tooltipMessages.push(`<span style="color:red;">Prérequis non remplis</span>`);
             }
             if (canUnlockTier && prerequisitesMet && skillPoints.lt(1) && !isMaxLevel && skill.id !== 'S5_2_Secret') {
                 tooltipMessages.push(`<span style="color:red;">Pas assez de points</span>`);
@@ -1239,7 +1327,7 @@ export function renderQuests() {
 
     const questsListDiv = document.getElementById('questsList');
     const completedQuestsListDiv = document.getElementById('completedQuestsList');
-    if (!questsListDiv || !completedQuestsListDiv) return; // (maj 30/05 - Robustesse DOM)
+    if (!questsListDiv || !completedQuestsListDiv) return;
 
     questsListDiv.innerHTML = '';
     completedQuestsListDiv.innerHTML = '';
@@ -1277,7 +1365,7 @@ export function renderQuests() {
                 case 'nombreProfesseur': currentVal = nombreProfesseur; break;
                 case 'bonsPoints': currentVal = bonsPoints; break;
                 case 'totalClicks': currentVal = totalClicks; break;
-                case 'images': currentVal = images; break; // (maj 30/05 - Ajout fonctionnalité)
+                case 'images': currentVal = images; break;
                 default:
                     console.warn(`Unknown quest targetType: ${quest.targetType}`);
                     break;
@@ -1313,7 +1401,7 @@ export function renderAchievements() {
     if (!achievementsUnlocked) return; // Ne rien rendre si les succès ne sont pas déverrouillés
 
     const achievementsGrid = document.getElementById('achievementsGrid');
-    if (!achievementsGrid) return; // (maj 30/05 - Robustesse DOM)
+    if (!achievementsGrid) return;
 
     achievementsGrid.innerHTML = ''; // Efface la grille pour le re-rendu
 
@@ -1344,7 +1432,7 @@ let activeAchievementTooltip = null; // Pour gérer l'infobulle cliquée
  */
 export function showAchievementTooltip(event, ach) {
     const achievementTooltip = document.getElementById('achievementTooltip');
-    if (!achievementTooltip) return; // (maj 30/05 - Robustesse DOM)
+    if (!achievementTooltip) return;
 
     // N'affiche que si aucune infobulle n'est actuellement cliquée et affichée
     if (activeAchievementTooltip && activeAchievementTooltip.classList.contains('clicked')) return;
@@ -1367,7 +1455,7 @@ export function showAchievementTooltip(event, ach) {
  */
 export function hideAchievementTooltip() {
     const achievementTooltip = document.getElementById('achievementTooltip');
-    if (!achievementTooltip) return; // (maj 30/05 - Robustesse DOM)
+    if (!achievementTooltip) return;
 
     // Ne masque que si elle n'est pas actuellement cliquée
     if (activeAchievementTooltip && activeAchievementTooltip.classList.contains('clicked')) return;
@@ -1385,7 +1473,7 @@ export function toggleAchievementTooltip(event, ach) {
     event.stopPropagation(); // Empêche le clic de se propager au document
 
     const achievementTooltip = document.getElementById('achievementTooltip');
-    if (!achievementTooltip) return; // (maj 30/05 - Robustesse DOM)
+    if (!achievementTooltip) return;
 
     // Si une infobulle est déjà active et que c'est CELLE-CI, la masque
     if (activeAchievementTooltip && activeAchievementTooltip.dataset.achId === ach.id && achievementTooltip.classList.contains('clicked')) {
@@ -1447,11 +1535,10 @@ export function openTab(tabContainer) {
     if (tabContainer === document.getElementById('skillsContainer')) {
         renderSkillsMenu();
     } else if (tabContainer === document.getElementById('questsContainer')) {
-        // (maj 30/05 Quete)
         const domElementsForQuests = {
-            questsGridContainer: document.getElementById('questsList'), // ID du conteneur principal de la liste des quêtes
-            questsCompletedCountDisplay: document.getElementById('questsCompletedCount'), // ID pour le compteur de quêtes complétées
-            questsTotalCountDisplay: document.getElementById('questsTotalCount') // ID pour le compteur total de quêtes
+            questsGridContainer: document.getElementById('questsList'),
+            questsCompletedCountDisplay: document.getElementById('questsCompletedCount'),
+            questsTotalCountDisplay: document.getElementById('questsTotalCount')
         };
         if (domElementsForQuests.questsGridContainer) {
             renderQuestsFromQuestsJS(domElementsForQuests);
@@ -1462,7 +1549,7 @@ export function openTab(tabContainer) {
     } else if (tabContainer === document.getElementById('achievementsContainer')) {
         renderAchievements();
     } else if (tabContainer === document.getElementById('settingsContainer')) {
-        updateSettingsButtonStates(); // (maj 30/05 - Appel fonction thème)
+        updateSettingsButtonStates();
     }
     // Appel global de updateDisplay pour s'assurer que tout est à jour
     updateDisplay();
@@ -1474,7 +1561,7 @@ export function openTab(tabContainer) {
 export function openStatsModal() {
     updateStatsDisplay();
     const statsModal = document.getElementById('statsModal');
-    if (statsModal) statsModal.style.display = 'flex'; // (maj 30/05 - Robustesse DOM)
+    if (statsModal) statsModal.style.display = 'flex';
 }
 
 /**
@@ -1482,7 +1569,7 @@ export function openStatsModal() {
  */
 export function closeStatsModal() {
     const statsModal = document.getElementById('statsModal');
-    if (statsModal) statsModal.style.display = 'none'; // (maj 30/05 - Robustesse DOM)
+    if (statsModal) statsModal.style.display = 'none';
 }
 
 /**
@@ -1491,73 +1578,73 @@ export function closeStatsModal() {
 export function updateStatsDisplay() {
     // Production Globale
     const statsCurrentBPS = document.getElementById('statsCurrentBPS');
-    if (statsCurrentBPS) statsCurrentBPS.textContent = formatNumber(totalBonsPointsParSeconde, 2); // (maj 30/05 - Robustesse DOM)
+    if (statsCurrentBPS) statsCurrentBPS.textContent = formatNumber(totalBonsPointsParSeconde, 2);
 
     const statsSkillBonus = document.getElementById('statsSkillBonus');
-    if (statsSkillBonus) statsSkillBonus.textContent = formatNumber(skillEffects.allBpsMultiplier.sub(1).mul(100), 2) + '%'; // Utilise allBpsMultiplier pour le bonus global (maj 30/05 - Logique stats)
+    if (statsSkillBonus) statsSkillBonus.textContent = formatNumber(skillEffects.allBpsMultiplier.sub(1).mul(100), 2) + '%';
 
     const statsAscensionBonus = document.getElementById('statsAscensionBonus');
-    if (statsAscensionBonus) statsAscensionBonus.textContent = formatNumber(ascensionBonus, 2) + 'x'; // (maj 30/05 - Robustesse DOM)
+    if (statsAscensionBonus) statsAscensionBonus.textContent = formatNumber(ascensionBonus, 2) + 'x';
 
     const statsPrestigeBPSBonus = document.getElementById('statsPrestigeBPSBonus');
-    if (statsPrestigeBPSBonus) statsPrestigeBPSBonus.textContent = formatNumber(getPrestigeBonusMultiplier('bps', prestigeCount, prestigePoints), 2) + 'x'; // (maj 30/05 - Robustesse DOM)
+    if (statsPrestigeBPSBonus) statsPrestigeBPSBonus.textContent = formatNumber(getPrestigeBonusMultiplier('bps', prestigeCount, prestigePoints), 2) + 'x';
 
     const statsAchievementBPSBonus = document.getElementById('statsAchievementBPSBonus');
-    if (statsAchievementBPSBonus) statsAchievementBPSBonus.textContent = formatNumber(permanentBpsBonusFromAchievements.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsAchievementBPSBonus) statsAchievementBPSBonus.textContent = formatNumber(permanentBpsBonusFromAchievements.mul(100), 2) + '%';
 
     const statsAllBPSMultiplier = document.getElementById('statsAllBPSMultiplier');
-    if (statsAllBPSMultiplier) statsAllBPSMultiplier.textContent = formatNumber(skillEffects.allBpsMultiplier, 2) + 'x'; // (maj 30/05 - Robustesse DOM)
+    if (statsAllBPSMultiplier) statsAllBPSMultiplier.textContent = formatNumber(skillEffects.allBpsMultiplier, 2) + 'x';
 
 
     // Ressources et Multiplicateurs
     const statsBonsPoints = document.getElementById('statsBonsPoints');
-    if (statsBonsPoints) statsBonsPoints.textContent = formatNumber(bonsPoints, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsBonsPoints) statsBonsPoints.textContent = formatNumber(bonsPoints, 0);
 
     const statsImages = document.getElementById('statsImages');
-    if (statsImages) statsImages.textContent = formatNumber(images, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsImages) statsImages.textContent = formatNumber(images, 0);
 
     const statsProfesseur = document.getElementById('statsProfesseur');
-    if (statsProfesseur) statsProfesseur.textContent = formatNumber(nombreProfesseur, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsProfesseur) statsProfesseur.textContent = formatNumber(nombreProfesseur, 0);
 
     const statsProfMultiplier = document.getElementById('statsProfMultiplier');
-    if (statsProfMultiplier) statsProfMultiplier.textContent = formatNumber(skillEffects.licenceProfMultiplier.mul(100), 2) + '%'; // Correction: Utilise skillEffects.licenceProfMultiplier (maj 30/05 - Correction variable)
+    if (statsProfMultiplier) statsProfMultiplier.textContent = formatNumber(skillEffects.licenceProfMultiplier.mul(100), 2) + '%';
 
     const statsAscensionPoints = document.getElementById('statsAscensionPoints');
-    if (statsAscensionPoints) statsAscensionPoints.textContent = formatNumber(ascensionPoints, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsAscensionPoints) statsAscensionPoints.textContent = formatNumber(ascensionPoints, 0);
 
     const statsPrestigePoints = document.getElementById('statsPrestigePoints');
-    if (statsPrestigePoints) statsPrestigePoints.textContent = formatNumber(prestigePoints, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsPrestigePoints) statsPrestigePoints.textContent = formatNumber(prestigePoints, 0);
 
 
     // Coûts et Réductions
     const statsEleveCostReduction = document.getElementById('statsEleveCostReduction');
-    if (statsEleveCostReduction) statsEleveCostReduction.textContent = formatNumber(skillEffects.eleveCostReduction.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsEleveCostReduction) statsEleveCostReduction.textContent = formatNumber(skillEffects.eleveCostReduction.mul(100), 2) + '%';
 
     const statsClasseCostReduction = document.getElementById('statsClasseCostReduction');
-    if (statsClasseCostReduction) statsClasseCostReduction.textContent = formatNumber(skillEffects.classeCostReduction.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsClasseCostReduction) statsClasseCostReduction.textContent = formatNumber(skillEffects.classeCostReduction.mul(100), 2) + '%';
 
     const statsImageCostReduction = document.getElementById('statsImageCostReduction');
-    if (statsImageCostReduction) statsImageCostReduction.textContent = formatNumber(skillEffects.imageCostReduction.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsImageCostReduction) statsImageCostReduction.textContent = formatNumber(skillEffects.imageCostReduction.mul(100), 2) + '%';
 
     const statsProfesseurCostReduction = document.getElementById('statsProfesseurCostReduction');
-    if (statsProfesseurCostReduction) statsProfesseurCostReduction.textContent = formatNumber(skillEffects.ProfesseurCostReduction.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsProfesseurCostReduction) statsProfesseurCostReduction.textContent = formatNumber(skillEffects.ProfesseurCostReduction.mul(100), 2) + '%';
 
     const statsEcoleCostReduction = document.getElementById('statsEcoleCostReduction');
-    if (statsEcoleCostReduction) statsEcoleCostReduction.textContent = formatNumber(skillEffects.ecoleCostReduction.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsEcoleCostReduction) statsEcoleCostReduction.textContent = formatNumber(skillEffects.ecoleCostReduction.mul(100), 2) + '%';
 
     const statsAutomationCostReduction = document.getElementById('statsAutomationCostReduction');
-    if (statsAutomationCostReduction) statsAutomationCostReduction.textContent = formatNumber(skillEffects.automationCostReduction.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsAutomationCostReduction) statsAutomationCostReduction.textContent = formatNumber(skillEffects.automationCostReduction.mul(100), 2) + '%';
 
     const statsAllCostReduction = document.getElementById('statsAllCostReduction');
-    if (statsAllCostReduction) statsAllCostReduction.textContent = formatNumber(skillEffects.allCostReduction.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsAllCostReduction) statsAllCostReduction.textContent = formatNumber(skillEffects.allCostReduction.mul(100), 2) + '%';
 
 
     // Bonus Spécifiques
     const statsClickBPSBonus = document.getElementById('statsClickBPSBonus');
-    if (statsClickBPSBonus) statsClickBPSBonus.textContent = formatNumber(skillEffects.clickBonsPointsBonus, 2); // (maj 30/05 - Robustesse DOM)
+    if (statsClickBPSBonus) statsClickBPSBonus.textContent = formatNumber(skillEffects.clickBonsPointsBonus, 2);
 
     const statsPAGainMultiplier = document.getElementById('statsPAGainMultiplier');
-    if (statsPAGainMultiplier) { // (maj 30/05 - Robustesse DOM)
+    if (statsPAGainMultiplier) {
         // Calcul du multiplicateur total de gain de PA
         let totalPAGainMult = new Decimal(1);
         totalPAGainMult = totalPAGainMult.add(paMultiplierFromQuests); // Bonus des quêtes
@@ -1567,34 +1654,34 @@ export function updateStatsDisplay() {
         if (postDoctoratData) {
             totalPAGainMult = totalPAGainMult.add(postDoctoratData.getEffectValue().sub(1).mul(nombrePostDoctorat));
         }
-        statsPAGainMultiplier.textContent = formatNumber(totalPAGainMult.sub(1).mul(100), 2) + '%'; // (maj 30/05 - Logique stats PA)
+        statsPAGainMultiplier.textContent = formatNumber(totalPAGainMult.sub(1).mul(100), 2) + '%';
     }
 
     const statsAscensionBonusIncrease = document.getElementById('statsAscensionBonusIncrease');
-    if (statsAscensionBonusIncrease) statsAscensionBonusIncrease.textContent = formatNumber(skillEffects.ascensionBonusIncrease, 2) + 'x'; // (maj 30/05 - Robustesse DOM)
+    if (statsAscensionBonusIncrease) statsAscensionBonusIncrease.textContent = formatNumber(skillEffects.ascensionBonusIncrease, 2) + 'x';
 
     const statsOfflineProductionIncrease = document.getElementById('statsOfflineProductionIncrease');
-    if (statsOfflineProductionIncrease) statsOfflineProductionIncrease.textContent = formatNumber(skillEffects.offlineProductionIncrease.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsOfflineProductionIncrease) statsOfflineProductionIncrease.textContent = formatNumber(skillEffects.offlineProductionIncrease.mul(100), 2) + '%';
 
     const statsAllProductionMultiplier = document.getElementById('statsAllProductionMultiplier');
-    if (statsAllProductionMultiplier) statsAllProductionMultiplier.textContent = formatNumber(skillEffects.allProductionMultiplier.mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsAllProductionMultiplier) statsAllProductionMultiplier.textContent = formatNumber(skillEffects.allProductionMultiplier.mul(100), 2) + '%';
 
 
     // Progression
     const statsTotalClicks = document.getElementById('statsTotalClicks');
-    if (statsTotalClicks) statsTotalClicks.textContent = formatNumber(totalClicks, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsTotalClicks) statsTotalClicks.textContent = formatNumber(totalClicks, 0);
 
     const statsAscensionCount = document.getElementById('statsAscensionCount');
-    if (statsAscensionCount) statsAscensionCount.textContent = formatNumber(ascensionCount, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsAscensionCount) statsAscensionCount.textContent = formatNumber(ascensionCount, 0);
 
     const statsTotalPAEarned = document.getElementById('statsTotalPAEarned');
-    if (statsTotalPAEarned) statsTotalPAEarned.textContent = formatNumber(totalPAEarned, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsTotalPAEarned) statsTotalPAEarned.textContent = formatNumber(totalPAEarned, 0);
 
     const statsPrestigeCount = document.getElementById('statsPrestigeCount');
-    if (statsPrestigeCount) statsPrestigeCount.textContent = formatNumber(prestigeCount, 0); // (maj 30/05 - Robustesse DOM)
+    if (statsPrestigeCount) statsPrestigeCount.textContent = formatNumber(prestigeCount, 0);
 
 
-    // Compétences (ajout des éléments manquants) (maj 30/05 - Ajout stats compétences)
+    // Compétences (ajout des éléments manquants)
     const statsStudiesSkillPoints = document.getElementById('statsStudiesSkillPoints');
     if (statsStudiesSkillPoints) statsStudiesSkillPoints.textContent = formatNumber(studiesSkillPoints, 0);
 
@@ -1617,25 +1704,121 @@ export function updateStatsDisplay() {
     // Bonus Prestige Spécifiques
     const licenceData = prestigePurchasesData.find(p => p.id === 'licence');
     const statsLicenceBoost = document.getElementById('statsLicenceBoost');
-    if (statsLicenceBoost && licenceData) statsLicenceBoost.textContent = formatNumber(licenceData.getEffectValue().sub(1).mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsLicenceBoost && licenceData) statsLicenceBoost.textContent = formatNumber(licenceData.getEffectValue().sub(1).mul(100), 2) + '%';
 
     const master1Data = prestigePurchasesData.find(p => p.id === 'master1');
     const statsMaster1Boost = document.getElementById('statsMaster1Boost');
-    if (statsMaster1Boost && master1Data) statsMaster1Boost.textContent = formatNumber(master1Data.getEffectValue().sub(1).mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsMaster1Boost && master1Data) statsMaster1Boost.textContent = formatNumber(master1Data.getEffectValue().sub(1).mul(100), 2) + '%';
 
     const master2Data = prestigePurchasesData.find(p => p.id === 'master2');
     const statsMaster2Boost = document.getElementById('statsMaster2Boost');
-    if (statsMaster2Boost && master2Data) statsMaster2Boost.textContent = formatNumber(master2Data.getEffectValue().sub(1).mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsMaster2Boost && master2Data) statsMaster2Boost.textContent = formatNumber(master2Data.getEffectValue().sub(1).mul(100), 2) + '%';
 
     const doctoratData = prestigePurchasesData.find(p => p.id === 'doctorat');
     const statsDoctoratBPSBoost = document.getElementById('statsDoctoratBPSBoost');
     const statsDoctoratMinClasses = document.getElementById('statsDoctoratMinClasses');
-    if (statsDoctoratBPSBoost && statsDoctoratMinClasses && doctoratData) { // (maj 30/05 - Robustesse DOM)
+    if (statsDoctoratBPSBoost && statsDoctoratMinClasses && doctoratData) {
         statsDoctoratBPSBoost.textContent = formatNumber(doctoratData.getEffectValue().sub(1).mul(100), 2) + '%';
         statsDoctoratMinClasses.textContent = formatNumber(doctoratData.getMinClasses(), 0);
     }
 
     const postDoctoratData = prestigePurchasesData.find(p => p.id === 'postDoctorat');
     const statsPostDoctoratBoost = document.getElementById('statsPostDoctoratBoost');
-    if (statsPostDoctoratBoost && postDoctoratData) statsPostDoctoratBoost.textContent = formatNumber(postDoctoratData.getEffectValue().sub(1).mul(100), 2) + '%'; // (maj 30/05 - Robustesse DOM)
+    if (statsPostDoctoratBoost && postDoctoratData) statsPostDoctoratBoost.textContent = formatNumber(postDoctoratData.getEffectValue().sub(1).mul(100), 2) + '%';
 }
+
+// --- Fonctions de gestion de la modale des Logs (maj 31/05 debug + log) ---
+
+/**
+ * Ouvre la modale affichant les logs du jeu et les rend.
+ */
+export function openLogModal() {
+    const logModal = document.getElementById('logModal');
+    if (logModal) {
+        logModal.style.display = 'flex'; // Utiliser flex pour centrer ou gérer le layout
+        renderLogs();
+    }
+}
+
+/**
+ * Ferme la modale des logs.
+ */
+export function closeLogModal() {
+    const logModal = document.getElementById('logModal');
+    if (logModal) {
+        logModal.style.display = 'none';
+    }
+}
+
+/**
+ * Récupère les logs et les affiche dans la modale des logs.
+ */
+export function renderLogs() {
+    const logContentElement = document.getElementById('logContent');
+    if (logContentElement) {
+        const logs = getLogs();
+        logContentElement.textContent = logs.map(log => {
+            let logString = `[${log.level}] ${log.timestamp} - ${log.message}`;
+            if (log.error_message) {
+                logString += `\n  Message: ${log.error_message}`;
+            }
+            if (log.stack) {
+                // Affiche seulement les premières lignes de la stack pour la lisibilité
+                logString += `\n  Stack: ${log.stack.split('\n').slice(0, 3).join('\n  ')}`;
+            }
+            return logString;
+        }).join('\n\n'); // Ajouter deux retours à la ligne pour séparer les entrées
+        logContentElement.scrollTop = logContentElement.scrollHeight; // Faire défiler vers le bas pour voir les derniers logs
+    }
+}
+
+/**
+ * Copie le contenu des logs affichés dans le presse-papiers.
+ */
+export function copyLogsToClipboard() {
+    const logContentElement = document.getElementById('logContent');
+    if (logContentElement && logContentElement.textContent) {
+        const textArea = document.createElement('textarea');
+        textArea.value = logContentElement.textContent;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            showNotification("Logs copiés dans le presse-papiers !", 'success');
+        } catch (err) {
+            console.error('Erreur lors de la copie des logs:', err);
+            showNotification("Échec de la copie des logs.", 'error');
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
+// --- Gestionnaires d'événements pour les boutons de la modale des logs (maj 31/05 debug + log) ---
+// Ces gestionnaires sont ajoutés ici car ils sont directement liés à la logique UI de la modale des logs.
+// Ils seront appelés par events.js via la délégation d'événements ou directement si les éléments sont toujours présents.
+document.addEventListener('DOMContentLoaded', () => {
+    const showLogsButton = document.getElementById('showLogsButton');
+    if (showLogsButton) {
+        showLogsButton.addEventListener('click', openLogModal);
+    }
+
+    const copyLogsButton = document.getElementById('copyLogsButton');
+    if (copyLogsButton) {
+        copyLogsButton.addEventListener('click', copyLogsToClipboard);
+    }
+
+    const clearLogsButton = document.getElementById('clearLogsButton');
+    if (clearLogsButton) {
+        clearLogsButton.addEventListener('click', () => {
+            clearLogs(); // Efface les logs du localStorage via logger.js
+            renderLogs(); // Met à jour l'affichage de la modale après effacement
+            showNotification("Logs effacés !", 'info');
+        });
+    }
+
+    // Gestionnaire pour le bouton de fermeture de la modale des logs
+    const closeLogModalButton = document.querySelector('#logModal .close-button');
+    if (closeLogModalButton) {
+        closeLogModalButton.addEventListener('click', closeLogModal);
+    }
+});

@@ -29,7 +29,7 @@
 //   Impact : Fournit les données utilisées par tous les modules de logique.
 //
 // - ui.js : Gestion de l'interface utilisateur, mise à jour de l'affichage des ressources,
-//           états des boutons, visibilité des sections.
+//           états des boutons, visibilité des sections, notifications, et modales (stats, logs). (maj 31/05 debug + log)
 //   Impact : Manipule la visibilité des éléments DOM définis ici (ex: `display: none;`).
 //             Interagit avec les éléments de sélection de thème et de mode jour/nuit.
 //
@@ -65,6 +65,9 @@
 //               changements d'état, etc.).
 //   Impact : Attache les gestionnaires d'événements à la plupart des éléments DOM interactifs
 //             définis dans ce fichier.
+//
+// - logger.js : Système de journalisation pour enregistrer les erreurs, avertissements et informations. (maj 31/05 debug + log)
+//   Impact : Permet de stocker et récupérer des messages pour le débogage. (maj 31/05 debug + log)
 //
 // ------------------ Variables Clés (JavaScript) ------------------
 //
@@ -140,6 +143,8 @@
 //     Impact : Géré par `core.js` et `events.js`.
 //   - Paramètres divers : `offlineProgressToggle` (checkbox), `toggleMinimalistResources` (bouton), `statsButton` (bouton).
 //     Impact : Gérés par `settings.js` et `events.js`.
+//   - Bouton "Voir les Logs": `showLogsButton`. (maj 31/05 debug + log)
+//     Impact : Ouvre une modale pour afficher les logs du jeu. (maj 31/05 debug + log)
 //
 // - `<div id="ascensionMenuContainer">` : Section pour le mécanisme d'ascension.
 //   - Titre cliquable d'ascension : `ascensionTitleButton`.
@@ -202,6 +207,12 @@
 //       `statsBonsPoints`, `statsImages`, `statsProfesseur`, `statsProfMultiplier`,
 //       `statsAscensionPoints`, `statsPrestigePoints`, `statsEleveCostReduction`, etc.
 //     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
+//
+// - `<div id="logModal">` : Modale pour l'affichage des logs du jeu. (maj 31/05 debug + log)
+//   - Bouton de fermeture : `close-button`. (maj 31/05 debug + log)
+//   - Contenu des logs : `logContent`. (maj 31/05 debug + log)
+//   - Boutons d'action : `copyLogsButton`, `clearLogsButton`. (maj 31/05 debug + log)
+//   Impact : Sa visibilité et son contenu sont gérés par `ui.js`. (maj 31/05 debug + log)
 //
 // ------------------ Notes Spécifiques ------------------
 //
@@ -401,6 +412,9 @@
                 </div>
                 <div class="achat-section" id="statsButtonSetting" style="display: none;">
                     <button id="statsButton">Statistiques</button>
+                </div>
+                <div class="achat-section">
+                    <button id="showLogsButton" class="game-button">Voir les Logs</button>
                 </div>
             </div>
 
@@ -696,6 +710,18 @@
         </div>
     </div>
 
+    <div id="logModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeLogModal()">&times;</span>
+            <h2>Logs du Jeu</h2>
+            <pre id="logContent" style="white-space: pre-wrap; word-break: break-all; max-height: 400px; overflow-y: scroll; background-color: #333; color: #eee; padding: 10px; border-radius: 5px;"></pre>
+            <div class="log-actions">
+                <button id="copyLogsButton" class="game-button">Copier les Logs</button>
+                <button id="clearLogsButton" class="game-button">Effacer les Logs</button>
+            </div>
+        </div>
+    </div>
+
     <script src="break_infinity.min.js"></script>
 
     <script type="module" src="data.js"></script>
@@ -710,8 +736,7 @@
     <script type="module" src="quests.js"></script>
     <script type="module" src="achievements.js"></script>
     <script type="module" src="events.js"></script>
-
-    <script type="module">
+    <script type="module" src="logger.js"></script> <script type="module">
         // Importez la fonction d'initialisation du jeu depuis core.js
         import { initializeGame } from './core.js';
 
