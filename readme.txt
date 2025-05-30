@@ -330,7 +330,7 @@ Notes Spécifiques :
 //   // Convertit les chaînes de caractères chargées en objets Decimal.
 //   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
 //
-// function resetGameVariables()
+// export function resetGameVariables()
 //   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
 //   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
 //
@@ -413,7 +413,7 @@ Notes Spécifiques :
 //     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
 //     hideAchievementTooltip, toggleAchievementTooltip, showNotification
 //
-// Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
+// Remarque: La bibliothèque break_infinity.min.js est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.
 //
 // ---------------------------------------------------------------------

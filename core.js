@@ -555,7 +555,7 @@ export function loadGameState() {
 /**
  * Réinitialise toutes les variables du jeu à leur état initial.
  */
-function resetGameVariables() {
+export function resetGameVariables() { // MODIFICATION: Exported this function
     bonsPoints = new Decimal(0);
     totalBonsPointsParSeconde = new Decimal(0);
     bonsPointsTotal = new Decimal(0);
@@ -1345,7 +1345,7 @@ export function initializeGame() {
 //   // Convertit les chaînes de caractères chargées en objets Decimal.
 //   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
 //
-// function resetGameVariables()
+// export function resetGameVariables()
 //   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
 //   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
 //
