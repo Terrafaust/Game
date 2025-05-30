@@ -11,10 +11,9 @@
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
  * autoClasseActive, autoImageActive, autoProfesseurActive), à la fonction d'achat générique (performPurchase),
  * et à la fonction de formatage des nombres (formatNumber).
- * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
  * - ui.js : Fournit les fonctions de notification (showNotification) et de mise à jour
  * de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates), aux fonctions de sauvegarde (saveGameState),
- * de mise à jour de l'affichage global (updateDisplay) 
+ * de mise à jour de l'affichage global (updateDisplay)
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -23,6 +22,7 @@
  * - skillEffects : Objet contenant les effets cumulés des compétences, notamment les réductions de coût.
  *
  * Fonctions Clés Définies et Exportées :
+ * - calculateAutomationCost(baseCost) : Calcule le coût d'une automatisation en tenant compte des réductions de coût.
  * - runAutomation() : Exécute les achats pour toutes les automatisations actives.
  * - toggleAutomation(itemType, baseCost) : Active ou désactive une automatisation spécifique,
  * gère le coût en Points d'Ascension et les notifications.
@@ -52,31 +52,51 @@ import {
     skillEffects,
     formatNumber
 } from './core.js';
-// Importations des fonctions de calcul de coût depuis data.js
-import {
-    calculateAutomationCost
-} from './data.js';
 // Importations des fonctions d'UI depuis ui.js
 import {
     showNotification, // Import showNotification from ui.js
     updateAutomationButtonStates, // This function is defined in ui.js
     updateDisplay
 } from './ui.js';
+
+/**
+ * Calcule le coût d'une automatisation en tenant compte des réductions de coût.
+ * @param {Decimal} baseCost - Le coût de base de l'automatisation.
+ * @returns {Decimal} Le coût final après application des réductions.
+ */
+export function calculateAutomationCost(baseCost) {
+    // Assurez-vous que baseCost est un objet Decimal
+    let cost = new Decimal(baseCost);
+
+    // Appliquer la réduction de coût des compétences d'automatisation
+    // skillEffects.automationCostReduction est un pourcentage de réduction (ex: 0.1 pour 10%)
+    if (skillEffects.automationCostReduction.gt(0)) {
+        cost = cost.mul(new Decimal(1).sub(skillEffects.automationCostReduction));
+    }
+
+    // Appliquer la réduction de coût globale
+    if (skillEffects.allCostReduction.gt(0)) {
+        cost = cost.mul(new Decimal(1).sub(skillEffects.allCostReduction));
+    }
+
+    return cost;
+}
+
 /**
  * Exécute les achats pour toutes les automatisations actives.
  * Cette fonction est appelée par la boucle de jeu principale dans core.js.
  */
 export function runAutomation() {
-    if (autoEleveActive) {
+    if (autoEleveActive.value) { // Access the value property of the Decimal object
         performPurchase('eleve', '1', true);
     }
-    if (autoClasseActive) {
+    if (autoClasseActive.value) { // Access the value property of the Decimal object
         performPurchase('classe', '1', true);
     }
-    if (autoImageActive) {
+    if (autoImageActive.value) { // Access the value property of the Decimal object
         performPurchase('image', '1', true);
     }
-    if (autoProfesseurActive) {
+    if (autoProfesseurActive.value) { // Access the value property of the Decimal object
         performPurchase('Professeur', '1', true);
     }
 }
@@ -86,70 +106,45 @@ export function runAutomation() {
  * Gère le coût en Points d'Ascension et les notifications.
  * Cette fonction est appelée par events.js.
  * @param {string} itemType - Le type d'objet à automatiser ('eleve', 'classe', 'image', 'Professeur').
- * @param {number} baseCost - Le coût de base de l'automatisation en Points d'Ascension.
+ * @param {Decimal} baseCost - Le coût de base de l'automatisation en Points d'Ascension.
  */
 export function toggleAutomation(itemType, baseCost) {
     let currentAutomationState;
-    let automationFlagName;
+    let automationFlag; // Use a direct reference to the Decimal object, not its value
     switch (itemType) {
         case 'eleve':
-            currentAutomationState = autoEleveActive;
-            automationFlagName = 'autoEleveActive';
+            currentAutomationState = autoEleveActive.value;
+            automationFlag = autoEleveActive;
             break;
         case 'classe':
-            currentAutomationState = autoClasseActive;
-            automationFlagName = 'autoClasseActive';
+            currentAutomationState = autoClasseActive.value;
+            automationFlag = autoClasseActive;
             break;
         case 'image':
-            currentAutomationState = autoImageActive;
-            automationFlagName = 'autoImageActive';
+            currentAutomationState = autoImageActive.value;
+            automationFlag = autoImageActive;
             break;
         case 'Professeur':
-            currentAutomationState = autoProfesseurActive;
-            automationFlagName = 'autoProfesseurActive';
+            currentAutomationState = autoProfesseurActive.value;
+            automationFlag = autoProfesseurActive;
             break;
         default:
             console.error(`Type d'automatisation inconnu : ${itemType}`);
             return;
     }
 
-    const cost = calculateAutomationCost(baseCost);
+    const cost = calculateAutomationCost(new Decimal(baseCost)); // Ensure baseCost is a Decimal
 
     if (currentAutomationState) {
         // Désactiver l'automatisation
-        // Les variables autoEleveActive, etc., sont exportées avec 'let' de core.js,
-        // donc elles peuvent être réaffectées directement.
-        if (automationFlagName === 'autoEleveActive') {
-            autoEleveActive.value = false;
-        }
-        if (automationFlagName === 'autoClasseActive') {
-            autoClasseActive.value = false;
-        }
-        if (automationFlagName === 'autoImageActive') {
-            autoImageActive.value = false;
-        }
-        if (automationFlagName === 'autoProfesseurActive') {
-            autoProfesseurActive.value = false;
-        }
-
+        automationFlag.value = false; // Set the value property of the Decimal object
         showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} désactivée.`);
     } else {
         // Activer l'automatisation
         if (ascensionPoints.gte(cost)) {
             // ascensionPoints est une Decimal, la soustraction retourne une nouvelle Decimal
             ascensionPoints.assign(ascensionPoints.sub(cost)); // Utiliser assign pour Decimal
-            if (automationFlagName === 'autoEleveActive') {
-                autoEleveActive.value = true;
-            }
-            if (automationFlagName === 'autoClasseActive') {
-                autoClasseActive.value = true;
-            }
-            if (automationFlagName === 'autoImageActive') {
-                autoImageActive.value = true;
-            }
-            if (automationFlagName === 'autoProfesseurActive') {
-                autoProfesseurActive.value = true;
-            }
+            automationFlag.value = true; // Set the value property of the Decimal object
             showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} activée !`);
         } else {
             showNotification(`Pas assez de PA (${formatNumber(cost, 0)} PA) !`);
@@ -159,12 +154,6 @@ export function toggleAutomation(itemType, baseCost) {
 
     // `updateDisplay()` est appelée pour rafraîchir l'affichage global,
     // ce qui inclura la mise à jour des boutons d'automatisation via `ui.js`.
-    // L'appel direct à `updateAutomationButtonStates()` ici est supprimé
-    // pour éviter la redeclaration et maintenir la séparation des responsabilités.
     updateDisplay();
     saveGameState();
 }
-
-// La fonction `updateAutomationButtonStates` a été déplacée dans `ui.js`
-// et n'est plus définie ici pour éviter la redeclaration.
-// Ce fichier l'importe de `ui.js` pour l'utiliser si nécessaire.
