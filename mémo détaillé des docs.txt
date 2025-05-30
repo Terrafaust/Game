@@ -607,6 +607,11 @@ MonJeuIncremental/
 // export let statsButtonUnlocked;            // Vrai si le bouton "Statistiques" est débloqué.
 // export let prestigeMenuButtonUnlocked;     // Vrai si le bouton de menu "Prestige" est débloqué.
 // export let ascensionMenuButtonUnlocked;    // Vrai si le bouton de menu "Ascension" est débloqué.
+// export let lyceesUnlocked;                 // Vrai si les Lycées sont débloqués. (maj 30/05 - debug)
+// export let collegesUnlocked;               // Vrai si les Collèges sont débloqués. (maj 30/05 - debug)
+// export let studiesSkillsUnlocked;          // Vrai si les compétences d'études sont débloquées. (maj 30/05 - debug)
+// export let ascensionSkillsUnlocked;        // Vrai si les compétences d'ascension sont débloquées. (maj 30/05 - debug)
+// export let prestigeSkillsUnlocked;         // Vrai si les compétences de prestige sont débloquées. (maj 30/05 - debug)
 //
 // ------------------ Variables d'Automatisation ------------------
 //
@@ -723,7 +728,7 @@ MonJeuIncremental/
 //   // Sauvegarde l'état actuel de toutes les variables du jeu dans le localStorage.
 //   // Convertit les objets Decimal en chaînes de caractères pour la sauvegarde.
 //   // Inclut les données de succès (`unlockedAchievements`, `permanentBpsBonusFromAchievements`)
-//   // et de quêtes (`completedQuests`, `paMultiplierFromQuests`). (maj 30/05 core)
+//   // et de quêtes (`completedQuests`, `paMultiplierFromQuêtes`). (maj 30/05 core)
 //
 // export function loadGameState()
 //   // Charge l'état du jeu depuis le localStorage.
@@ -819,7 +824,7 @@ MonJeuIncremental/
 //     et peuvent être modifiés par `achievements.js` via réassignation après un `rewardFn` qui retourne une valeur. (maj 30/05 core)
 // Importations depuis './ui.js':
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
-//     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
+//     updateSettingsButtonStates, renderSkillsMenu, renderQuêtes, renderAchievements,
 //     openTab, closeStatsModal, updateStatsDisplay, showNotification
 //   - Note : Les fonctions de tooltip (`showAchievementTooltip`, `hideAchievementTooltip`, `toggleAchievementTooltip`)
 //     sont gérées directement par `events.js` via délégation et appellent des fonctions de `achievements.js`. (maj 30/05 core)
@@ -828,7 +833,6 @@ MonJeuIncremental/
 // globalement avant ce script pour la gestion des grands nombres.
 //
 // ---------------------------------------------------------------------
-
 
 
 

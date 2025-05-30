@@ -49,6 +49,11 @@
 // export let statsButtonUnlocked;            // Vrai si le bouton "Statistiques" est débloqué.
 // export let prestigeMenuButtonUnlocked;     // Vrai si le bouton de menu "Prestige" est débloqué.
 // export let ascensionMenuButtonUnlocked;    // Vrai si le bouton de menu "Ascension" est débloqué.
+// export let lyceesUnlocked;                 // Vrai si les Lycées sont débloqués. (maj 30/05 - debug)
+// export let collegesUnlocked;               // Vrai si les Collèges sont débloqués. (maj 30/05 - debug)
+// export let studiesSkillsUnlocked;          // Vrai si les compétences d'études sont débloquées. (maj 30/05 - debug)
+// export let ascensionSkillsUnlocked;        // Vrai si les compétences d'ascension sont débloquées. (maj 30/05 - debug)
+// export let prestigeSkillsUnlocked;         // Vrai si les compétences de prestige sont débloquées. (maj 30/05 - debug)
 //
 // ------------------ Variables d'Automatisation ------------------
 //
@@ -165,7 +170,7 @@
 //   // Sauvegarde l'état actuel de toutes les variables du jeu dans le localStorage.
 //   // Convertit les objets Decimal en chaînes de caractères pour la sauvegarde.
 //   // Inclut les données de succès (`unlockedAchievements`, `permanentBpsBonusFromAchievements`)
-//   // et de quêtes (`completedQuests`, `paMultiplierFromQuests`). (maj 30/05 core)
+//   // et de quêtes (`completedQuests`, `paMultiplierFromQuêtes`). (maj 30/05 core)
 //
 // export function loadGameState()
 //   // Charge l'état du jeu depuis le localStorage.
@@ -261,7 +266,7 @@
 //     et peuvent être modifiés par `achievements.js` via réassignation après un `rewardFn` qui retourne une valeur. (maj 30/05 core)
 // Importations depuis './ui.js':
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
-//     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
+//     updateSettingsButtonStates, renderSkillsMenu, renderQuêtes, renderAchievements,
 //     openTab, closeStatsModal, updateStatsDisplay, showNotification
 //   - Note : Les fonctions de tooltip (`showAchievementTooltip`, `hideAchievementTooltip`, `toggleAchievementTooltip`)
 //     sont gérées directement par `events.js` via délégation et appellent des fonctions de `achievements.js`. (maj 30/05 core)
@@ -309,6 +314,11 @@ export let maxPurchaseOptionUnlocked;
 export let statsButtonUnlocked;
 export let prestigeMenuButtonUnlocked; // Déverrouillage du bouton de menu Prestige
 export let ascensionMenuButtonUnlocked; // Déverrouillage du bouton de menu Ascension
+export let lyceesUnlocked = false; // Vrai si les Lycées sont débloqués. (maj 30/05 - debug)
+export let collegesUnlocked = false; // Vrai si les Collèges sont débloqués. (maj 30/05 - debug)
+export let studiesSkillsUnlocked = false; // Vrai si les compétences d'études sont débloquées. (maj 30/05 - debug)
+export let ascensionSkillsUnlocked = false; // Vrai si les compétences d'ascension sont débloquées. (maj 30/05 - debug)
+export let prestigeSkillsUnlocked = false; // Vrai si les compétences de prestige sont débloquées. (maj 30/05 - debug)
 
 // Variables d'automatisation
 export let autoEleveActive;
@@ -705,6 +715,11 @@ export function saveGameState() {
         statsButtonUnlocked: statsButtonUnlocked,
         prestigeMenuButtonUnlocked: prestigeMenuButtonUnlocked,
         ascensionMenuButtonUnlocked: ascensionMenuButtonUnlocked,
+        lyceesUnlocked: lyceesUnlocked, // (maj 30/05 - debug)
+        collegesUnlocked: collegesUnlocked, // (maj 30/05 - debug)
+        studiesSkillsUnlocked: studiesSkillsUnlocked, // (maj 30/05 - debug)
+        ascensionSkillsUnlocked: ascensionSkillsUnlocked, // (maj 30/05 - debug)
+        prestigeSkillsUnlocked: prestigeSkillsUnlocked, // (maj 30/05 - debug)
         autoEleveActive: autoEleveActive,
         autoClasseActive: autoClasseActive,
         autoImageActive: autoImageActive,
@@ -783,6 +798,11 @@ export function loadGameState() {
         statsButtonUnlocked = gameState.statsButtonUnlocked || false;
         prestigeMenuButtonUnlocked = gameState.prestigeMenuButtonUnlocked || false;
         ascensionMenuButtonUnlocked = gameState.ascensionMenuButtonUnlocked || false;
+        lyceesUnlocked = gameState.lyceesUnlocked || false; // (maj 30/05 - debug)
+        collegesUnlocked = gameState.collegesUnlocked || false; // (maj 30/05 - debug)
+        studiesSkillsUnlocked = gameState.studiesSkillsUnlocked || false; // (maj 30/05 - debug)
+        ascensionSkillsUnlocked = gameState.ascensionSkillsUnlocked || false; // (maj 30/05 - debug)
+        prestigeSkillsUnlocked = gameState.prestigeSkillsUnlocked || false; // (maj 30/05 - debug)
 
         autoEleveActive = gameState.autoEleveActive || false;
         autoClasseActive = gameState.autoClasseActive || false;
@@ -873,6 +893,11 @@ export function resetGameVariables() {
     statsButtonUnlocked = false;
     prestigeMenuButtonUnlocked = false;
     ascensionMenuButtonUnlocked = false;
+    lyceesUnlocked = false; // (maj 30/05 - debug)
+    collegesUnlocked = false; // (maj 30/05 - debug)
+    studiesSkillsUnlocked = false; // (maj 30/05 - debug)
+    ascensionSkillsUnlocked = false; // (maj 30/05 - debug)
+    prestigeSkillsUnlocked = false; // (maj 30/05 - debug)
 
     autoEleveActive = false;
     autoClasseActive = false;
@@ -1286,13 +1311,35 @@ export function checkUnlockConditions() {
         document.getElementById('automationTabBtn').style.display = 'inline-block';
     }
 
-    // Déverrouillage des Lycées et Collèges
-    if (schoolCount.gte(1)) {
-        document.getElementById('achatLyceeSection').style.display = 'flex';
+    // Déverrouillage des Lycées et Collèges (maj 30/05 - debug)
+    if (schoolCount.gte(1) && !lyceesUnlocked) {
+        lyceesUnlocked = true;
+        showNotification("Lycées débloqués !");
+        updateSectionVisibility();
     }
-    if (nombreLycees.gte(1)) {
-        document.getElementById('achatCollegeSection').style.display = 'flex';
+    if (nombreLycees.gte(1) && !collegesUnlocked) {
+        collegesUnlocked = true;
+        showNotification("Collèges débloqués !");
+        updateSectionVisibility();
     }
+
+    // Déverrouillage des panneaux de compétences (maj 30/05 - debug)
+    if (studiesSkillPoints.gt(0) && !studiesSkillsUnlocked) {
+        studiesSkillsUnlocked = true;
+        showNotification("Compétences d'Études débloquées !");
+        updateSectionVisibility();
+    }
+    if (ascensionSkillPoints.gt(0) && !ascensionSkillsUnlocked) {
+        ascensionSkillsUnlocked = true;
+        showNotification("Compétences d'Ascension débloquées !");
+        updateSectionVisibility();
+    }
+    if (prestigeSkillPoints.gt(0) && !prestigeSkillsUnlocked) {
+        prestigeSkillsUnlocked = true;
+        showNotification("Compétences de Prestige débloquées !");
+        updateSectionVisibility();
+    }
+
 
     updateDisplay(); // Mettre à jour l'affichage après déverrouillage
 }
