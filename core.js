@@ -120,6 +120,8 @@
 //     postDoctoratPAGain: new Decimal(0),         // Pourcentage de boost de gain de PA par Ascension par Post-Doctorat.
 // };
 //
+// export let permanentBpsBonusFromAchievements; // Decimal : Bonus cumulé à la production de BP/s provenant des récompenses de succès permanents. Cette variable est gérée par 'achievements.js' via les fonctions de récompense des succès qui la reçoivent en paramètre. (maj 30/05 débug)
+//
 // ------------------ Variables pour les Coûts Actuels ------------------
 // Ces variables stockent les coûts actuels des achats pour l'affichage dans ui.js.
 //
@@ -177,12 +179,12 @@
 //   // Si aucune sauvegarde n'est trouvée, initialise le jeu à son état par défaut.
 //   // Convertit les chaînes de caractères chargées en objets Decimal.
 //   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
-//   // Gère la rétrocompatibilité des sauvegardes pour les nouvelles variables. (maj 30/05 core)
+//   // Gère la rétrocompatibilité des sauvegardes pour les nouvelles variables, incluant la variable 'permanentBpsBonusFromAchievements'. (maj 30/05 core)
 //
 // export function resetGameVariables()
 //   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
 //   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
-//   // Réinitialise également l'état des succès et des quêtes non permanentes. (maj 30/05 core)
+//   // Réinitialise également l'état des succès, des quêtes non permanentes et la variable 'permanentBpsBonusFromAchievements'. (maj 30/05 core)
 //
 // function resetSkillEffects()
 //   // Réinitialise l'objet `skillEffects` à ses valeurs par défaut.
@@ -213,7 +215,7 @@
 // export function calculateTotalBPS()
 //   // Calcule la production totale de Bons Points par seconde (BP/s).
 //   // Prend en compte la production de base des unités et applique tous les multiplicateurs
-//   // provenant des compétences, de l'Ascension, du Prestige, des Succès et des Quêtes. (maj 30/05 core)
+//   // provenant des compétences, de l'Ascension, du Prestige, des Succès (via 'permanentBpsBonusFromAchievements') et des Quêtes. (maj 30/05 core)
 //
 // export function checkUnlockConditions()
 //   // Vérifie les conditions de déverrouillage de toutes les fonctionnalités du jeu
@@ -225,7 +227,7 @@
 //   // Applique tous les effets cumulés des compétences (études, ascension, prestige),
 //   // des succès permanents et des bonus des achats de prestige.
 //   // Réinitialise `skillEffects` puis le reconstruit avec les bonus actifs.
-//   // Intègre les multiplicateurs de PA des quêtes. (maj 30/05 core)
+//   // Il intègre les multiplicateurs de PA des quêtes et s'assure que les bonus permanents des succès (gérés par 'achievements.js' dans 'permanentBpsBonusFromAchievements') sont pris en compte dans le calcul global des BP/s. (maj 30/05 core)
 //
 // export function updateCachedMultipliers()
 //   // Met à jour les multiplicateurs mis en cache, en s'assurant que `calculateTotalBPS`
@@ -259,14 +261,13 @@
 // Importations depuis './prestige.js':
 //   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
 // Importations depuis './quests.js':
-//   - updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests
+//   - updateQuestProgress, questsData
 // Importations depuis './achievements.js':
-//   - checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements
-//   - Note : `ascensionPoints`, `studiesSkillPoints`, `ascensionSkillPoints`, `prestigeSkillPoints` sont exportés par `core.js`
-//     et peuvent être modifiés par `achievements.js` via réassignation après un `rewardFn` qui retourne une valeur. (maj 30/05 core)
+//   - checkAchievements, achievementsData, unlockedAchievements
+//   - Note : La variable 'permanentBpsBonusFromAchievements' est déclarée et exportée par 'core.js'. Elle est modifiée par 'achievements.js' via les fonctions de récompense des succès qui la reçoivent en paramètre. (maj 30/05 débug)
 // Importations depuis './ui.js':
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
-//     updateSettingsButtonStates, renderSkillsMenu, renderQuêtes, renderAchievements,
+//     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
 //     openTab, closeStatsModal, updateStatsDisplay, showNotification
 //   - Note : Les fonctions de tooltip (`showAchievementTooltip`, `hideAchievementTooltip`, `toggleAchievementTooltip`)
 //     sont gérées directement par `events.js` via délégation et appellent des fonctions de `achievements.js`. (maj 30/05 core)
@@ -355,7 +356,6 @@ export let nombrePostDoctorat;
 export let completedQuests = {}; // Objet pour suivre l'état de complétion et de réclamation des quêtes (maj 30/05 Quetes)
 export let paMultiplierFromQuests = new Decimal(1); // Multiplicateur de gain de PA provenant des quêtes (maj 30/05 Quetes)
 
-
 // Objets de bonus cumulés (mis à jour par applyAllSkillEffects)
 // Ces objets agrègent tous les multiplicateurs et réductions de coût
 // provenant des compétences, succès, et achats de prestige.
@@ -392,6 +392,9 @@ export let skillEffects = {
     postDoctoratPAGain: new Decimal(0), // Pourcentage de boost de gain de PA par Ascension
 };
 
+// Variable pour le bonus permanent de BPS provenant des succès (maj 30/05 débug)
+export let permanentBpsBonusFromAchievements; 
+
 // Variables pour les coûts actuels (utilisées par ui.js pour l'affichage)
 export let coutEleveActuel;
 export let coutClasseActuel;
@@ -425,7 +428,7 @@ import { skillsData } from './data.js'; // skillsData est défini dans data.js
 import { calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js';
 import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
 import { updateQuestProgress, questsData } from './quests.js'; // completedQuests et paMultiplierFromQuests sont maintenant définis dans core.js (maj 30/05 Quetes)
-import { checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements } from './achievements.js'; // (maj 30/05 core)
+import { checkAchievements, achievementsData, unlockedAchievements } from './achievements.js'; // permanentBpsBonusFromAchievements n'est plus importé ici, il est exporté par core.js (maj 30/05 débug)
 import { updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
          updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
          openTab, closeStatsModal, updateStatsDisplay, showNotification } from './ui.js'; // (maj 30/05 core)
@@ -833,7 +836,7 @@ export function loadGameState() {
 
         lastUpdate = gameState.lastUpdate || Date.now(); // Enregistrer le timestamp de la sauvegarde
         unlockedAchievements = gameState.unlockedAchievements || {}; // (maj 30/05 core)
-        permanentBpsBonusFromAchievements = new Decimal(gameState.permanentBpsBonusFromAchievements || 0); // (maj 30/05 core)
+        permanentBpsBonusFromAchievements = new Decimal(gameState.permanentBpsBonusFromAchievements || 0); // Initialisation de la variable (maj 30/05 débug)
         completedQuests = gameState.completedQuests || {}; // (maj 30/05 Quetes)
         paMultiplierFromQuests = new Decimal(gameState.paMultiplierFromQuests || 1); // (maj 30/05 Quetes)
 
@@ -928,7 +931,7 @@ export function resetGameVariables() {
 
     lastUpdate = Date.now();
     unlockedAchievements = {}; // (maj 30/05 core)
-    permanentBpsBonusFromAchievements = new Decimal(0); // (maj 30/05 core)
+    permanentBpsBonusFromAchievements = new Decimal(0); // Réinitialisation de la variable (maj 30/05 débug)
 
     // Réinitialiser les quêtes (maj 30/05 Quetes)
     completedQuests = {}; // (maj 30/05 Quetes)
