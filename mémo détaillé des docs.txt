@@ -1064,7 +1064,7 @@ MonJeuIncremental/
 //     `studiesSkillsUnlocked`, `ascensionSkillsUnlocked`, `prestigeSkillsUnlocked`.
 //   - Fonctions utilitaires/de calcul : `formatNumber` (utilisée pour l'affichage numérique),
 //     `applyAllSkillEffects`, `updateCachedMultipliers`, `calculateTotalBPS`, `checkUnlockConditions`,
-//     `updateButtonStates`, `themeOptionUnlocked`.
+//     `updateButtonStates`,`themeOptionUnlocked`.
 //   - Multiplicateurs de structures d'ascension : `ecoleMultiplier`, `lyceeMultiplier`, `collegeMultiplier`.
 //   Impact : Fournit toutes les données dynamiques et les fonctions de base pour que l'UI puisse
 //            afficher l'état actuel du jeu et réagir aux changements.
@@ -1390,8 +1390,6 @@ MonJeuIncremental/
 //   `ui.js` ne fait que "lire" l'état et "écrire" sur l'interface.
 //
 // ---------------------------------------------------------------------
-
-
 
 
 
