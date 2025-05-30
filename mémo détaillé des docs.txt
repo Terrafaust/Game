@@ -832,6 +832,10 @@ MonJeuIncremental/
 
 
 
+
+
+
+
 // ------------------ Fiche Mémo : data.js -----------------------------
 //
 // Description : Ce fichier est le dépôt central de toutes les données statiques et de configuration du jeu.
@@ -940,16 +944,29 @@ MonJeuIncremental/
 //     - `id` (string) : Identifiant unique.
 //     - `name` (string) : Nom affiché.
 //     - `description` (string) : Texte décrivant l'objectif.
-//     - `category` (string) : Catégorie de la quête (ex: "Fondations", "Expansion Académique"). (Maj 30/05 Quetes)
-//     - `condition` (function) : Fonction qui retourne `true` si l'objectif est atteint (prend des variables d'état du jeu).
+//     - `category` (string) : Catégorie de la quête (ex: "Fondations", "Expansion Académique").
+//     - `condition` (function) : Fonction qui retourne `true` si l'objectif est atteint (prend un objet `gameState` en paramètre).
 //     - `reward` (object) : Objet décrivant la récompense (`type`, `amount`).
 //     - `rewardText` (string) : Description textuelle de la récompense.
-//     - `current` (number, optionnel) : Suivi de la progression (géré par `quests.js`).
-//     - `unlocked` (boolean, optionnel) : Indique si la quête est visible (géré par `quests.js`).
 //     - `permanent` (boolean) : Indique si la quête persiste à travers les réinitialisations.
 //   Impact sur d'autres modules :
 //     - Utilisé par `quests.js` pour `updateQuestProgress` et `claimQuestReward`.
 //     - Utilisé par `ui.js` dans `renderQuests` pour afficher la liste des quêtes.
+//
+// export const achievementsData : Tableau d'objets définissant tous les succès disponibles dans le jeu.
+//   Description : Chaque succès est un objectif que le joueur peut accomplir pour obtenir des récompenses.
+//   Type : Tableau d'objets.
+//   Structure de chaque succès :
+//     - `id` (string) : Identifiant unique.
+//     - `name` (string) : Nom affiché.
+//     - `description` (string) : Texte décrivant la condition du succès.
+//     - `condition` (function) : Fonction qui retourne `true` si le succès est débloqué (prend un objet `gameState` en paramètre).
+//     - `rewardText` (string) : Texte descriptif de la récompense.
+//     - `rewardFn` (function) : Fonction exécutée lors du déverrouillage du succès pour appliquer la récompense.
+//                               Elle prend `skillEffects` et `permanentBpsBonusFromAchievements` ou `gameState` en paramètres
+//                               selon le type de récompense, et peut retourner une nouvelle valeur pour les points (PA, SP).
+//   Impact sur d'autres modules :
+//     - Utilisé par `achievements.js` pour `checkAchievements` et `renderAchievements`.
 //
 // export const bonusPointThresholds : Tableau d'objets Decimal définissant les seuils de Bons Points (BP)
 //                                   que le joueur doit atteindre pour gagner des Points de Compétence d'Études supplémentaires.
@@ -979,23 +996,21 @@ MonJeuIncremental/
 //   Impact sur d'autres modules :
 //     - Utilisé par `prestige.js` dans `calculatePPGained`.
 //
-// Note sur `achievementsData` : Ce tableau est défini et géré dans `achievements.js` pour maintenir la modularité. (maj 30/05 - modularité achievements)
-//
 // ------------------ Logique Générale ------------------
 //
 // `data.js` est un fichier de configuration statique. Il ne contient aucune logique de jeu
 // active (pas de fonctions qui modifient l'état du jeu ou l'interface directement).
 // Son rôle est de centraliser toutes les valeurs numériques, les définitions de structures
-// (compétences, achats de prestige, quêtes) et les seuils qui sont constants tout au long
+// (compétences, achats de prestige, quêtes, succès) et les seuils qui sont constants tout au long
 // de la partie. Cela rend le jeu plus facile à équilibrer et à modifier, car toutes les
 // données clés sont regroupées en un seul endroit.
 //
 // ------------------ Notes Spécifiques ------------------
 //
 // - **Purement Déclaratif** : Ce fichier est conçu pour être purement déclaratif.
-//   Toutes les fonctions `effect` ou `condition` définies dans les objets (`skillsData`,
-//   `prestigePurchasesData`, `questsData`) sont des fonctions de rappel qui seront
-//   exécutées par d'autres modules (ex: `core.js`, `skills.js`, `quests.js`, `prestige.js`).
+//   Toutes les fonctions `effect`, `condition` ou `rewardFn` définies dans les objets (`skillsData`,
+//   `prestigePurchasesData`, `questsData`, `achievementsData`) sont des fonctions de rappel qui seront
+//   exécutées par d'autres modules (ex: `core.js`, `skills.js`, `quests.js`, `prestige.js`, `achievements.js`).
 //   Elles ne sont pas exécutées directement dans `data.js`.
 // - **Utilisation de Decimal** : L'utilisation de `new Decimal()` pour toutes les valeurs
 //   numériques importantes est cruciale pour gérer les très grands nombres inhérents aux jeux
@@ -1005,6 +1020,7 @@ MonJeuIncremental/
 //   à la logique métier complexe.
 //
 // ---------------------------------------------------------------------
+
 
 
 
@@ -2178,7 +2194,7 @@ MonJeuIncremental/
 //
 // ------------------ Variables Clés Définies et Exportées ------------------
 //
-// export const achievementsData;              // Tableau contenant la définition de tous les succès.
+// export const achievementsData;              // Tableau contenant la définition de tous les succès, IMPORTÉ de `data.js`.
 //                                            // Chaque succès est un objet avec :
 //                                            // - id (string) : Identifiant unique du succès.
 //                                            // - name (string) : Nom affiché du succès.
@@ -2240,14 +2256,15 @@ MonJeuIncremental/
 //     `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`,
 //     `prestigeCount`, `prestigePoints`, `autoEleveActive`, `autoClasseActive`, `autoImageActive`,
 //     `autoProfesseurActive`, `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels`,
-//     `totalBonsPointsParSeconde`, `completedQuests`, `ascensionPoints` (pour récompenses additives). (maj 30/05 achievements)
+//     `totalBonsPointsParSeconde`, `completedQuests`, `ascensionPoints`, `studiesSkillPoints`,
+//     `ascensionSkillPoints`, `prestigeSkillPoints`.
 //   - Objets d'effets (modification pour les récompenses permanentes) : `skillEffects`.
 //   - Fonctions de logique (appelées après déverrouillage) : `saveGameState`, `applyAllSkillEffects`,
 //     `checkUnlockConditions`, `formatNumber`.
 // - De './ui.js' :
 //   - Fonctions d'affichage : `showNotification`, `updateDisplay`.
-// - De './quests.js' : (maj 30/05 achievements)
-//   - Variables d'état : `questsData` (nécessaire pour la condition `ACH_QUESTS_ALL`). (maj 30/05 achievements)
+// - De './data.js' :
+//   - Variables d'état : `achievementsData` (contient la définition de tous les succès), `questsData` (nécessaire pour la condition `ACH_QUESTS_ALL`).
 //
 // Variables Globales Accédées (définies dans core.js, mais non importées directement car elles sont gérées par `window` ou via des fonctions de `ui.js`) :
 // - `window.achievementsButtonUnlocked` : Utilisé pour vérifier si le bouton des succès est débloqué avant de rendre la grille.
@@ -2260,17 +2277,17 @@ MonJeuIncremental/
 //
 // ------------------ Flux de Données et Logique ------------------
 //
-// 1. Définition des Succès : `achievementsData` contient toutes les informations statiques.
+// 1. Définition des Succès : `achievementsData` (importé de `data.js`) contient toutes les informations statiques.
 // 2. Vérification : `checkAchievements()` est appelée régulièrement par `core.js`.
-//    Elle évalue la `condition()` de chaque succès non débloqué en lisant l'état du jeu (variables importées de `core.js` et `quests.js`). (maj 30/05 achievements)
+//    Elle construit un objet `gameState` à partir des variables d'état importées, puis évalue la `condition()`
+//    de chaque succès non débloqué en lui passant cet objet `gameState`.
 // 3. Déverrouillage : Si une condition est remplie, le succès est marqué dans `unlockedAchievements`.
 // 4. Récompense : La `rewardFn()` du succès est exécutée.
-//    - Pour les bonus permanents (multiplicateurs, réductions de coût), elle modifie des propriétés de l'objet `skillEffects`.
-//      ou la variable `permanentBpsBonusFromAchievements`. Ces variables sont ensuite utilisées par `core.js`
-//      dans ses calculs de production (`calculateTotalBPS`) et d'effets (`applyAllSkillEffects`).
-//    - Pour les gains additifs (ex: +X PA), elle modifie directement la variable de ressource correspondante dans `core.js`
-//      (ex: `ascensionPoints = ascensionPoints.add(X)`). La `rewardFn` doit retourner la nouvelle valeur pour que `achievements.js`
-//      puisse la réassigner à la variable globale dans `core.js` via l'importation. (maj 30/05 achievements)
+//    - Pour les bonus permanents (multiplicateurs, réductions de coût), elle modifie des propriétés de l'objet `skillEffects`
+//      ou la variable `permanentBpsBonusFromAchievements`. Ces fonctions `rewardFn` reçoivent `skillEffects` et
+//      `permanentBpsBonusFromAchievements` en paramètres et peuvent retourner la nouvelle valeur de `permanentBpsBonusFromAchievements`.
+//    - Pour les gains additifs (ex: +X PA, +X SP), la `rewardFn` reçoit l'objet `gameState` et doit retourner la nouvelle valeur
+//      pour que `achievements.js` puisse la réassigner à la variable globale correspondante dans `core.js` via l'importation.
 // 5. Mise à Jour UI : `renderAchievements()` est appelée pour rafraîchir l'affichage des succès.
 //    `showNotification()` est appelée pour informer le joueur.
 //    `updateDisplay()` de `ui.js` est appelée pour rafraîchir l'ensemble de l'interface.
