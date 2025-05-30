@@ -381,9 +381,6 @@ import {
     skillEffects, permanentBpsBonusFromAchievements, paMultiplierFromQuests,
     formatNumber, applyAllSkillEffects, updateCachedMultipliers, calculateTotalBPS,
     checkUnlockConditions, updateButtonStates,
-    // Variables pour les multiplicateurs des structures d'ascension.
-    // Assurez-vous que ces variables sont bien exportées par core.js ou ascension.js
-    ecoleMultiplier, lyceeMultiplier, collegeMultiplier,
     // Variables de déverrouillage spécifiques aux lycées/collèges et compétences
     lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked
 } from './core.js'; // Importe les variables d'état et fonctions principales de core.js
@@ -575,7 +572,7 @@ export function updateDisplay() {
             acheterEcoleButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutEcoleActuel));
             coutEcole.textContent = `${formatNumber(coutEcoleActuel, 0)} PA`;
             nombreEcoles.textContent = formatNumber(schoolCount, 0);
-            ecoleMultiplierElement.textContent = `${formatNumber(ecoleMultiplier, 2)}x`;
+            ecoleMultiplierElement.textContent = `${formatNumber(skillEffects.ecoleMultiplier, 2)}x`; // (maj 30/05 débug v2)
         }
     }
 
@@ -593,7 +590,7 @@ export function updateDisplay() {
             acheterLyceeButton.classList.toggle('can-afford', ascensionPoints.gte(coutLyceeActuel));
             acheterLyceeButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutLyceeActuel));
             nombreLyceesDisplay.textContent = formatNumber(nombreLycees, 0);
-            lyceeMultiplierDisplay.textContent = `${formatNumber(lyceeMultiplier, 2)}x`;
+            lyceeMultiplierDisplay.textContent = `${formatNumber(skillEffects.lyceeMultiplier, 2)}x`; // (maj 30/05 débug v2)
         } else {
             achatLyceeSection.style.display = 'none';
         }
@@ -613,7 +610,7 @@ export function updateDisplay() {
             acheterCollegeButton.classList.toggle('can-afford', ascensionPoints.gte(coutCollegeActuel));
             acheterCollegeButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutCollegeActuel));
             nombreCollegesDisplay.textContent = formatNumber(nombreColleges, 0);
-            collegeMultiplierDisplay.textContent = `${formatNumber(collegeMultiplier, 2)}x`;
+            collegeMultiplierDisplay.textContent = `${formatNumber(skillEffects.collegeMultiplier, 2)}x`; // (maj 30/05 débug v2)
         } else {
             achatCollegeSection.style.display = 'none';
         }

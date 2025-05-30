@@ -368,6 +368,11 @@ export let skillEffects = {
     offlineProductionIncrease: new Decimal(0), // Augmentation du progrès hors ligne
     allProductionMultiplier: new Decimal(1), // Multiplicateur de production de toutes les structures
 
+    // Multiplicateurs spécifiques aux structures d'Ascension (maj 30/05 débug v2)
+    ecoleMultiplier: new Decimal(1),
+    lyceeMultiplier: new Decimal(1),
+    collegeMultiplier: new Decimal(1),
+
     // Effets spécifiques du Prestige
     licenceProfMultiplier: new Decimal(0), // Pourcentage de boost du multiplicateur Professeur
     master1ClassProduction: new Decimal(0), // Pourcentage de boost de la production des Classes par Prof
@@ -944,6 +949,10 @@ function resetSkillEffects() {
         ascensionBonusIncrease: new Decimal(0),
         offlineProductionIncrease: new Decimal(0),
         allProductionMultiplier: new Decimal(1),
+        // Multiplicateurs spécifiques aux structures d'Ascension (maj 30/05 débug v2)
+        ecoleMultiplier: new Decimal(1),
+        lyceeMultiplier: new Decimal(1),
+        collegeMultiplier: new Decimal(1),
         licenceProfMultiplier: new Decimal(0),
         master1ClassProduction: new Decimal(0),
         master2ClassProduction: new Decimal(0),

@@ -556,7 +556,6 @@ MonJeuIncremental/
 
 
 
-
 // ------------------ Fiche Mémo : core.js ----------------------------
 //
 // Description : Ce fichier est le cœur de la logique du jeu incrémental.
@@ -829,7 +828,6 @@ MonJeuIncremental/
 // globalement avant ce script pour la gestion des grands nombres.
 //
 // ---------------------------------------------------------------------
-
 
 
 
@@ -1389,6 +1387,7 @@ MonJeuIncremental/
 //   `ui.js` ne fait que "lire" l'état et "écrire" sur l'interface.
 //
 // ---------------------------------------------------------------------
+
 
 
 
