@@ -12,7 +12,7 @@
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (totalPAEarned, prestigeCount,
  * prestigePoints, nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat,
- * nombrePostDoctorat, saveGameState, checkUnlockConditions, resetGameState, applyAllSkillEffects, prestigeUnlocked).
+ * nombrePostDoctorat, saveGameState, checkUnlockConditions, resetGameVariables, applyAllSkillEffects, prestigeUnlocked).
  * - data.js : Contient les définitions des seuils pour gagner des PP (PRESTIGE_POINT_THRESHOLD)
  * et les données des achats de prestige (prestigePurchasesData), incluant leurs coûts et effets.
  * - ui.js : Pour les fonctions : showNotification,  updateDisplay, et la mise à jour
@@ -66,7 +66,7 @@ import {
     nombreDoctorat,
     nombrePostDoctorat,
     checkUnlockConditions,
-    resetGameState, // Fonction de réinitialisation du jeu
+    resetGameVariables, // Fonction de réinitialisation du jeu
     applyAllSkillEffects,
     saveGameState,
     formatNumber, // viens de core.js, pas ui.js 
@@ -122,7 +122,7 @@ export function performPrestige() {
     prestigePoints.add(potentialPP); // Utilisation de .add() pour Decimal
 
     // Réinitialiser l'état du jeu (réinitialisation complète sauf les bonus permanents et les PP)
-    resetGameState(false); // Passer 'false' pour indiquer une réinitialisation de Prestige (plus profonde)
+    resetGameVariables(false); // Passer 'false' pour indiquer une réinitialisation de Prestige (plus profonde)
 
     // Appliquer tous les effets de compétences (y compris les bonus permanents de Prestige)
     applyAllSkillEffects();
