@@ -967,7 +967,6 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 
 
 
-
 /**
  * automation.js
  *
@@ -981,10 +980,9 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
  * autoClasseActive, autoImageActive, autoProfesseurActive), à la fonction d'achat générique (performPurchase),
  * et à la fonction de formatage des nombres (formatNumber).
- * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
  * - ui.js : Fournit les fonctions de notification (showNotification) et de mise à jour
  * de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates), aux fonctions de sauvegarde (saveGameState),
- * de mise à jour de l'affichage global (updateDisplay) 
+ * de mise à jour de l'affichage global (updateDisplay)
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -993,6 +991,7 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * - skillEffects : Objet contenant les effets cumulés des compétences, notamment les réductions de coût.
  *
  * Fonctions Clés Définies et Exportées :
+ * - calculateAutomationCost(baseCost) : Calcule le coût d'une automatisation en tenant compte des réductions de coût.
  * - runAutomation() : Exécute les achats pour toutes les automatisations actives.
  * - toggleAutomation(itemType, baseCost) : Active ou désactive une automatisation spécifique,
  * gère le coût en Points d'Ascension et les notifications.
@@ -1009,7 +1008,6 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * Il est appelé par `events.js` pour les interactions utilisateur et par la boucle de jeu
  * principale (`core.js`) pour l'exécution périodique des automatisations.
  */
-
 
 
 
