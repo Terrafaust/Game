@@ -12,13 +12,12 @@
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (totalPAEarned, prestigeCount,
  * prestigePoints, nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat,
- * nombrePostDoctorat, showNotification, saveGameState, updateDisplay,
- * checkUnlockConditions, resetGameState, applyAllSkillEffects, prestigeUnlocked).
+ * nombrePostDoctorat, saveGameState, checkUnlockConditions, resetGameState, applyAllSkillEffects, prestigeUnlocked).
  * - data.js : Contient les définitions des seuils pour gagner des PP (PRESTIGE_POINT_THRESHOLD)
  * et les données des achats de prestige (prestigePurchasesData), incluant leurs coûts et effets.
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
+ * - ui.js : Pour les fonctions : showNotification,  updateDisplay, et la mise à jour
  * de l'interface utilisateur spécifique au Prestige (updatePrestigeUI, updatePrestigeButtonStates,
- * renderPrestigePurchases).
+ * renderPrestigePurchases). 
  *
  * Variables Clés (utilisées par prestige.js, mais définies et gérées ailleurs) :
  * - totalPAEarned : Total cumulé de Points d'Ascension gagnés, utilisé pour calculer les PP.
@@ -66,12 +65,11 @@ import {
     nombreMaster2,
     nombreDoctorat,
     nombrePostDoctorat,
-    showNotification,
-    saveGameState,
-    updateDisplay,
     checkUnlockConditions,
     resetGameState, // Fonction de réinitialisation du jeu
     applyAllSkillEffects,
+    saveGameState,
+    formatNumber, // viens de core.js, pas ui.js 
     prestigeUnlocked // Flag de déverrouillage du menu de Prestige
 } from './core.js'; // Assurez-vous que le chemin est correct
 
@@ -83,7 +81,8 @@ import {
 
 // Importations des fonctions d'UI depuis ui.js
 import {
-    formatNumber
+    showNotification,
+    updateDisplay
 } from './ui.js'; // Assurez-vous que le chemin est correct
 
 /**
