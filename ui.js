@@ -16,7 +16,7 @@
 // Ce module importe des variables d'état et des fonctions depuis d'autres fichiers JavaScript.
 //
 // - De './core.js' :
-//   - Variables d'état : `bonsPoints`, `totalBonsPointsParSeconde`, `images`, `nombreEleves`,
+//   - Variables d'état : `bonsPoints`, `isDayTheme`, `totalBonsPointsParSeconde`, `images`, `nombreEleves`,
 //     `nombreClasses`, `nombreProfesseur`, `schoolCount`, `nombreLycees`, `nombreColleges`,
 //     `ascensionPoints`, `ascensionCount`, `totalPAEarned`, `ascensionBonus`, `prestigePoints`,
 //     `prestigeCount`, `totalClicks`, `currentPurchaseMultiplier`, `autoEleveActive`,
@@ -38,6 +38,7 @@
 //   - Multiplicateurs de structures d'ascension : `ecoleMultiplier`, `lyceeMultiplier`, `collegeMultiplier`.
 //   Impact : Fournit toutes les données dynamiques et les fonctions de base pour que l'UI puisse
 //            afficher l'état actuel du jeu et réagir aux changements.
+
 //
 // - De './studies.js' :
 //   - Fonctions de calcul de coût : `calculateNextEleveCost`, `calculateNextClasseCost`,
@@ -71,9 +72,6 @@
 //   - Fonction d'action : `buySkill`.
 //   Impact : Permet à `ui.js` de déclencher l'achat d'une compétence via `handleSkillClick`.
 //
-// - De './settings.js' :
-//   - Variables d'état : `isDayTheme`.
-//   Impact : Permet à `ui.js` de mettre à jour l'affichage des contrôles de thème et de mode.
 //
 // - De './quests.js' : (maj 30/05 Quete)
 //   - Fonctions : `renderQuests` (pour le rendu des quêtes), `updateQuestsUI` (pour la mise à jour des compteurs de quêtes). (maj 30/05 Quete)
@@ -379,7 +377,7 @@ import {
     disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
     nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat,
     skillEffects, permanentBpsBonusFromAchievements, paMultiplierFromQuests,
-    formatNumber, applyAllSkillEffects, updateCachedMultipliers, calculateTotalBPS,
+    formatNumber, applyAllSkillEffects, updateCachedMultipliers, calculateTotalBPS, isDayTheme, 
     checkUnlockConditions, updateButtonStates, themeOptionUnlocked,
     // Variables de déverrouillage spécifiques aux lycées/collèges et compétences
     lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked
@@ -393,7 +391,6 @@ import { calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCos
 import { getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
          calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
 import { buySkill } from './skills.js'; // Importe la fonction buySkill
-import { isDayTheme } from './settings.js'; // Importe les variables de thème (maj 30/05 - Imports)
 import { renderQuests as renderQuestsFromQuestsJS, updateQuestsUI as updateQuestsUIFromQuestsJS } from './quests.js'; // (maj 30/05 Quete)
 
 // Assumes Decimal is globally available from break_infinity.min.js
