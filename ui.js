@@ -34,11 +34,10 @@
 //     `studiesSkillsUnlocked`, `ascensionSkillsUnlocked`, `prestigeSkillsUnlocked`.
 //   - Fonctions utilitaires/de calcul : `formatNumber` (utilisée pour l'affichage numérique),
 //     `applyAllSkillEffects`, `updateCachedMultipliers`, `calculateTotalBPS`, `checkUnlockConditions`,
-//     `updateButtonStates`,`themeOptionUnlocked`.
+//     `themeOptionUnlocked`.
 //   - Multiplicateurs de structures d'ascension : `ecoleMultiplier`, `lyceeMultiplier`, `collegeMultiplier`.
 //   Impact : Fournit toutes les données dynamiques et les fonctions de base pour que l'UI puisse
 //            afficher l'état actuel du jeu et réagir aux changements.
-
 //
 // - De './studies.js' :
 //   - Fonctions de calcul de coût : `calculateNextEleveCost`, `calculateNextClasseCost`,
@@ -71,7 +70,6 @@
 // - De './skills.js' :
 //   - Fonction d'action : `buySkill`.
 //   Impact : Permet à `ui.js` de déclencher l'achat d'une compétence via `handleSkillClick`.
-//
 //
 // - De './quests.js' : (maj 30/05 Quete)
 //   - Fonctions : `renderQuests` (pour le rendu des quêtes), `updateQuestsUI` (pour la mise à jour des compteurs de quêtes). (maj 30/05 Quete)
@@ -306,7 +304,7 @@
 //   - `#notifications-container`.
 // - Arbre de compétences :
 //   - `#studiesPanel`, `#ascensionPanel`, `#prestigePanel`.
-//   - `#studiesSkillsPointsCount`, `#ascensionSkillsPointsCount`, `#prestigeSkillsPointsCount`.
+//   - `#studiesSkillsPointsCount`, `#ascensionSkillsPointsPointsCount`, `#prestigeSkillsPointsCount`.
 //   - `#studiesSkillsGrid`, `#ascensionSkillsGrid`, `#prestigeSkillsGrid` (où les compétences sont rendues).
 // - Quêtes :
 //   - `#questsList`, `#completedQuestsList`.
@@ -378,7 +376,7 @@ import {
     nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat,
     skillEffects, permanentBpsBonusFromAchievements, paMultiplierFromQuests,
     formatNumber, applyAllSkillEffects, updateCachedMultipliers, calculateTotalBPS, isDayTheme, 
-    checkUnlockConditions, updateButtonStates, themeOptionUnlocked,
+    checkUnlockConditions, themeOptionUnlocked, // Removed updateButtonStates from core.js import
     // Variables de déverrouillage spécifiques aux lycées/collèges et compétences
     lyceesUnlocked, collegesUnlocked, studiesSkillsUnlocked, ascensionSkillsUnlocked, prestigeSkillsUnlocked
 } from './core.js'; // Importe les variables d'état et fonctions principales de core.js
@@ -394,6 +392,101 @@ import { buySkill } from './skills.js'; // Importe la fonction buySkill
 import { renderQuests as renderQuestsFromQuestsJS, updateQuestsUI as updateQuestsUIFromQuestsJS } from './quests.js'; // (maj 30/05 Quete)
 
 // Assumes Decimal is globally available from break_infinity.min.js
+
+/**
+ * Met à jour l'état visuel des boutons d'achat (can-afford/cannot-afford).
+ * Cette fonction est déplacée de core.js vers ui.js car elle gère l'UI.
+ * (maj 30/05 - debug)
+ */
+export function updateButtonStates() {
+    // Mise à jour des boutons d'achat des études
+    const acheterEleveButton = document.getElementById('acheterEleveButton');
+    if (acheterEleveButton) {
+        const coutEleveActuel = calculateNextEleveCost(nombreEleves);
+        acheterEleveButton.classList.toggle('can-afford', bonsPoints.gte(coutEleveActuel));
+        acheterEleveButton.classList.toggle('cannot-afford', bonsPoints.lt(coutEleveActuel));
+    }
+
+    const acheterClasseButton = document.getElementById('acheterClasseButton');
+    if (acheterClasseButton) {
+        const coutClasseActuel = calculateNextClasseCost(nombreClasses);
+        acheterClasseButton.classList.toggle('can-afford', bonsPoints.gte(coutClasseActuel));
+        acheterClasseButton.classList.toggle('cannot-afford', bonsPoints.lt(coutClasseActuel));
+    }
+
+    const acheterImageButton = document.getElementById('acheterImageButton');
+    if (acheterImageButton) {
+        const coutImageActuel = calculateNextImageCost(images);
+        acheterImageButton.classList.toggle('can-afford', bonsPoints.gte(coutImageActuel));
+        acheterImageButton.classList.toggle('cannot-afford', bonsPoints.lt(coutImageActuel));
+    }
+
+    const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
+    if (acheterProfesseurButton) {
+        const coutProfesseurActuel = calculateNextProfessorCost(nombreProfesseur);
+        acheterProfesseurButton.classList.toggle('can-afford', images.gte(coutProfesseurActuel));
+        acheterProfesseurButton.classList.toggle('cannot-afford', images.lt(coutProfesseurActuel));
+    }
+
+    // Mise à jour des boutons d'achat d'Ascension
+    const acheterEcoleButton = document.getElementById('acheterEcoleButton');
+    if (acheterEcoleButton) {
+        const coutEcoleActuel = calculateNextEcoleCost(schoolCount);
+        acheterEcoleButton.classList.toggle('can-afford', ascensionPoints.gte(coutEcoleActuel));
+        acheterEcoleButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutEcoleActuel));
+    }
+
+    const acheterLyceeButton = document.getElementById('acheterLyceeButton');
+    if (acheterLyceeButton && lyceesUnlocked) {
+        const coutLyceeActuel = calculateNextLyceeCost(nombreLycees);
+        acheterLyceeButton.classList.toggle('can-afford', ascensionPoints.gte(coutLyceeActuel));
+        acheterLyceeButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutLyceeActuel));
+    }
+
+    const acheterCollegeButton = document.getElementById('acheterCollegeButton');
+    if (acheterCollegeButton && collegesUnlocked) {
+        const coutCollegeActuel = calculateNextCollegeCost(nombreColleges);
+        acheterCollegeButton.classList.toggle('can-afford', ascensionPoints.gte(coutCollegeActuel));
+        acheterCollegeButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutCollegeActuel));
+    }
+
+    // Mise à jour des boutons d'achat de Prestige
+    const licenceData = prestigePurchasesData.find(p => p.id === 'licence');
+    const acheterLicenceButton = document.getElementById('acheterLicenceButton');
+    if (acheterLicenceButton && licenceData) {
+        acheterLicenceButton.classList.toggle('can-afford', prestigePoints.gte(licenceData.cost));
+        acheterLicenceButton.classList.toggle('cannot-afford', prestigePoints.lt(licenceData.cost));
+    }
+
+    const master1Data = prestigePurchasesData.find(p => p.id === 'master1');
+    const acheterMaster1Button = document.getElementById('acheterMaster1Button');
+    if (acheterMaster1Button && master1Data) {
+        acheterMaster1Button.classList.toggle('can-afford', prestigePoints.gte(master1Data.cost));
+        acheterMaster1Button.classList.toggle('cannot-afford', prestigePoints.lt(master1Data.cost));
+    }
+
+    const master2Data = prestigePurchasesData.find(p => p.id === 'master2');
+    const acheterMaster2Button = document.getElementById('acheterMaster2Button');
+    if (acheterMaster2Button && master2Data) {
+        acheterMaster2Button.classList.toggle('can-afford', prestigePoints.gte(master2Data.cost));
+        acheterMaster2Button.classList.toggle('cannot-afford', prestigePoints.lt(master2Data.cost));
+    }
+
+    const doctoratData = prestigePurchasesData.find(p => p.id === 'doctorat');
+    const acheterDoctoratButton = document.getElementById('acheterDoctoratButton');
+    if (acheterDoctoratButton && doctoratData) {
+        acheterDoctoratButton.classList.toggle('can-afford', prestigePoints.gte(doctoratData.cost) && doctoratData.prerequisites());
+        acheterDoctoratButton.classList.toggle('cannot-afford', prestigePoints.lt(doctoratData.cost) || !doctoratData.prerequisites());
+    }
+
+    const postDoctoratData = prestigePurchasesData.find(p => p.id === 'postDoctorat');
+    const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
+    if (acheterPostDoctoratButton && postDoctoratData) {
+        acheterPostDoctoratButton.classList.toggle('can-afford', prestigePoints.gte(postDoctoratData.cost) && postDoctoratData.prerequisites());
+        acheterPostDoctoratButton.classList.toggle('cannot-afford', prestigePoints.lt(postDoctoratData.cost) || !postDoctoratData.prerequisites());
+    }
+}
+
 
 /**
  * Met à jour l'affichage de toutes les ressources principales et des boutons d'achat.
@@ -489,8 +582,6 @@ export function updateDisplay() {
             achatEleveSection.style.display = 'block';
             const coutEleveActuel = calculateNextEleveCost(nombreEleves);
             acheterEleveButton.innerHTML = `Élève : <span class="bons-points-color">${formatNumber(coutEleveActuel, 0)} BP</span>`;
-            acheterEleveButton.classList.toggle('can-afford', bonsPoints.gte(coutEleveActuel));
-            acheterEleveButton.classList.toggle('cannot-afford', bonsPoints.lt(coutEleveActuel));
             nombreElevesElement.textContent = formatNumber(nombreEleves, 0);
             elevesBpsPerItemElement.textContent = formatNumber(elevesBpsPerItem, 1);
         } else {
@@ -508,8 +599,6 @@ export function updateDisplay() {
             achatClasseSection.style.display = 'block';
             const coutClasseActuel = calculateNextClasseCost(nombreClasses);
             acheterClasseButton.innerHTML = `Salle de classe : <span class="bons-points-color">${formatNumber(coutClasseActuel, 0)} BP</span>`;
-            acheterClasseButton.classList.toggle('can-afford', bonsPoints.gte(coutClasseActuel));
-            acheterClasseButton.classList.toggle('cannot-afford', bonsPoints.lt(coutClasseActuel));
             nombreClassesElement.textContent = formatNumber(nombreClasses, 0);
             classesBpsPerItemElement.textContent = formatNumber(classesBpsPerItem, 1);
         } else {
@@ -524,8 +613,6 @@ export function updateDisplay() {
             achatImageSection.style.display = 'block';
             const coutImageActuel = calculateNextImageCost(images);
             acheterImageButton.innerHTML = `Image : <span class="bons-points-color">${formatNumber(coutImageActuel, 0)} BP</span>`;
-            acheterImageButton.classList.toggle('can-afford', bonsPoints.gte(coutImageActuel));
-            acheterImageButton.classList.toggle('cannot-afford', bonsPoints.lt(coutImageActuel));
         } else {
             achatImageSection.style.display = 'none';
         }
@@ -538,8 +625,6 @@ export function updateDisplay() {
             achatProfesseurSection.style.display = 'block';
             const coutProfesseurActuel = calculateNextProfessorCost(nombreProfesseur);
             acheterProfesseurButton.innerHTML = `Professeur : <span class="images-color">${formatNumber(coutProfesseurActuel, 0)} I</span>`;
-            acheterProfesseurButton.classList.toggle('can-afford', images.gte(coutProfesseurActuel));
-            acheterProfesseurButton.classList.toggle('cannot-afford', images.lt(coutProfesseurActuel));
         } else {
             achatProfesseurSection.style.display = 'none';
         }
@@ -565,8 +650,6 @@ export function updateDisplay() {
             ascensionMenuPACount.textContent = formatNumber(ascensionPoints, 0);
 
             const coutEcoleActuel = calculateNextEcoleCost(schoolCount);
-            acheterEcoleButton.classList.toggle('can-afford', ascensionPoints.gte(coutEcoleActuel));
-            acheterEcoleButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutEcoleActuel));
             coutEcole.textContent = `${formatNumber(coutEcoleActuel, 0)} PA`;
             nombreEcoles.textContent = formatNumber(schoolCount, 0);
             ecoleMultiplierElement.textContent = `${formatNumber(skillEffects.ecoleMultiplier, 2)}x`; // (maj 30/05 débug v2)
@@ -584,8 +667,6 @@ export function updateDisplay() {
             achatLyceeSection.style.display = 'block';
             const coutLyceeActuel = calculateNextLyceeCost(nombreLycees);
             acheterLyceeButton.innerHTML = `Lycée : <span class="ascension-points-color">${formatNumber(coutLyceeActuel, 0)} PA</span>`;
-            acheterLyceeButton.classList.toggle('can-afford', ascensionPoints.gte(coutLyceeActuel));
-            acheterLyceeButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutLyceeActuel));
             nombreLyceesDisplay.textContent = formatNumber(nombreLycees, 0);
             lyceeMultiplierDisplay.textContent = `${formatNumber(skillEffects.lyceeMultiplier, 2)}x`; // (maj 30/05 débug v2)
         } else {
@@ -604,8 +685,6 @@ export function updateDisplay() {
             achatCollegeSection.style.display = 'block';
             const coutCollegeActuel = calculateNextCollegeCost(nombreColleges);
             acheterCollegeButton.innerHTML = `Collège : <span class="ascension-points-color">${formatNumber(coutCollegeActuel, 0)} PA</span>`;
-            acheterCollegeButton.classList.toggle('can-afford', ascensionPoints.gte(coutCollegeActuel));
-            acheterCollegeButton.classList.toggle('cannot-afford', ascensionPoints.lt(coutCollegeActuel));
             nombreCollegesDisplay.textContent = formatNumber(nombreColleges, 0);
             collegeMultiplierDisplay.textContent = `${formatNumber(skillEffects.collegeMultiplier, 2)}x`; // (maj 30/05 débug v2)
         } else {
@@ -664,8 +743,6 @@ export function updateDisplay() {
             const licenceBoostElement = document.getElementById('licenceBoost');
             if (acheterLicenceButton && nombreLicencesElement && licenceBoostElement) { // (maj 30/05 - Robustesse DOM)
                 acheterLicenceButton.innerHTML = `Licence : <span class="prestige-points-color">${formatNumber(licenceData.cost, 0)} PP</span>`;
-                acheterLicenceButton.classList.toggle('can-afford', prestigePoints.gte(licenceData.cost));
-                acheterLicenceButton.classList.toggle('cannot-afford', prestigePoints.lt(licenceData.cost));
                 nombreLicencesElement.textContent = formatNumber(nombreLicences, 0);
                 licenceBoostElement.textContent = `${formatNumber(licenceData.getEffectValue().sub(1).mul(100), 2)}%`;
             }
@@ -677,8 +754,6 @@ export function updateDisplay() {
             const master1BoostElement = document.getElementById('master1Boost');
             if (acheterMaster1Button && nombreMaster1Element && master1BoostElement) { // (maj 30/05 - Robustesse DOM)
                 acheterMaster1Button.innerHTML = `Master I : <span class="prestige-points-color">${formatNumber(master1Data.cost, 0)} PP</span>`;
-                acheterMaster1Button.classList.toggle('can-afford', prestigePoints.gte(master1Data.cost));
-                acheterMaster1Button.classList.toggle('cannot-afford', prestigePoints.lt(master1Data.cost));
                 nombreMaster1Element.textContent = formatNumber(nombreMaster1, 0);
                 master1BoostElement.textContent = `${formatNumber(master1Data.getEffectValue().sub(1).mul(100), 2)}%`;
             }
@@ -690,8 +765,6 @@ export function updateDisplay() {
             const master2BoostElement = document.getElementById('master2Boost');
             if (acheterMaster2Button && nombreMaster2Element && master2BoostElement) { // (maj 30/05 - Robustesse DOM)
                 acheterMaster2Button.innerHTML = `Master II : <span class="prestige-points-color">${formatNumber(master2Data.cost, 0)} PP</span>`;
-                acheterMaster2Button.classList.toggle('can-afford', prestigePoints.gte(master2Data.cost));
-                acheterMaster2Button.classList.toggle('cannot-afford', prestigePoints.lt(master2Data.cost));
                 nombreMaster2Element.textContent = formatNumber(nombreMaster2, 0);
                 master2BoostElement.textContent = `${formatNumber(master2Data.getEffectValue().sub(1).mul(100), 2)}%`;
             }
@@ -704,8 +777,6 @@ export function updateDisplay() {
             const doctoratMinClassesElement = document.getElementById('doctoratMinClasses');
             if (acheterDoctoratButton && nombreDoctoratElement && doctoratBoostElement && doctoratMinClassesElement) { // (maj 30/05 - Robustesse DOM)
                 acheterDoctoratButton.innerHTML = `Doctorat : <span class="prestige-points-color">${formatNumber(doctoratData.cost, 0)} PP</span>`;
-                acheterDoctoratButton.classList.toggle('can-afford', prestigePoints.gte(doctoratData.cost) && doctoratData.prerequisites());
-                acheterDoctoratButton.classList.toggle('cannot-afford', prestigePoints.lt(doctoratData.cost) || !doctoratData.prerequisites());
                 nombreDoctoratElement.textContent = formatNumber(nombreDoctorat, 0);
                 doctoratBoostElement.textContent = `${formatNumber(doctoratData.getEffectValue().sub(1).mul(100), 2)}%`;
                 doctoratMinClassesElement.textContent = formatNumber(doctoratData.getMinClasses(), 0);
@@ -718,8 +789,6 @@ export function updateDisplay() {
             const postDoctoratBoostElement = document.getElementById('postDoctoratBoost');
             if (acheterPostDoctoratButton && nombrePostDoctoratElement && postDoctoratBoostElement) { // (maj 30/05 - Robustesse DOM)
                 acheterPostDoctoratButton.innerHTML = `Post-Doctorat : <span class="prestige-points-color">${formatNumber(postDoctoratData.cost, 0)} PP</span>`;
-                acheterPostDoctoratButton.classList.toggle('can-afford', prestigePoints.gte(postDoctoratData.cost) && postDoctoratData.prerequisites());
-                acheterPostDoctoratButton.classList.toggle('cannot-afford', prestigePoints.lt(postDoctoratData.cost) || !postDoctoratData.prerequisites());
                 nombrePostDoctoratElement.textContent = formatNumber(nombrePostDoctorat, 0);
                 postDoctoratBoostElement.textContent = `${formatNumber(postDoctoratData.getEffectValue().sub(1).mul(100), 2)}%`;
             }
@@ -749,6 +818,7 @@ export function updateDisplay() {
     updateMultiplierButtons();
     updateAutomationButtonStates();
     updateSettingsButtonStates();
+    updateButtonStates(); // Appel de la fonction déplacée ici (maj 30/05 - debug)
 }
 
 /**

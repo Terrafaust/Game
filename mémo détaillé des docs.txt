@@ -1064,11 +1064,10 @@ MonJeuIncremental/
 //     `studiesSkillsUnlocked`, `ascensionSkillsUnlocked`, `prestigeSkillsUnlocked`.
 //   - Fonctions utilitaires/de calcul : `formatNumber` (utilisée pour l'affichage numérique),
 //     `applyAllSkillEffects`, `updateCachedMultipliers`, `calculateTotalBPS`, `checkUnlockConditions`,
-//     `updateButtonStates`,`themeOptionUnlocked`.
+//     `themeOptionUnlocked`.
 //   - Multiplicateurs de structures d'ascension : `ecoleMultiplier`, `lyceeMultiplier`, `collegeMultiplier`.
 //   Impact : Fournit toutes les données dynamiques et les fonctions de base pour que l'UI puisse
 //            afficher l'état actuel du jeu et réagir aux changements.
-
 //
 // - De './studies.js' :
 //   - Fonctions de calcul de coût : `calculateNextEleveCost`, `calculateNextClasseCost`,
@@ -1101,7 +1100,6 @@ MonJeuIncremental/
 // - De './skills.js' :
 //   - Fonction d'action : `buySkill`.
 //   Impact : Permet à `ui.js` de déclencher l'achat d'une compétence via `handleSkillClick`.
-//
 //
 // - De './quests.js' : (maj 30/05 Quete)
 //   - Fonctions : `renderQuests` (pour le rendu des quêtes), `updateQuestsUI` (pour la mise à jour des compteurs de quêtes). (maj 30/05 Quete)
@@ -1336,7 +1334,7 @@ MonJeuIncremental/
 //   - `#notifications-container`.
 // - Arbre de compétences :
 //   - `#studiesPanel`, `#ascensionPanel`, `#prestigePanel`.
-//   - `#studiesSkillsPointsCount`, `#ascensionSkillsPointsCount`, `#prestigeSkillsPointsCount`.
+//   - `#studiesSkillsPointsCount`, `#ascensionSkillsPointsPointsCount`, `#prestigeSkillsPointsCount`.
 //   - `#studiesSkillsGrid`, `#ascensionSkillsGrid`, `#prestigeSkillsGrid` (où les compétences sont rendues).
 // - Quêtes :
 //   - `#questsList`, `#completedQuestsList`.
