@@ -72,8 +72,8 @@ import {
 
 // Importations des fonctions d'UI depuis ui.js
 import {
-    showNotification
-    updateDisplay,
+    showNotification,
+    updateDisplay
 } from './ui.js';
 
 /**
