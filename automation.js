@@ -14,7 +14,7 @@
  * (updateDisplay), à la fonction d'achat générique (performPurchase), et à la fonction
  * de formatage des nombres (formatNumber).
  * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
- * - ui.js : Pour la mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
+ * - ui.js : Fournit la fonction de mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -26,8 +26,6 @@
  * - runAutomation() : Exécute les achats pour toutes les automatisations actives.
  * - toggleAutomation(itemType, baseCost) : Active ou désactive une automatisation spécifique,
  * gère le coût en Points d'Ascension et les notifications.
- * - updateAutomationButtonStates(domElements) : Met à jour l'état (texte, classes CSS)
- * des boutons d'automatisation dans l'interface utilisateur.
  *
  * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
  * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
@@ -51,29 +49,26 @@ import {
     autoProfesseurActive,
     showNotification,
     saveGameState,
-    updateDisplay, // For global display refresh
-    performPurchase, // The general purchase function
-    skillEffects, // For cost reductions
-    formatNumber // Import formatNumber from core.js
+    updateDisplay,
+    performPurchase,
+    skillEffects,
+    formatNumber
 } from './core.js';
-
 // Importations des fonctions de calcul de coût depuis data.js
 import {
-    calculateAutomationCost // Assuming this is defined in data.js
+    calculateAutomationCost
 } from './data.js';
-
 // Importations des fonctions d'UI depuis ui.js (pour updateAutomationButtonStates)
 import {
     updateAutomationButtonStates // This function is defined in ui.js
 } from './ui.js';
-
 /**
  * Exécute les achats pour toutes les automatisations actives.
  * Cette fonction est appelée par la boucle de jeu principale dans core.js.
  */
 export function runAutomation() {
     if (autoEleveActive) {
-        performPurchase('eleve', '1', true); // '1' pour un achat unitaire, true pour automatisé
+        performPurchase('eleve', '1', true);
     }
     if (autoClasseActive) {
         performPurchase('classe', '1', true);
@@ -96,7 +91,6 @@ export function runAutomation() {
 export function toggleAutomation(itemType, baseCost) {
     let currentAutomationState;
     let automationFlagName;
-
     switch (itemType) {
         case 'eleve':
             currentAutomationState = autoEleveActive;
@@ -126,7 +120,7 @@ export function toggleAutomation(itemType, baseCost) {
         // Les variables autoEleveActive, etc., sont exportées avec 'let' de core.js,
         // donc elles peuvent être réassignées directement.
         if (automationFlagName === 'autoEleveActive') {
-            window.autoEleveActive = false; // Use window object for direct modification if not directly mutable
+            window.autoEleveActive = false;
         }
         if (automationFlagName === 'autoClasseActive') {
             window.autoClasseActive = false;
@@ -144,7 +138,6 @@ export function toggleAutomation(itemType, baseCost) {
         if (ascensionPoints.gte(cost)) {
             // ascensionPoints est une Decimal, la soustraction retourne une nouvelle Decimal
             window.ascensionPoints = ascensionPoints.sub(cost);
-
             if (automationFlagName === 'autoEleveActive') {
                 window.autoEleveActive = true;
             }
@@ -164,84 +157,14 @@ export function toggleAutomation(itemType, baseCost) {
         }
     }
 
-    // Ces fonctions sont appelées après la modification de l'état
-    // pour rafraîchir l'interface utilisateur et sauvegarder le jeu.
-    // Note: updateAutomationButtonStates est importée de ui.js et doit être appelée avec les éléments DOM.
-    // Puisque automation.js ne manipule pas le DOM directement, cette fonction sera appelée
-    // par events.js ou core.js en passant les références DOM nécessaires.
-    // Pour l'instant, nous laissons l'appel ici, mais il faut s'assurer que les éléments DOM sont passés.
-    // Si updateAutomationButtonStates est appelée depuis ui.js, elle n'a pas besoin de domElements en paramètre ici.
-    // Pour éviter une dépendance circulaire ou une manipulation directe du DOM ici,
-    // nous allons supposer que `updateAutomationButtonStates` est appelée par `ui.js`
-    // après que `toggleAutomation` ait mis à jour les variables d'état.
-    // Cependant, pour que le bouton se mette à jour immédiatement après le clic,
-    // il faudrait que `events.js` appelle `updateAutomationButtonStates` après `toggleAutomation`.
-    // Pour l'exemple, je vais commenter l'appel direct ici, car la mise à jour sera faite par `updateDisplay()`
-    // qui est appelée et qui elle-même appelle `updateAutomationButtonStates` dans `ui.js`.
-
-    updateDisplay(); // Rafraîchit l'affichage global, qui inclura les boutons d'automatisation
-    saveGameState(); // Sauvegarde l'état du jeu
+    // `updateDisplay()` est appelée pour rafraîchir l'affichage global,
+    // ce qui inclura la mise à jour des boutons d'automatisation via `ui.js`.
+    // L'appel direct à `updateAutomationButtonStates()` ici est supprimé
+    // pour éviter la redeclaration et maintenir la séparation des responsabilités.
+    updateDisplay();
+    saveGameState();
 }
 
-// Note: updateAutomationButtonStates est une fonction qui met à jour l'UI.
-// Elle devrait être appelée par ui.js ou events.js qui ont accès aux éléments DOM.
-// Le code ci-dessous est celui que vous avez fourni, il est correct pour sa fonction.
-// Je l'ai gardé ici pour l'intégralité du document, mais son appel direct dans toggleAutomation
-// a été ajusté pour refléter la gestion du DOM par ui.js.
-/**
- * Met à jour l'état (texte, classes CSS) des boutons d'automatisation dans l'interface utilisateur.
- * Cette fonction est appelée par ui.js.
- * @param {object} domElements - Un objet contenant les références aux éléments DOM nécessaires.
- * Ex: { autoEleveBtn, autoClasseBtn, autoImageBtn, autoProfesseurBtn }
- */
-export function updateAutomationButtonStates(domElements) {
-    const { autoEleveBtn, autoClasseBtn, autoImageBtn, autoProfesseurBtn } = domElements;
-
-    // Élèves
-    const costEleve = calculateAutomationCost(100);
-    if (autoEleveActive) {
-        autoEleveBtn.textContent = "Désactiver Auto Élèves";
-        autoEleveBtn.classList.add('automation-active');
-    } else {
-        autoEleveBtn.innerHTML = `Automatiser Élèves : <span class="ascension-points-color">${formatNumber(costEleve, 0)} PA</span>`;
-        autoEleveBtn.classList.remove('automation-active');
-        autoEleveBtn.classList.toggle('can-afford', ascensionPoints.gte(costEleve));
-        autoEleveBtn.classList.toggle('cannot-afford', ascensionPoints.lt(costEleve));
-    }
-
-    // Classes
-    const costClasse = calculateAutomationCost(500);
-    if (autoClasseActive) {
-        autoClasseBtn.textContent = "Désactiver Auto Classes";
-        autoClasseBtn.classList.add('automation-active');
-    } else {
-        autoClasseBtn.innerHTML = `Automatiser Classes : <span class="ascension-points-color">${formatNumber(costClasse, 0)} PA</span>`;
-        autoClasseBtn.classList.remove('automation-active');
-        autoClasseBtn.classList.toggle('can-afford', ascensionPoints.gte(costClasse));
-        autoClasseBtn.classList.toggle('cannot-afford', ascensionPoints.lt(costClasse));
-    }
-
-    // Images
-    const costImage = calculateAutomationCost(10000);
-    if (autoImageActive) {
-        autoImageBtn.textContent = "Désactiver Auto Images";
-        autoImageBtn.classList.add('automation-active');
-    } else {
-        autoImageBtn.innerHTML = `Automatiser Images : <span class="ascension-points-color">${formatNumber(costImage, 0)} PA</span>`;
-        autoImageBtn.classList.remove('automation-active');
-        autoImageBtn.classList.toggle('can-afford', ascensionPoints.gte(costImage));
-        autoImageBtn.classList.toggle('cannot-afford', ascensionPoints.lt(costImage));
-    }
-
-    // Professeurs
-    const costProfesseur = calculateAutomationCost(100000);
-    if (autoProfesseurActive) {
-        autoProfesseurBtn.textContent = "Désactiver Auto Profs";
-        autoProfesseurBtn.classList.add('automation-active');
-    } else {
-        autoProfesseurBtn.innerHTML = `Automatiser Professeur : <span class="ascension-points-color">${formatNumber(costProfesseur, 0)} PA</span>`;
-        autoProfesseurBtn.classList.remove('automation-active');
-        autoProfesseurBtn.classList.toggle('can-afford', ascensionPoints.gte(costProfesseur));
-        autoProfesseurBtn.classList.toggle('cannot-afford', ascensionPoints.lt(costProfesseur));
-    }
-}
+// La fonction `updateAutomationButtonStates` a été déplacée dans `ui.js`
+// et n'est plus définie ici pour éviter la redeclaration.
+// Ce fichier l'importe de `ui.js` pour l'utiliser si nécessaire.
