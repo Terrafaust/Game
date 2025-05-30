@@ -243,7 +243,7 @@ MonJeuIncremental/
 //   Les styles inline ont été minimisés au profit de classes CSS gérées par `style.css`.
 //
 // ---------------------------------------------------------------------
-
+-->
 
 
 
@@ -832,8 +832,6 @@ MonJeuIncremental/
 
 
 
-
-
 // ------------------ Fiche Mémo : data.js -----------------------------
 //
 // Description : Ce fichier est le dépôt central de toutes les données statiques et de configuration du jeu.
@@ -942,6 +940,7 @@ MonJeuIncremental/
 //     - `id` (string) : Identifiant unique.
 //     - `name` (string) : Nom affiché.
 //     - `description` (string) : Texte décrivant l'objectif.
+//     - `category` (string) : Catégorie de la quête (ex: "Fondations", "Expansion Académique"). (Maj 30/05 Quetes)
 //     - `condition` (function) : Fonction qui retourne `true` si l'objectif est atteint (prend des variables d'état du jeu).
 //     - `reward` (object) : Objet décrivant la récompense (`type`, `amount`).
 //     - `rewardText` (string) : Description textuelle de la récompense.
@@ -1088,6 +1087,10 @@ MonJeuIncremental/
 // - De './settings.js' :
 //   - Variables d'état : `isDayTheme`, `themeOptionUnlocked`.
 //   Impact : Permet à `ui.js` de mettre à jour l'affichage des contrôles de thème et de mode.
+//
+// - De './quests.js' : (maj 30/05 Quete)
+//   - Fonctions : `renderQuests` (pour le rendu des quêtes), `updateQuestsUI` (pour la mise à jour des compteurs de quêtes). (maj 30/05 Quete)
+//   Impact : Permet de gérer le rendu et la mise à jour de l'interface des quêtes. (maj 30/05 Quete)
 //
 // - `break_infinity.min.js` : La bibliothèque `Decimal` est supposée être globalement disponible.
 //   Impact : Essentielle pour tous les calculs et affichages de nombres très grands.
@@ -1250,7 +1253,7 @@ MonJeuIncremental/
 // - `openTab(tabContainer)` :
 //   Description : Fonction générique pour ouvrir une section principale du jeu (un onglet)
 //   et masquer toutes les autres. Elle déclenche également un rafraîchissement spécifique
-//   pour certains onglets (compétences, quêtes, succès, paramètres).
+//   pour certains onglets (compétences, quêtes, succès, paramètres). (maj 30/05 Quete)
 //   - `tabContainer` (HTMLElement) : L'élément DOM du conteneur de la section à ouvrir.
 //   Appelée par : `events.js` (clics sur les boutons du menu latéral).
 //   Impact : Gère la navigation entre les différentes vues du jeu.
@@ -1378,225 +1381,175 @@ MonJeuIncremental/
 
 
 
----------------------- ------------------ Fiche Mémo : events.js---------------------------------------------
-// Description : Ce fichier est dédié à la gestion de tous les écouteurs d'événements (clicks, changes, etc.)
-// de l'interface utilisateur du jeu. Son rôle principal est d'attacher des gestionnaires d'événements
-// aux éléments DOM et d'appeler les fonctions de logique de jeu appropriées définies dans d'autres modules
-// (comme core.js, studies.js, automation.js, skills.js, settings.js, etc.).
-// Il ne contient aucune logique de jeu complexe, seulement la "colle" entre l'interface et le backend.
-
-// Dépendances (modif 30/05) :
-// Importations depuis './core.js':
-//   - bonsPoints, totalClicks, ascensionPoints, ascensionCount, totalPAEarned,
-//     prestigePoints, prestigeCount, studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints,
-//     studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels, secretSkillClicks,
-//     currentPurchaseMultiplier, ascensionUnlocked, prestigeUnlocked,
-//     disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
-//     multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, automationCategoryUnlocked,
-//     autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive,
-//     elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked, skillsButtonUnlocked,
-//     settingsButtonUnlocked, ascensionMenuButtonUnlocked, prestigeMenuButtonUnlocked,
-//     questsUnlocked, achievementsButtonUnlocked, nombreLicences, nombreMaster1,
-//     nombreMaster2, nombreDoctorat, nombrePostDoctorat, newSettingsUnlocked,
-//     skillEffects, totalBonsPointsParSeconde, nombreProfesseur
-//   - saveGameState, checkUnlockConditions, applyAllSkillEffects, calculateTotalBPS, softResetGame,
-//     superSoftResetGame, hardResetGame, performPurchase, formatNumber
-// Importations depuis './studies.js':
-//   - performStudyPurchase
-// Importations depuis './automation.js':
-//   - runAutomation, toggleAutomation
-// Importations depuis './skills.js':
-//   - purchaseSkill
-// Importations depuis './ascension.js':
-//   - calculatePAGained, performAscension
-// Importations depuis './prestige.js':
-//   - calculatePPGained, performPrestige, performPrestigePurchase
-// Importations depuis './settings.js':
-//   - toggleTheme, toggleOfflineProgress, toggleMinimizeResources, openStats
-// Importations depuis './quests.js':
-//   - checkQuests, claimQuestReward
-// Importations depuis './achievements.js':
-//   - checkAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip
-// Importations depuis './ui.js':
-//   - updateDisplay, showNotification, updateButtonStates, updateSectionVisibility,
-//     updateAutomationButtonStates, updateSettingsButtonStates, renderSkillsMenu,
-//     renderQuests, renderAchievements, openTab, closeStatsModal, updateStatsDisplay,
-//     updateAscensionUI, updateAscensionButtonStates, updatePrestigeUI, updatePrestigeButtonStates,
-//     renderPrestigePurchases, updateQuestsUI
-//
-// Éléments DOM Clés (référencés par ID, définis dans index.html) :
-// Les références aux éléments DOM sont obtenues directement via document.getElementById dans ce module,
-// ou elles peuvent être passées en tant qu'arguments aux fonctions d'UI si ui.js les expose.
-// Pour la clarté, certaines sont listées ici à titre indicatif. (modif 30/05)
 /*
-const studiesTitleButton = document.getElementById('studiesTitleButton');
-const acheterEleveButton = document.getElementById('acheterEleveButton');
-const acheterClasseButton = document.getElementById('acheterClasseButton');
-const acheterImageButton = document.getElementById('acheterImageButton');
-const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
-const acheterEcoleButton = document.getElementById('acheterEcoleButton');
-const acheterLyceeButton = document.getElementById('acheterLyceeButton');
-const acheterCollegeButton = document.getElementById('acheterCollegeButton');
-const acheterLicenceButton = document.getElementById('acheterLicenceButton');
-const acheterMaster1Button = document.getElementById('acheterMaster1Button');
-const acheterMaster2Button = document.getElementById('acheterMaster2Button');
-const acheterDoctoratButton = document.getElementById('acheterDoctoratButton');
-const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
+ * ------------------ Fiche Mémo : events.js -----------------------------
+ *
+ * Description : Ce fichier est le point central de l'interactivité utilisateur dans le jeu "MonJeuIncremental".
+ * Il est exclusivement dédié à la gestion de tous les écouteurs d'événements (clics de souris, changements
+ * d'état de cases à cocher, etc.) sur les éléments de l'interface utilisateur (DOM). Son rôle principal
+ * est d'attacher des gestionnaires d'événements aux éléments HTML et de déléguer les actions aux fonctions
+ * de logique de jeu appropriées, définies dans d'autres modules (comme `core.js`, `studies.js`, `automation.js`,
+ * `skills.js`, `ascension.js`, `prestige.js`, `settings.js`, `quests.js`, `achievements.js`, et `ui.js`).
+ *
+ * Objectif : Assurer une réactivité fluide de l'interface utilisateur aux interactions du joueur.
+ * Il sert de "colle" entre la présentation (UI) et la logique métier (backend), en s'assurant
+ * que chaque action utilisateur déclenche la fonction de jeu correcte, sans contenir de logique
+ * de jeu complexe elle-même. Cela garantit une séparation claire des préoccupations et facilite
+ * la maintenance et l'évolution du code.
+ *
+ * ------------------ Dépendances (Imports) ------------------
+ *
+ * Ce module importe explicitement toutes les variables d'état et fonctions nécessaires depuis les modules "propriétaires".
+ *
+ * - De './core.js' :
+ * - Variables d'état (lecture et parfois modification directe pour les compteurs simples) :
+ * `bonsPoints`, `totalClicks`, `ascensionPoints`, `ascensionCount`, `totalPAEarned`,
+ * `prestigePoints`, `prestigeCount`, `studiesSkillPoints`, `ascensionSkillPoints`, `prestigeSkillPoints`,
+ * `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels`, `secretSkillClicks`,
+ * `currentPurchaseMultiplier`, `ascensionUnlocked`, `prestigeUnlocked`,
+ * `disableAscensionWarning`, `firstAscensionPerformed`, `disablePrestigeWarning`,
+ * `multiPurchaseOptionUnlocked`, `maxPurchaseOptionUnlocked`, `automationCategoryUnlocked`,
+ * `autoEleveActive`, `autoClasseActive`, `autoImageActive`, `autoProfesseurActive`,
+ * `elevesUnlocked`, `classesUnlocked`, `imagesUnlocked`, `ProfesseurUnlocked`, `skillsButtonUnlocked`,
+ * `settingsButtonUnlocked`, `ascensionMenuButtonUnlocked`, `prestigeMenuButtonUnlocked`,
+ * `questsUnlocked`, `achievementsButtonUnlocked`, `nombreProfesseur`, `totalBonsPointsParSeconde`,
+ * `skillEffects`, `newSettingsUnlocked`, `statsButtonUnlocked`.
+ * - Fonctions de logique de jeu (appelées en réponse aux événements) :
+ * `saveGameState`, `checkUnlockConditions`, `applyAllSkillEffects`, `calculateTotalBPS`,
+ * `hardResetGame`, `performPurchase`, `formatNumber`.
+ * Impact : Fournit l'accès à l'état global du jeu et aux fonctions fondamentales pour modifier cet état.
+ *
+ * - De './automation.js' :
+ * - Fonctions : `calculateAutomationCost`.
+ * Impact : Permet de calculer le coût des automatisations pour les affichages ou les vérifications.
+ *
+ * - De './skills.js' :
+ * - Fonctions : `handleSkillClick` (pour la logique d'achat de compétences).
+ * Impact : Délègue la gestion des clics sur les compétences à ce module spécialisé.
+ *
+ * - De './ascension.js' :
+ * - Fonctions : `calculatePAGained` (pour l'affichage des PA potentiels), `performAscension` (pour exécuter l'Ascension).
+ * Impact : Permet de déclencher les actions et calculs liés à l'Ascension.
+ *
+ * - De './prestige.js' :
+ * - Fonctions : `calculatePPGained` (pour l'affichage des PP potentiels), `performPrestige` (pour exécuter le Prestige),
+ * `getPrestigeBonusMultiplier` (pour afficher les bonus de Prestige).
+ * Impact : Permet de déclencher les actions et calculs liés au Prestige.
+ *
+ * - De './settings.js' :
+ * - Fonctions : `toggleTheme`, `toggleOfflineProgress`, `toggleMinimizeResources`.
+ * Impact : Gère les changements de paramètres du jeu.
+ *
+ * - De './quests.js' :
+ * - Fonctions : `updateQuestProgress` (appelée par `core.js`, mais listée ici pour exhaustivité),
+ * `claimQuestReward` (pour la logique de réclamation de quêtes).
+ * Impact : Permet de déclencher la réclamation des récompenses de quêtes.
+ *
+ * - De './achievements.js' :
+ * - Fonctions : `checkAchievements` (appelée par `core.js`), `showAchievementTooltip`,
+ * `hideAchievementTooltip`, `toggleAchievementTooltip`.
+ * - Variables : `unlockedAchievements`, `activeAchievementTooltip`.
+ * Impact : Gère l'affichage et l'interaction avec les infobulles des succès.
+ *
+ * - De './ui.js' :
+ * - Fonctions : `updateDisplay`, `showNotification`, `updateButtonStates`, `updateSectionVisibility`,
+ * `updateAutomationButtonStates`, `updateSettingsButtonStates`, `renderSkillsMenu`,
+ * `renderQuests`, `renderAchievements`, `openTab`, `closeStatsModal`, `updateStatsDisplay`,
+ * `updateMultiplierButtons`, `openStatsModal`.
+ * Impact : Gère toutes les mises à jour visuelles de l'interface utilisateur et la navigation entre les onglets/modales.
+ *
+ * - De './data.js' :
+ * - Données statiques : `skillsData`, `achievementsData`, `prestigePurchasesData`.
+ * Impact : Fournit les définitions nécessaires pour les boucles d'événements (ex: itérer sur les succès).
+ *
+ * ------------------ Fonctions Clés Définies et Exportées ------------------
+ *
+ * - `export function initEventListeners()` :
+ * Description : Fonction principale d'initialisation des écouteurs d'événements.
+ * Elle est appelée une seule fois après que le DOM est entièrement chargé et que l'état
+ * initial du jeu est établi. Elle récupère les références à tous les éléments DOM
+ * interactifs et attache les gestionnaires d'événements appropriés (clics, changements, etc.).
+ * Utilise la délégation d'événements pour les éléments générés dynamiquement (compétences, quêtes, succès).
+ * Appelée par : `core.js` (généralement dans `window.onload` ou `initializeGame`).
+ * Impact : Rend le jeu interactif en connectant l'interface utilisateur à la logique du jeu.
+ *
+ * ------------------ Éléments DOM Clés (référencés par ID) ------------------
+ *
+ * Ce module récupère directement les références aux éléments DOM via `document.getElementById`
+ * pour attacher les écouteurs d'événements.
+ *
+ * - Boutons d'action principaux :
+ * - `studiesTitleButton` : Bouton principal pour "Étudier sagement" (clic pour gagner des BP).
+ * - `acheterEleveButton`, `acheterClasseButton`, `acheterImageButton`, `acheterProfesseurButton` : Boutons d'achat d'unités d'études.
+ * - `acheterEcoleButton`, `acheterLyceeButton`, `acheterCollegeButton` : Boutons d'achat de structures d'Ascension.
+ * - `acheterLicenceButton`, `acheterMaster1Button`, `acheterMaster2Button`, `acheterDoctoratButton`, `acheterPostDoctoratButton` : Boutons d'achat de prestige.
+ *
+ * - Boutons de navigation/onglets :
+ * - `studiesTabBtn`, `automationTabBtn`, `skillsTabBtn`, `settingsTabBtn`, `ascensionTabBtn`, `prestigeTabBtn`, `questsTabBtn`, `achievementsTabBtn` : Boutons du menu latéral pour changer d'onglet.
+ * - `statsButton` : Bouton pour ouvrir la modale des statistiques.
+ *
+ * - Boutons de paramètres/options :
+ * - `themeToggleButton` : Bouton pour basculer le thème (jour/nuit).
+ * - `resetProgressionButton` : Bouton pour réinitialiser complètement le jeu.
+ * - `offlineProgressToggle` : Case à cocher pour activer/désactiver la progression hors ligne.
+ * - `toggleMinimalistResourcesButton` : Bouton pour basculer l'affichage des ressources en mode minimaliste.
+ *
+ * - Boutons/éléments des modales de confirmation :
+ * - `ascensionTitleButton`, `confirmAscensionYesBtn`, `confirmAscensionNoBtn`, `disableAscensionWarningCheckboxAscension` : Éléments liés à la modale de confirmation d'Ascension.
+ * - `prestigeTitleButton`, `confirmPrestigeYesBtn`, `confirmPrestigeNoBtn`, `disablePrestigeWarningCheckbox` : Éléments liés à la modale de confirmation de Prestige.
+ * - `resetSkillsButton`, `buyAllSkillsButton` : Boutons de réinitialisation/achat de toutes les compétences.
+ *
+ * - Conteneurs pour délégation d'événements (éléments dynamiques) :
+ * - `multiplierButtonsContainer` : Conteneur des boutons de multiplicateur d'achat (x1, x10, etc.).
+ * - `studiesSkillsGrid`, `ascensionSkillsGrid`, `prestigeSkillsGrid` : Grilles des compétences pour chaque catégorie.
+ * - `achievementsGrid` : Grille d'affichage des succès.
+ * - `questsListContainer` : Conteneur principal de la liste des quêtes.
+ *
+ * - Autres éléments d'affichage interagis :
+ * - `statsModal` : Conteneur de la modale des statistiques (pour fermer au clic extérieur).
+ * - `achievementTooltip` : Infobulle des succès.
+ * - `paGainedDisplay`, `prestigePointsGainedDisplay` : Affichage des gains potentiels lors des resets.
+ * - `clickBonsPointsDisplay`, `bonsPointsSpan`, `miniBonsPoints` : Affichages des Bons Points et bonus de clic.
+ *
+ * ------------------ Logique Générale et Flux de Données ------------------
+ *
+ * 1.  **Initialisation** : La fonction `initEventListeners()` est appelée une fois au démarrage du jeu.
+ * Elle récupère toutes les références DOM nécessaires et configure les écouteurs d'événements.
+ * 2.  **Délégation d'Événements** : Pour les éléments générés dynamiquement (compétences, quêtes, succès, multiplicateurs),
+ * des écouteurs sont attachés à un conteneur parent statique. Lorsque l'événement se produit,
+ * le gestionnaire vérifie si l'élément cliqué (ou survolé) correspond à un sous-élément d'intérêt
+ * (`event.target.closest()`, `classList.contains()`).
+ * 3.  **Appel des Fonctions de Logique** : Une fois l'élément d'intérêt identifié, `events.js` appelle
+ * la fonction appropriée du module de logique concerné (ex: `performPurchase` de `core.js`,
+ * `handleSkillClick` de `skills.js`, `claimQuestReward` de `quests.js`).
+ * 4.  **Mise à Jour de l'UI** : Après l'exécution de la logique, `events.js` (ou la fonction de logique appelée)
+ * déclenche des mises à jour de l'interface via des fonctions de `ui.js` (`updateDisplay`, `showNotification`,
+ * `openTab`, etc.) pour refléter les changements d'état du jeu.
+ * 5.  **Gestion des Modales** : Pour les confirmations (Ascension, Prestige, Reset), `events.js` gère
+ * l'affichage de modales personnalisées (au lieu des `confirm()` natifs du navigateur) et les actions
+ * associées aux boutons "Oui"/"Non" de ces modales.
+ *
+ * ------------------ Notes Spécifiques ------------------
+ *
+ * - **Séparation des préoccupations** : `events.js` est un exemple clé de la séparation des préoccupations.
+ * Il ne contient aucune logique de jeu complexe, mais agit comme un "routeur" d'événements,
+ * redirigeant les interactions utilisateur vers les modules qui gèrent la logique métier.
+ * - **Robustesse** : Des vérifications `if (element)` sont utilisées lors de la récupération des éléments DOM
+ * pour éviter les erreurs si un élément n'est pas encore présent dans le DOM au moment de l'initialisation
+ * des écouteurs.
+ * - **Pas d'`alert()` ni `confirm()`** : Le jeu utilise des modales HTML/CSS/JS personnalisées pour les
+ * confirmations et notifications, car les fonctions natives du navigateur (`alert()`, `confirm()`)
+ * peuvent bloquer l'interface et ne sont pas stylisables.
+ * - **Gestion de la compétence secrète** : Un écouteur spécifique est mis en place pour une compétence
+ * secrète, démontrant la capacité à gérer des interactions uniques.
+ *
+ * ---------------------------------------------------------------------
 
-const themeToggleButton = document.getElementById('themeToggleButton');
-const resetProgressionButton = document.getElementById('resetProgressionButton');
-const offlineProgressToggle = document.getElementById('offlineProgressToggle');
-const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
-const statsButton = document.getElementById('statsButton');
-const statsModal = document.getElementById('statsModal'); // The modal container itself
 
-const ascensionTitleButton = document.getElementById('ascensionTitleButton');
-const confirmAscensionYesBtn = document.getElementById('confirmAscensionYes');
-const confirmAscensionNoBtn = document.getElementById('confirmAscensionNo');
 
-const prestigeTitleButton = document.getElementById('prestigeTitleButton');
-const confirmPrestigeYesBtn = document.getElementById('confirmPrestigeYes');
-const confirmPrestigeNoBtn = document.getElementById('confirmPrestigeNo');
-const disablePrestigeWarningCheckbox = document.getElementById('disablePrestigeWarningCheckbox');
 
-const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton');
-const unlockmaxPurchaseButton = document.getElementById('unlockmaxPurchaseButton');
-const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
-const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton');
 
-const autoEleveBtn = document.getElementById('autoEleveBtn');
-const autoClasseBtn = document = document.getElementById('autoClasseBtn');
-const autoImageBtn = document.getElementById('autoImageBtn');
-const autoProfesseurBtn = document.getElementById('autoProfesseurBtn');
 
-const multiplierButtonsContainer = document.getElementById('multiplierButtonsContainer'); // Parent for delegation
-const studiesSkillsGrid = document.getElementById('studiesSkillsGrid'); // Parent for delegation
-const ascensionSkillsGrid = document.getElementById('ascensionSkillsGrid'); // Parent for delegation
-const prestigeSkillsGrid = document.getElementById('prestigeSkillsGrid'); // Parent for delegation
-
-const resetSkillsButton = document.getElementById('resetSkillsButton');
-const buyAllSkillsButton = document.getElementById('buyAllSkillsButton');
-
-const studiesTabBtn = document.getElementById('studiesTabBtn');
-const automationTabBtn = document.getElementById('automationTabBtn');
-const skillsTabBtn = document.getElementById('skillsTabBtn');
-const settingsTabBtn = document.getElementById('settingsTabBtn');
-const ascensionTabBtn = document.getElementById('ascensionTabBtn');
-const prestigeTabBtn = document.getElementById('prestigeTabBtn');
-const questsTabBtn = document.getElementById('questsTabBtn');
-const achievementsTabBtn = document.getElementById('achievementsTabBtn');
-
-const studiesMainContainer = document.getElementById('studiesMainContainer');
-const automationMainContainer = document.getElementById('automationMainContainer');
-const skillsContainer = document.getElementById('skillsContainer');
-const settingsContainer = document.getElementById('settingsContainer');
-const ascensionMenuContainer = document.getElementById('ascensionMenuContainer');
-const prestigeMenuContainer = document.getElementById('prestigeMenuContainer');
-const questsContainer = document.getElementById('questsContainer');
-const achievementsContainer = document.getElementById('achievementsContainer');
-
-const achievementTooltip = document.getElementById('achievementTooltip');
-const achievementsGrid = document.getElementById('achievementsGrid');
-
-const paGainedDisplay = document.getElementById('paGainedDisplay');
-const ascensionModalTitle = document.getElementById('ascensionModalTitle');
-const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning');
-const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning');
-const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox');
-const confirmAscensionModal = document.getElementById('confirmAscensionModal');
-const confirmPrestigeModal = document.getElementById('confirmPrestigeModal');
-const prestigeWarningText = document.getElementById('prestigeWarningText');
-const prestigePointsGainedDisplay = document.getElementById('prestigePointsGainedDisplay'); // Assumed new element for prestige points display
-*/
-
-// Logique Générale :
-// Ce fichier initialise tous les écouteurs d'événements une fois que le DOM est complètement chargé
-// et que toutes les variables globales nécessaires sont initialisées.
-
-// --- Récupération des éléments DOM (Assumés globaux ou passés) ---
-// Ces variables sont supposées être déjà définies et accessibles globalement,
-// par exemple via le fichier ui.js qui les récupère avec document.getElementById.
-// Pour la clarté, certaines sont listées ici à titre indicatif.
-/*
-const studiesTitleButton = document.getElementById('studiesTitleButton');
-const acheterEleveButton = document.getElementById('acheterEleveButton');
-const acheterClasseButton = document.getElementById('acheterClasseButton');
-const acheterImageButton = document.getElementById('acheterImageButton');
-const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
-const acheterEcoleButton = document.getElementById('acheterEcoleButton');
-const acheterLyceeButton = document.getElementById('acheterLyceeButton');
-const acheterCollegeButton = document.getElementById('acheterCollegeButton');
-const acheterLicenceButton = document.getElementById('acheterLicenceButton');
-const acheterMaster1Button = document.getElementById('acheterMaster1Button');
-const acheterMaster2Button = document.getElementById('acheterMaster2Button');
-const acheterDoctoratButton = document.getElementById('acheterDoctoratButton');
-const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
-
-const themeToggleButton = document.getElementById('themeToggleButton');
-const resetProgressionButton = document.getElementById('resetProgressionButton');
-const offlineProgressToggle = document.getElementById('offlineProgressToggle');
-const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
-const statsButton = document.getElementById('statsButton');
-const statsModal = document.getElementById('statsModal'); // The modal container itself
-
-const ascensionTitleButton = document.getElementById('ascensionTitleButton');
-const confirmAscensionYesBtn = document.getElementById('confirmAscensionYes');
-const confirmAscensionNoBtn = document.getElementById('confirmAscensionNo');
-
-const prestigeTitleButton = document.getElementById('prestigeTitleButton');
-const confirmPrestigeYesBtn = document.getElementById('confirmPrestigeYes');
-const confirmPrestigeNoBtn = document.getElementById('confirmPrestigeNo');
-const disablePrestigeWarningCheckbox = document.getElementById('disablePrestigeWarningCheckbox');
-
-const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton');
-const unlockmaxPurchaseButton = document.getElementById('unlockmaxPurchaseButton');
-const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
-const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton');
-
-const autoEleveBtn = document.getElementById('autoEleveBtn');
-const autoClasseBtn = document.getElementById('autoClasseBtn');
-const autoImageBtn = document.getElementById('autoImageBtn');
-const autoProfesseurBtn = document.getElementById('autoProfesseurBtn');
-
-const multiplierButtonsContainer = document.getElementById('multiplierButtonsContainer'); // Parent for delegation
-const studiesSkillsGrid = document.getElementById('studiesSkillsGrid'); // Parent for delegation
-const ascensionSkillsGrid = document.getElementById('ascensionSkillsGrid'); // Parent for delegation
-const prestigeSkillsGrid = document.getElementById('prestigeSkillsGrid'); // Parent for delegation
-
-const resetSkillsButton = document.getElementById('resetSkillsButton');
-const buyAllSkillsButton = document.getElementById('buyAllSkillsButton');
-
-const studiesTabBtn = document.getElementById('studiesTabBtn');
-const automationTabBtn = document.getElementById('automationTabBtn');
-const skillsTabBtn = document.getElementById('skillsTabBtn');
-const settingsTabBtn = document.getElementById('settingsTabBtn');
-const ascensionTabBtn = document.getElementById('ascensionTabBtn');
-const prestigeTabBtn = document.getElementById('prestigeTabBtn');
-const questsTabBtn = document.getElementById('questsTabBtn');
-const achievementsTabBtn = document.getElementById('achievementsTabBtn');
-
-const studiesMainContainer = document.getElementById('studiesMainContainer');
-const automationMainContainer = document.getElementById('automationMainContainer');
-const skillsContainer = document.getElementById('skillsContainer');
-const settingsContainer = document.getElementById('settingsContainer');
-const ascensionMenuContainer = document.getElementById('ascensionMenuContainer');
-const prestigeMenuContainer = document.getElementById('prestigeMenuContainer');
-const questsContainer = document.getElementById('questsContainer');
-const achievementsContainer = document.getElementById('achievementsContainer');
-
-const achievementTooltip = document.getElementById('achievementTooltip');
-const achievementsGrid = document.getElementById('achievementsGrid');
-
-const paGainedDisplay = document.getElementById('paGainedDisplay');
-const ascensionModalTitle = document.getElementById('ascensionModalTitle');
-const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning');
-const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning');
-const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox');
-const confirmAscensionModal = document.getElementById('confirmAscensionModal');
-const confirmPrestigeModal = document.getElementById('confirmPrestigeModal');
-const prestigeWarningText = document.getElementById('prestigeWarningText');
-const prestigePointsGainedDisplay = document.getElementById('prestigePointsGainedDisplay'); // Assumed new element for prestige points display
-*/
 
 // ------------------ Fiche Mémo : studies.js ----------------------------
 //
@@ -2048,53 +2001,164 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 
 
 
- * ------------------ Fiche Mémo : quests.js -----------------------------
- * Description : Ce fichier gère toute la logique et les fonctionnalités liées aux quêtes
- * (Quests) du jeu. Il permet de définir les quêtes, de vérifier leurs conditions de complétion,
- * de distribuer les récompenses une fois les quêtes terminées, et de mettre à jour
- * l'interface utilisateur du journal des quêtes.
- *
- * Dépendances :
- * - core.js : Fournit l'accès aux variables d'état globales (bonsPoints, images, nombreEleves,
- * nombreClasses, nombreProfesseur, totalClicks, totalPAEarned, prestigeCount,
- * saveGameState, applyAllSkillEffects, completedQuests), (modif 30/05)
- * - data.js : Contient les définitions des quêtes (questsData) incluant leurs conditions
- * de complétion et leurs récompenses.
- * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
- * de l'interface utilisateur spécifique aux quêtes (updateQuestsUI, renderQuests),et les fonctions `showNotification`, `updateDisplay`. (modif 30/05)
- *
- * Variables Clés (utilisées par quests.js, mais définies et gérées ailleurs) :
- * - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur, totalClicks,
- * totalPAEarned, prestigeCount : Variables d'état du jeu utilisées pour vérifier les conditions des quêtes.
- * - completedQuests : Objet pour suivre les quêtes déjà complétées par leur ID (défini dans core.js). (modif 30/05)
- * - questsData : Tableau des définitions de toutes les quêtes (défini dans data.js). (modif 30/05)
- *
- * Variables Clés Définies et Exportées : (modif 30/05)
- * - paMultiplierFromQuests : Multiplicateur de gain de PA cumulé provenant des récompenses de quêtes. (modif 30/05)
- *
- * Fonctions Clés Définies et Exportées :
- * - updateQuestProgress() : Vérifie les conditions de toutes les quêtes non complétées et
- * marque celles qui sont terminées comme "complétées" ou "réclamables". (modif 30/05)
- * - claimQuestReward(questId) : Gère la logique de réclamation d'une récompense de quête,
- * ajoute les récompenses au joueur et marque la quête comme réclamée.
- * - updateQuestsUI(domElements) : Met à jour l'affichage des informations générales des quêtes
- * dans l'interface utilisateur.
- * - renderQuests(domElements) : Construit ou met à jour dynamiquement la structure HTML
- * du journal des quêtes en fonction de leur état (non commencée, en cours, complétée, réclamée).
- *
- * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
- * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
- * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateQuestsUI` et `renderQuests`)
- * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
- * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
- *
- * Logique Générale :
- * Ce module est essentiel pour guider la progression du joueur et offrir des objectifs
- * à court et moyen terme. Il interagit avec les données du jeu pour déterminer la
- * complétion des quêtes et avec l'état global pour appliquer les récompenses.
- * Il est appelé par la boucle de jeu principale (`core.js`) pour la vérification périodique
- * et par `events.js` pour les interactions utilisateur (réclamation de récompenses).
- */
+
+// ------------------ Fiche Mémo : quests.js (Mise à jour 30/05) -----------------------------
+//
+// Description :
+// Ce fichier gère l'intégralité de la logique et des fonctionnalités liées au système de quêtes
+// du jeu "MonJeuIncremental". Il est responsable de :
+//   - La vérification des conditions de complétion des quêtes définies dans `data.js`.
+//   - L'attribution des récompenses lorsque les quêtes sont complétées et réclamées par le joueur.
+//   - La mise à jour de l'interface utilisateur du journal des quêtes, ce qui inclut :
+//     - L'affichage des quêtes groupées par catégories.
+//     - L'indication de la progression individuelle pour chaque quête en cours.
+//     - La gestion de l'état visuel des quêtes (en cours, complétée, réclamée).
+//
+// Objectif :
+// L'objectif principal de ce module est de guider la progression du joueur en lui offrant
+// des objectifs clairs à court et moyen terme. Il vise également à récompenser les accomplissements
+// du joueur, à enrichir l'expérience de jeu et à fournir une interface utilisateur claire et
+// informative pour le suivi des quêtes.
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// - De './core.js' :
+//   - Variables d'état globales : `bonsPoints`, `images`, `nombreEleves`, `nombreClasses`,
+//     `nombreProfesseur`, `totalClicks`, `totalPAEarned`, `prestigeCount`, `ascensionCount`,
+//     `totalBonsPointsParSeconde`, `schoolCount`, `nombreLycees`, `nombreColleges`,
+//     `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`,
+//     `automationCategoryUnlocked`, `elevesUnlocked`, `classesUnlocked`, `imagesUnlocked`,
+//     `ProfesseurUnlocked`, `skillEffects` (pour certaines conditions de quêtes),
+//     `completedQuests` (objet stockant l'état de complétion/réclamation des quêtes),
+//     `ascensionPoints`, `prestigePoints`.
+//     Impact : Essentiel pour vérifier les conditions des quêtes et afficher leur progression.
+//              `completedQuests` est modifié par ce module.
+//   - Fonctions :
+//     - `saveGameState`: Pour sauvegarder l'état du jeu après complétion ou réclamation d'une quête.
+//     - `applyAllSkillEffects`: Pour recalculer les bonus globaux si une quête affecte
+//       des multiplicateurs (ex: `paMultiplierFromQuests`).
+//     Impact : Permet la persistance des données et l'intégration des récompenses de quêtes
+//              dans la logique globale du jeu.
+//
+// - De './data.js' :
+//   - `questsData` (Array d'objets) : Contient les définitions statiques de toutes les quêtes,
+//     incluant leur `id`, `name`, `description`, `conditions` (objet), `rewards` (objet),
+//     `rewardText` (string), `permanent` (boolean), et `category` (string).
+//     Impact : Source principale des informations sur les quêtes (objectifs, récompenses, organisation).
+//
+// - De './ui.js' :
+//   - Fonctions :
+//     - `formatNumber`: Utilisée pour afficher les nombres (ressources, progression) de manière lisible.
+//     - `showNotification`: Pour informer le joueur de la complétion ou de la réclamation d'une quête.
+//     - `updateDisplay`: Pour rafraîchir l'affichage global du jeu après une réclamation de quête.
+//     Impact : Assure le retour visuel au joueur et la mise à jour de l'interface.
+//
+// ------------------ Variables Clés (utilisées par quests.js, mais définies et gérées ailleurs) ------------------
+//
+// - `completedQuests` (Object, de `core.js`) : Structure de données clé qui stocke l'état de chaque quête
+//   (ex: `{ Q_ID1: { completed: true, claimed: false }, ... }`). Modifié par `updateQuestProgress` et `claimQuestReward`.
+// - `questsData` (Array, de `data.js`) : Source de toutes les définitions de quêtes.
+// - Toutes les variables d'état importées de `core.js` (ex: `bonsPoints`, `nombreEleves`, etc.) :
+//   Utilisées pour évaluer les `conditions` des quêtes et afficher la progression dans `renderQuests`.
+//
+// ------------------ Variables Clés Définies et Exportées ------------------
+//
+// - `export let paMultiplierFromQuests = new Decimal(1);`
+//   Description : Un multiplicateur `Decimal` qui accumule les bonus de gain de Points d'Ascension (PA)
+//                 provenant des récompenses de quêtes.
+//   Impact : Modifié par `claimQuestReward` si une quête offre un `paMultiplier`.
+//            Doit être importé et utilisé par `core.js` (probablement dans `applyAllSkillEffects`
+//            ou lors du calcul du gain de PA) pour que le bonus soit effectif.
+//
+// ------------------ Fonctions Clés Définies et Exportées ------------------
+//
+// - `export function updateQuestProgress()`
+//   Description : Parcourt toutes les quêtes définies dans `questsData`. Pour chaque quête non encore
+//                 réclamée et non encore complétée, elle vérifie si toutes ses `conditions` sont remplies
+//                 en comparant avec les variables d'état actuelles de `core.js`.
+//                 Si une quête est nouvellement complétée :
+//                   - Met à jour son état dans l'objet `completedQuests`.
+//                   - Affiche une notification descriptive au joueur (via `showNotification`).
+//                   - Déclenche `saveGameState`.
+//   Appelée par : La boucle de jeu principale dans `core.js` (généralement à chaque tick ou à intervalle régulier).
+//
+// - `export function claimQuestReward(questId)`
+//   Description : Gère la logique lorsqu'un joueur réclame la récompense d'une quête complétée.
+//                 - Vérifie que la quête existe, est complétée et n'a pas déjà été réclamée.
+//                 - Applique les `rewards` définies dans `questsData` (ex: ajout de `bonsPoints`, `images`,
+//                   `ascensionPoints`, `prestigePoints` aux variables globales `window.variable`, ou mise à jour
+//                   de `paMultiplierFromQuests`).
+//                   *Note : La modification directe de `window.variable` est une pratique héritée
+//                    et pourrait être améliorée par des fonctions setter dans `core.js`.*
+//                 - Marque la quête comme réclamée dans `completedQuests`.
+//                 - Appelle `applyAllSkillEffects` pour s'assurer que les bonus globaux sont à jour.
+//                 - Affiche une notification descriptive de la récompense.
+//                 - Si l'onglet des quêtes est visible, appelle `renderQuests` et `updateQuestsUI` pour un
+//                   rafraîchissement immédiat.
+//                 - Appelle `updateDisplay` pour un rafraîchissement global et `saveGameState`.
+//   Appelée par : `events.js` en réponse à un clic du joueur sur un bouton "Réclamer".
+//
+// - `export function updateQuestsUI(domElements = {})`
+//   Description : Met à jour les éléments d'affichage généraux de la section des quêtes,
+//                 typiquement les compteurs (nombre de quêtes complétées / nombre total de quêtes).
+//   - `domElements` (Object) : Un objet contenant des références aux éléments DOM à mettre à jour
+//     (ex: `{ questsCompletedCountDisplay, questsTotalCountDisplay }`).
+//   Appelée par : `ui.js` lors de l'ouverture de l'onglet des quêtes, et par `claimQuestReward` si l'onglet est actif.
+//
+// - `export function renderQuests(domElements = {})`
+//   Description : Construit ou met à jour dynamiquement la structure HTML du journal des quêtes.
+//                 - Regroupe les quêtes par la propriété `category` définie dans `questsData`.
+//                 - Pour chaque quête, affiche son nom, sa description, sa progression actuelle
+//                   (ex: "Élèves: 750/1000" ou "Auto: Débloqué"), le texte de sa récompense,
+//                   son statut (En cours, Terminée !, Terminée et Réclamée), et un bouton "Réclamer" si applicable.
+//                 - Applique des classes CSS pour styliser les quêtes selon leur état.
+//   - `domElements` (Object) : Un objet contenant une référence au conteneur principal des quêtes
+//     (ex: `{ questsGridContainer }`).
+//   Appelée par : `ui.js` lors de l'ouverture de l'onglet des quêtes, et par `claimQuestReward` si l'onglet est actif.
+//
+// ------------------ Éléments DOM Clés (gérés via domElements passés par ui.js) ------------------
+//
+// Ce module ne sélectionne pas directement les éléments DOM. Il s'attend à ce que les fonctions
+// `updateQuestsUI` et `renderQuests` reçoivent des objets `domElements` contenant les références
+// aux conteneurs HTML appropriés définis dans `index.html`.
+//
+// - `questsGridContainer` (ex: `document.getElementById('questsList')`) :
+//   Le conteneur principal où `renderQuests` injecte la liste structurée des quêtes (par catégorie).
+// - `questsCompletedCountDisplay` (ex: `document.getElementById('questsCompletedCount')`) :
+//   Élément pour afficher le nombre de quêtes complétées et réclamées.
+// - `questsTotalCountDisplay` (ex: `document.getElementById('questsTotalCount')`) :
+//   Élément pour afficher le nombre total de quêtes.
+//
+// Les éléments individuels pour chaque quête (titre, description, bouton de réclamation, etc.)
+// sont créés dynamiquement par `renderQuests`.
+//
+// ------------------ Logique Générale et Flux de Données ------------------
+//
+// 1.  **Initialisation** : Les quêtes sont définies dans `data.js`. L'état des quêtes (`completedQuests`)
+//     est chargé ou initialisé par `core.js`.
+// 2.  **Mise à Jour de la Progression** : `core.js` appelle `updateQuestProgress()` régulièrement (boucle de jeu).
+//     Cette fonction vérifie les conditions de toutes les quêtes et met à jour `completedQuests`.
+// 3.  **Affichage** : Lorsque le joueur ouvre l'onglet des quêtes, `ui.js` appelle `renderQuests()` et
+//     `updateQuestsUI()` (qui sont exportées par ce module) pour afficher l'état actuel.
+// 4.  **Interaction Joueur** : Si le joueur clique sur "Réclamer" pour une quête complétée, `events.js`
+//     capture cet événement et appelle `claimQuestReward(questId)` de ce module.
+// 5.  **Réclamation et Effets** : `claimQuestReward` applique les récompenses, met à jour `completedQuests`,
+//     sauvegarde le jeu, et rafraîchit l'interface.
+//
+// ------------------ Notes Spécifiques (Mise à jour 30/05) ------------------
+//
+// - La gestion des récompenses dans `claimQuestReward` (ex: `window.bonsPoints = ...`) est un point
+//   qui pourrait être refactorisé pour une meilleure encapsulation en utilisant des fonctions "setter"
+//   dans `core.js` afin d'éviter la manipulation directe de variables globales ou de `window`.
+//   Le code actuel suit un pattern préexistant dans le projet.
+// - L'affichage des quêtes est dynamique et inclut le regroupement par catégories et l'affichage
+//   de la progression détaillée pour chaque quête.
+// - Les notifications sont désormais plus descriptives, indiquant la quête et sa récompense.
+// - La correction de la double déclaration d'import pour `updateQuestsUI` et `renderQuests`
+//   a été effectuée (ces fonctions sont maintenant locales et exportées par `quests.js`).
+// - Les commentaires `(30/05 Quetes update)` marquent les modifications récentes.
+//
+// -------------------------------------------------------------------------------------------
 
 
 

@@ -75,6 +75,10 @@
 //   - Variables d'état : `isDayTheme`, `themeOptionUnlocked`.
 //   Impact : Permet à `ui.js` de mettre à jour l'affichage des contrôles de thème et de mode.
 //
+// - De './quests.js' : (maj 30/05 Quete)
+//   - Fonctions : `renderQuests` (pour le rendu des quêtes), `updateQuestsUI` (pour la mise à jour des compteurs de quêtes). (maj 30/05 Quete)
+//   Impact : Permet de gérer le rendu et la mise à jour de l'interface des quêtes. (maj 30/05 Quete)
+//
 // - `break_infinity.min.js` : La bibliothèque `Decimal` est supposée être globalement disponible.
 //   Impact : Essentielle pour tous les calculs et affichages de nombres très grands.
 //
@@ -236,7 +240,7 @@
 // - `openTab(tabContainer)` :
 //   Description : Fonction générique pour ouvrir une section principale du jeu (un onglet)
 //   et masquer toutes les autres. Elle déclenche également un rafraîchissement spécifique
-//   pour certains onglets (compétences, quêtes, succès, paramètres).
+//   pour certains onglets (compétences, quêtes, succès, paramètres). (maj 30/05 Quete)
 //   - `tabContainer` (HTMLElement) : L'élément DOM du conteneur de la section à ouvrir.
 //   Appelée par : `events.js` (clics sur les boutons du menu latéral).
 //   Impact : Gère la navigation entre les différentes vues du jeu.
@@ -393,6 +397,7 @@ import { getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost,
          calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
 import { buySkill } from './skills.js'; // Importe la fonction buySkill
 import { isDayTheme, themeOptionUnlocked } from './settings.js'; // Importe les variables de thème (maj 30/05 - Imports)
+import { renderQuests as renderQuestsFromQuestsJS, updateQuestsUI as updateQuestsUIFromQuestsJS } from './quests.js'; // (maj 30/05 Quete)
 
 // Assumes Decimal is globally available from break_infinity.min.js
 
@@ -1378,7 +1383,18 @@ export function openTab(tabContainer) {
     if (tabContainer === document.getElementById('skillsContainer')) {
         renderSkillsMenu();
     } else if (tabContainer === document.getElementById('questsContainer')) {
-        renderQuests();
+        // (maj 30/05 Quete)
+        const domElementsForQuests = {
+            questsGridContainer: document.getElementById('questsList'), // ID du conteneur principal de la liste des quêtes
+            questsCompletedCountDisplay: document.getElementById('questsCompletedCount'), // ID pour le compteur de quêtes complétées
+            questsTotalCountDisplay: document.getElementById('questsTotalCount') // ID pour le compteur total de quêtes
+        };
+        if (domElementsForQuests.questsGridContainer) {
+            renderQuestsFromQuestsJS(domElementsForQuests);
+        }
+        if (domElementsForQuests.questsCompletedCountDisplay && domElementsForQuests.questsTotalCountDisplay) {
+            updateQuestsUIFromQuestsJS(domElementsForQuests);
+        }
     } else if (tabContainer === document.getElementById('achievementsContainer')) {
         renderAchievements();
     } else if (tabContainer === document.getElementById('settingsContainer')) {

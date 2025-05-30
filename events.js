@@ -1,66 +1,166 @@
-/**
- * events.js
- *
+/*
  * ------------------ Fiche Mémo : events.js -----------------------------
- * Description : Ce fichier est dédié à la gestion de tous les écouteurs d'événements (clicks, changes, etc.)
- * de l'interface utilisateur du jeu. Son rôle principal est d'attacher des gestionnaires d'événements
- * aux éléments DOM et d'appeler les fonctions de logique de jeu appropriées définies dans d'autres modules
- * (comme core.js, studies.js, automation.js, skills.js, settings.js, etc.).
- * Il ne contient aucune logique de jeu complexe, seulement la "colle" entre l'interface et le backend.
  *
- * Dépendances :
- * Ce fichier importe explicitement toutes les variables d'état et fonctions nécessaires depuis les modules "propriétaires".
+ * Description : Ce fichier est le point central de l'interactivité utilisateur dans le jeu "MonJeuIncremental".
+ * Il est exclusivement dédié à la gestion de tous les écouteurs d'événements (clics de souris, changements
+ * d'état de cases à cocher, etc.) sur les éléments de l'interface utilisateur (DOM). Son rôle principal
+ * est d'attacher des gestionnaires d'événements aux éléments HTML et de déléguer les actions aux fonctions
+ * de logique de jeu appropriées, définies dans d'autres modules (comme `core.js`, `studies.js`, `automation.js`,
+ * `skills.js`, `ascension.js`, `prestige.js`, `settings.js`, `quests.js`, `achievements.js`, et `ui.js`).
  *
- * Variables Globales Accédées (définies dans core.js) :
- * - bonsPoints, totalClicks, ascensionPoints, ascensionCount, totalPAEarned,
- * prestigePoints, prestigeCount, studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints,
- * studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels, secretSkillClicks,
- * currentPurchaseMultiplier, ascensionUnlocked, prestigeUnlocked,
- * disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
- * multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, automationCategoryUnlocked,
- * autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive,
- * elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked, skillsButtonUnlocked,
- * settingsButtonUnlocked, ascensionMenuButtonUnlocked, prestigeMenuButtonUnlocked,
- * questsUnlocked, achievementsButtonUnlocked, nombreProfesseur, totalBonsPointsParSeconde, skillEffects.
+ * Objectif : Assurer une réactivité fluide de l'interface utilisateur aux interactions du joueur.
+ * Il sert de "colle" entre la présentation (UI) et la logique métier (backend), en s'assurant
+ * que chaque action utilisateur déclenche la fonction de jeu correcte, sans contenir de logique
+ * de jeu complexe elle-même. Cela garantit une séparation claire des préoccupations et facilite
+ * la maintenance et l'évolution du code.
  *
- * Fonctions de Logique (importées de core.js) :
- * - saveGameState, checkUnlockConditions, applyAllSkillEffects, calculateTotalBPS, hardResetGame, performPurchase, formatNumber.
+ * ------------------ Dépendances (Imports) ------------------
  *
- * Fonctions d'Automatisation (importées de automation.js) :
- * - calculateAutomationCost.
+ * Ce module importe explicitement toutes les variables d'état et fonctions nécessaires depuis les modules "propriétaires".
  *
- * Fonctions de Compétences (importées de skills.js) :
- * - handleSkillClick.
+ * - De './core.js' :
+ * - Variables d'état (lecture et parfois modification directe pour les compteurs simples) :
+ * `bonsPoints`, `totalClicks`, `ascensionPoints`, `ascensionCount`, `totalPAEarned`,
+ * `prestigePoints`, `prestigeCount`, `studiesSkillPoints`, `ascensionSkillPoints`, `prestigeSkillPoints`,
+ * `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels`, `secretSkillClicks`,
+ * `currentPurchaseMultiplier`, `ascensionUnlocked`, `prestigeUnlocked`,
+ * `disableAscensionWarning`, `firstAscensionPerformed`, `disablePrestigeWarning`,
+ * `multiPurchaseOptionUnlocked`, `maxPurchaseOptionUnlocked`, `automationCategoryUnlocked`,
+ * `autoEleveActive`, `autoClasseActive`, `autoImageActive`, `autoProfesseurActive`,
+ * `elevesUnlocked`, `classesUnlocked`, `imagesUnlocked`, `ProfesseurUnlocked`, `skillsButtonUnlocked`,
+ * `settingsButtonUnlocked`, `ascensionMenuButtonUnlocked`, `prestigeMenuButtonUnlocked`,
+ * `questsUnlocked`, `achievementsButtonUnlocked`, `nombreProfesseur`, `totalBonsPointsParSeconde`,
+ * `skillEffects`, `newSettingsUnlocked`, `statsButtonUnlocked`.
+ * - Fonctions de logique de jeu (appelées en réponse aux événements) :
+ * `saveGameState`, `checkUnlockConditions`, `applyAllSkillEffects`, `calculateTotalBPS`,
+ * `hardResetGame`, `performPurchase`, `formatNumber`.
+ * Impact : Fournit l'accès à l'état global du jeu et aux fonctions fondamentales pour modifier cet état.
  *
- * Fonctions d'Ascension (importées de ascension.js) :
- * - calculatePAGained, performAscension.
+ * - De './automation.js' :
+ * - Fonctions : `calculateAutomationCost`.
+ * Impact : Permet de calculer le coût des automatisations pour les affichages ou les vérifications.
  *
- * Fonctions de Prestige (importées de prestige.js) :
- * - calculatePPGained, performPrestige, getPrestigeBonusMultiplier.
+ * - De './skills.js' :
+ * - Fonctions : `handleSkillClick` (pour la logique d'achat de compétences).
+ * Impact : Délègue la gestion des clics sur les compétences à ce module spécialisé.
  *
- * Fonctions de Paramètres (importées de settings.js) :
- * - toggleTheme, toggleOfflineProgress, toggleMinimizeResources.
+ * - De './ascension.js' :
+ * - Fonctions : `calculatePAGained` (pour l'affichage des PA potentiels), `performAscension` (pour exécuter l'Ascension).
+ * Impact : Permet de déclencher les actions et calculs liés à l'Ascension.
  *
- * Fonctions de Quêtes (importées de quests.js) :
- * - updateQuestProgress, claimQuestReward.
+ * - De './prestige.js' :
+ * - Fonctions : `calculatePPGained` (pour l'affichage des PP potentiels), `performPrestige` (pour exécuter le Prestige),
+ * `getPrestigeBonusMultiplier` (pour afficher les bonus de Prestige).
+ * Impact : Permet de déclencher les actions et calculs liés au Prestige.
  *
- * Fonctions de Succès (importées de achievements.js) :
- * - checkAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, activeAchievementTooltip.
+ * - De './settings.js' :
+ * - Fonctions : `toggleTheme`, `toggleOfflineProgress`, `toggleMinimizeResources`.
+ * Impact : Gère les changements de paramètres du jeu.
  *
- * Fonctions d'UI (importées de ui.js) :
- * - updateDisplay, showNotification, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
- * updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
- * openTab, closeStatsModal, updateStatsDisplay, updateMultiplierButtons.
+ * - De './quests.js' :
+ * - Fonctions : `updateQuestProgress` (appelée par `core.js`, mais listée ici pour exhaustivité),
+ * `claimQuestReward` (pour la logique de réclamation de quêtes).
+ * Impact : Permet de déclencher la réclamation des récompenses de quêtes.
  *
- * Données (importées de data.js) :
- * - skillsData, achievementsData, prestigePurchasesData.
+ * - De './achievements.js' :
+ * - Fonctions : `checkAchievements` (appelée par `core.js`), `showAchievementTooltip`,
+ * `hideAchievementTooltip`, `toggleAchievementTooltip`.
+ * - Variables : `unlockedAchievements`, `activeAchievementTooltip`.
+ * Impact : Gère l'affichage et l'interaction avec les infobulles des succès.
  *
- * Éléments DOM Clés (référencés par ID, définis dans index.html et récupérés directement ici) :
- * Ce module récupère ses références DOM directement via `document.getElementById` pour les attacher aux écouteurs d'événements.
+ * - De './ui.js' :
+ * - Fonctions : `updateDisplay`, `showNotification`, `updateButtonStates`, `updateSectionVisibility`,
+ * `updateAutomationButtonStates`, `updateSettingsButtonStates`, `renderSkillsMenu`,
+ * `renderQuests`, `renderAchievements`, `openTab`, `closeStatsModal`, `updateStatsDisplay`,
+ * `updateMultiplierButtons`, `openStatsModal`.
+ * Impact : Gère toutes les mises à jour visuelles de l'interface utilisateur et la navigation entre les onglets/modales.
  *
- * Logique Générale :
- * Ce fichier initialise tous les écouteurs d'événements une fois que le DOM est complètement chargé
- * et que toutes les variables globales nécessaires sont initialisées.
+ * - De './data.js' :
+ * - Données statiques : `skillsData`, `achievementsData`, `prestigePurchasesData`.
+ * Impact : Fournit les définitions nécessaires pour les boucles d'événements (ex: itérer sur les succès).
+ *
+ * ------------------ Fonctions Clés Définies et Exportées ------------------
+ *
+ * - `export function initEventListeners()` :
+ * Description : Fonction principale d'initialisation des écouteurs d'événements.
+ * Elle est appelée une seule fois après que le DOM est entièrement chargé et que l'état
+ * initial du jeu est établi. Elle récupère les références à tous les éléments DOM
+ * interactifs et attache les gestionnaires d'événements appropriés (clics, changements, etc.).
+ * Utilise la délégation d'événements pour les éléments générés dynamiquement (compétences, quêtes, succès).
+ * Appelée par : `core.js` (généralement dans `window.onload` ou `initializeGame`).
+ * Impact : Rend le jeu interactif en connectant l'interface utilisateur à la logique du jeu.
+ *
+ * ------------------ Éléments DOM Clés (référencés par ID) ------------------
+ *
+ * Ce module récupère directement les références aux éléments DOM via `document.getElementById`
+ * pour attacher les écouteurs d'événements.
+ *
+ * - Boutons d'action principaux :
+ * - `studiesTitleButton` : Bouton principal pour "Étudier sagement" (clic pour gagner des BP).
+ * - `acheterEleveButton`, `acheterClasseButton`, `acheterImageButton`, `acheterProfesseurButton` : Boutons d'achat d'unités d'études.
+ * - `acheterEcoleButton`, `acheterLyceeButton`, `acheterCollegeButton` : Boutons d'achat de structures d'Ascension.
+ * - `acheterLicenceButton`, `acheterMaster1Button`, `acheterMaster2Button`, `acheterDoctoratButton`, `acheterPostDoctoratButton` : Boutons d'achat de prestige.
+ *
+ * - Boutons de navigation/onglets :
+ * - `studiesTabBtn`, `automationTabBtn`, `skillsTabBtn`, `settingsTabBtn`, `ascensionTabBtn`, `prestigeTabBtn`, `questsTabBtn`, `achievementsTabBtn` : Boutons du menu latéral pour changer d'onglet.
+ * - `statsButton` : Bouton pour ouvrir la modale des statistiques.
+ *
+ * - Boutons de paramètres/options :
+ * - `themeToggleButton` : Bouton pour basculer le thème (jour/nuit).
+ * - `resetProgressionButton` : Bouton pour réinitialiser complètement le jeu.
+ * - `offlineProgressToggle` : Case à cocher pour activer/désactiver la progression hors ligne.
+ * - `toggleMinimalistResourcesButton` : Bouton pour basculer l'affichage des ressources en mode minimaliste.
+ *
+ * - Boutons/éléments des modales de confirmation :
+ * - `ascensionTitleButton`, `confirmAscensionYesBtn`, `confirmAscensionNoBtn`, `disableAscensionWarningCheckboxAscension` : Éléments liés à la modale de confirmation d'Ascension.
+ * - `prestigeTitleButton`, `confirmPrestigeYesBtn`, `confirmPrestigeNoBtn`, `disablePrestigeWarningCheckbox` : Éléments liés à la modale de confirmation de Prestige.
+ * - `resetSkillsButton`, `buyAllSkillsButton` : Boutons de réinitialisation/achat de toutes les compétences.
+ *
+ * - Conteneurs pour délégation d'événements (éléments dynamiques) :
+ * - `multiplierButtonsContainer` : Conteneur des boutons de multiplicateur d'achat (x1, x10, etc.).
+ * - `studiesSkillsGrid`, `ascensionSkillsGrid`, `prestigeSkillsGrid` : Grilles des compétences pour chaque catégorie.
+ * - `achievementsGrid` : Grille d'affichage des succès.
+ * - `questsListContainer` : Conteneur principal de la liste des quêtes.
+ *
+ * - Autres éléments d'affichage interagis :
+ * - `statsModal` : Conteneur de la modale des statistiques (pour fermer au clic extérieur).
+ * - `achievementTooltip` : Infobulle des succès.
+ * - `paGainedDisplay`, `prestigePointsGainedDisplay` : Affichage des gains potentiels lors des resets.
+ * - `clickBonsPointsDisplay`, `bonsPointsSpan`, `miniBonsPoints` : Affichages des Bons Points et bonus de clic.
+ *
+ * ------------------ Logique Générale et Flux de Données ------------------
+ *
+ * 1.  **Initialisation** : La fonction `initEventListeners()` est appelée une fois au démarrage du jeu.
+ * Elle récupère toutes les références DOM nécessaires et configure les écouteurs d'événements.
+ * 2.  **Délégation d'Événements** : Pour les éléments générés dynamiquement (compétences, quêtes, succès, multiplicateurs),
+ * des écouteurs sont attachés à un conteneur parent statique. Lorsque l'événement se produit,
+ * le gestionnaire vérifie si l'élément cliqué (ou survolé) correspond à un sous-élément d'intérêt
+ * (`event.target.closest()`, `classList.contains()`).
+ * 3.  **Appel des Fonctions de Logique** : Une fois l'élément d'intérêt identifié, `events.js` appelle
+ * la fonction appropriée du module de logique concerné (ex: `performPurchase` de `core.js`,
+ * `handleSkillClick` de `skills.js`, `claimQuestReward` de `quests.js`).
+ * 4.  **Mise à Jour de l'UI** : Après l'exécution de la logique, `events.js` (ou la fonction de logique appelée)
+ * déclenche des mises à jour de l'interface via des fonctions de `ui.js` (`updateDisplay`, `showNotification`,
+ * `openTab`, etc.) pour refléter les changements d'état du jeu.
+ * 5.  **Gestion des Modales** : Pour les confirmations (Ascension, Prestige, Reset), `events.js` gère
+ * l'affichage de modales personnalisées (au lieu des `confirm()` natifs du navigateur) et les actions
+ * associées aux boutons "Oui"/"Non" de ces modales.
+ *
+ * ------------------ Notes Spécifiques ------------------
+ *
+ * - **Séparation des préoccupations** : `events.js` est un exemple clé de la séparation des préoccupations.
+ * Il ne contient aucune logique de jeu complexe, mais agit comme un "routeur" d'événements,
+ * redirigeant les interactions utilisateur vers les modules qui gèrent la logique métier.
+ * - **Robustesse** : Des vérifications `if (element)` sont utilisées lors de la récupération des éléments DOM
+ * pour éviter les erreurs si un élément n'est pas encore présent dans le DOM au moment de l'initialisation
+ * des écouteurs.
+ * - **Pas d'`alert()` ni `confirm()`** : Le jeu utilise des modales HTML/CSS/JS personnalisées pour les
+ * confirmations et notifications, car les fonctions natives du navigateur (`alert()`, `confirm()`)
+ * peuvent bloquer l'interface et ne sont pas stylisables.
+ * - **Gestion de la compétence secrète** : Un écouteur spécifique est mis en place pour une compétence
+ * secrète, démontrant la capacité à gérer des interactions uniques.
+ *
+ * ---------------------------------------------------------------------
  */
 
 // Importations des variables d'état et fonctions globales depuis core.js (modif 30/05)
@@ -94,7 +194,7 @@ import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier } from '
 import { toggleTheme, toggleOfflineProgress, toggleMinimizeResources } from './settings.js';
 
 // Importations des fonctions de quêtes (modif 30/05)
-import { updateQuestProgress, claimQuestReward } from './quests.js';
+import { updateQuestProgress, claimQuestReward } from './quests.js'; // (maj 30/05 Quete)
 
 // Importations des fonctions de succès (modif 30/05)
 import { checkAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip, unlockedAchievements, activeAchievementTooltip } from './achievements.js'; // activeAchievementTooltip est exporté par achievements.js
@@ -199,6 +299,8 @@ export function initEventListeners() {
     const clickBonsPointsDisplay = document.getElementById('clickBonsPointsDisplay');
     const bonsPointsSpan = document.getElementById('bonsPointsSpan');
     const miniBonsPoints = document.getElementById('miniBonsPoints');
+
+    const questsListContainer = document.getElementById('questsList'); // (maj 30/05 Quete)
 
 
     // --- Écouteurs d'événements pour les achats ---
@@ -723,6 +825,18 @@ export function initEventListeners() {
             // Vous pouvez ajouter ici une logique pour un effet temporaire ou une notification
             showNotification(`Clic secret ! ${secretSkillClicks} clics sur la compétence secrète.`);
             saveGameState();
+        });
+    }
+
+    // --- Écouteurs d'événements pour les quêtes (délégation) --- (maj 30/05 Quete)
+    if (questsListContainer) {
+        questsListContainer.addEventListener('click', function(event) {
+            if (event.target && event.target.classList.contains('claim-quest-button')) {
+                const questId = event.target.dataset.questId;
+                if (questId) {
+                    claimQuestReward(questId);
+                }
+            }
         });
     }
 }

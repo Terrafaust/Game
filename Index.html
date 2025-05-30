@@ -1,0 +1,726 @@
+<!-- Fiche Mémo : index.html
+//
+// Description : Ce fichier est le point d'entrée principal de l'application web.
+// Il définit la structure HTML globale du jeu, inclut les feuilles de style CSS,
+// les bibliothèques externes (comme break_infinity.min.js), et charge tous
+// les fichiers JavaScript modulaires qui contiennent la logique du jeu.
+// Il ne contient aucune logique JavaScript active, servant uniquement de conteneur
+// pour les éléments DOM et les inclusions de scripts.
+//
+// Objectif : Structurer l'interface utilisateur et orchestrer le chargement de tous
+// les composants JavaScript et CSS nécessaires au fonctionnement du jeu,
+// en fournissant la fondation sur laquelle la logique du jeu est construite.
+//
+// ------------------ Dépendances (Inclusions de Fichiers) ------------------
+//
+// - style.css : Fournit les styles visuels pour l'interface du jeu.
+//   Impact : Indispensable pour l'apparence générale, les thèmes et les modes jour/nuit.
+//
+// - break_infinity.min.js : Bibliothèque JavaScript pour la gestion des grands nombres.
+//   Impact : Doit être chargé en premier car il expose une variable globale `Decimal`
+//             utilisée par tous les autres scripts JavaScript pour les calculs numériques.
+//
+// - core.js : Fonctions principales du jeu, gestion de l'état global, sauvegarde/chargement,
+//             et la boucle de jeu.
+//   Impact : Contient la fonction `initializeGame()` appelée au chargement de la page.
+//
+// - data.js : Données statiques du jeu (coûts, multiplicateurs, définitions des compétences,
+//             quêtes, succès, etc.).
+//   Impact : Fournit les données utilisées par tous les modules de logique.
+//
+// - ui.js : Gestion de l'interface utilisateur, mise à jour de l'affichage des ressources,
+//           états des boutons, visibilité des sections.
+//   Impact : Manipule la visibilité des éléments DOM définis ici (ex: `display: none;`).
+//             Interagit avec les éléments de sélection de thème et de mode jour/nuit.
+//
+// - studies.js : Logique spécifique aux achats et à la production liés aux études
+//                (Élèves, Classes, Images, Professeurs).
+//   Impact : Référence et met à jour les éléments DOM des sections d'achat d'études.
+//
+// - automation.js : Logique de l'automatisation des achats.
+//   Impact : Référence et met à jour les éléments DOM de la section d'automatisation.
+//
+// - skills.js : Logique de l'arbre de compétences (achat, réinitialisation, application des effets).
+//   Impact : Référence et met à jour les éléments DOM de l'arbre de compétences.
+//
+// - ascension.js : Logique du mécanisme d'ascension (calcul des PA, achats d'Ascension, réinitialisation douce).
+//   Impact : Référence et met à jour les éléments DOM de la section d'ascension.
+//
+// - prestige.js : Logique du mécanisme de prestige (calcul des PP, achats de Prestige, réinitialisation super douce).
+//   Impact : Référence et met à jour les éléments DOM de la section de prestige.
+//
+// - settings.js : Logique des paramètres du jeu (thème, progression hors ligne, minimisation des ressources).
+//   Impact : Interagit directement avec les éléments DOM de la section paramètres,
+//             notamment le `<select id="themeSelector">` et les boutons de mode jour/nuit
+//             (`dayModeButton`, `nightModeButton`) pour appliquer les classes CSS au `<body>`.
+//
+// - quests.js : Logique du système de quêtes (définition, suivi de progression, récompenses).
+//   Impact : Référence et met à jour les éléments DOM de la section des quêtes.
+//
+// - achievements.js : Logique du système de succès (définition, vérification des conditions,
+//                     récompenses, infobulles).
+//   Impact : Référence et met à jour les éléments DOM de la section des succès et de l'infobulle.
+//
+// - events.js : Gestion centralisée de tous les écouteurs d'événements DOM (clics sur les boutons,
+//               changements d'état, etc.).
+//   Impact : Attache les gestionnaires d'événements à la plupart des éléments DOM interactifs
+//             définis dans ce fichier.
+//
+// ------------------ Variables Clés (JavaScript) ------------------
+//
+// Aucune variable JavaScript clé globale n'est définie ou gérée directement dans ce fichier.
+// Il sert uniquement de conteneur pour les éléments DOM et les inclusions de scripts.
+//
+// ------------------ Fonctions Clés (JavaScript) ------------------
+//
+// Aucune fonction JavaScript n'est définie ou exécutée directement dans ce fichier,
+// à l'exception du chargement des scripts externes et de l'appel à `initializeGame()`
+// de `core.js` via `window.onload`.
+//
+// ------------------ Éléments DOM Clés (par ID) ------------------
+//
+// - `<body>` : L'élément racine du contenu. Les classes de thème et de mode (`normal-theme`,
+//               `neon-sci-fi-theme`, `day-mode`, `night-mode`, etc.) sont appliquées ici
+//               par `settings.js` et `core.js` pour contrôler l'apparence via `style.css`.
+//
+// - `<div id="side-menu">` : Menu de navigation latéral.
+//   - Boutons de navigation : `studiesTabBtn`, `automationTabBtn`, `skillsTabBtn`,
+//     `ascensionTabBtn`, `prestigeTabBtn`, `settingsTabBtn`, `questsTabBtn`,
+//     `achievementsTabBtn`, `statsButton`.
+//     Impact : Leur visibilité est gérée par `ui.js`. Leurs styles sont définis dans `style.css`.
+//
+// - `<div id="main-content">` : Conteneur principal pour le contenu dynamique des sections.
+//
+// - `<div class="container">` : Conteneur de base pour l'affichage des ressources principales
+//                                et le bouton de clic "Études".
+//   - Affichage des ressources : `bonsPoints`, `totalBpsInline`, `imagesCount`,
+//     `nombreProfesseur`, `ascensionBonusValue`, `ascensionPointsCount`,
+//     `totalPAEarnedSpanInline`, `ascensionCountSpan`, `prestigePointsCount`,
+//     `prestigeCountSpan`.
+//     Impact : Mis à jour par `ui.js`. Les classes de couleur (ex: `bons-points-color`)
+//              sont définies dans `style.css`.
+//   - Titre cliquable des études : `studiesTitleButton`, `clickBonsPointsDisplay`.
+//     Impact : Cliquable pour la production de BP, géré par `events.js` et `studies.js`.
+//
+// - `<div id="studiesMainContainer">` : Section dédiée aux achats et à la production des études.
+//   - Sélecteur de multiplicateur d'achat : `purchaseMultiplierSelection` (conteneur),
+//     `multiplierButtonsContainer` (pour délégation d'événements), `setMultiplierX1`,
+//     `setMultiplierX10`, `setMultiplierX100`, `setMultiplierXmax`.
+//     Impact : Géré par `ui.js` et `events.js`.
+//   - Sections d'achat spécifiques : `achatEleveSection`, `achatClasseSection`,
+//     `achatProfesseurSection`, `achatImageSection`.
+//     - Boutons d'achat : `acheterEleveButton`, `acheterClasseButton`, `acheterProfesseurButton`,
+//       `acheterImageButton`.
+//       Impact : Gérés par `studies.js` et `events.js`. Leurs styles (`can-afford`, `cannot-afford`)
+//                sont définis dans `style.css`.
+//     - Affichage des quantités/productions : `nombreEleves`, `elevesBpsPerItem`, `nombreClasses`,
+//       `classesBpsPerItem`, `buyProfesseur`.
+//       Impact : Mis à jour par `ui.js` et `studies.js`.
+//
+// - `<div id="automationMainContainer">` : Section pour les options d'automatisation.
+//   - Boutons d'automatisation : `autoEleveBtn`, `autoClasseBtn`, `autoImageBtn`, `autoProfesseurBtn`.
+//     Impact : Gérés par `automation.js` et `events.js`. Leurs styles (`automation-active`)
+//              sont définis dans `style.css`.
+//
+// - `<div id="skillsContainer">` : Section pour l'arbre de compétences.
+//   - Boutons d'action : `resetSkillsButton`, `buyAllSkillsButton`.
+//     Impact : Gérés par `skills.js` et `events.js`.
+//   - Panneaux de compétences : `studiesPanel`, `ascensionPanel`, `prestigePanel`.
+//     - Affichage des points : `studiesSkillsPointsCount`, `ascensionSkillsPointsCount`, `prestigeSkillsPointsCount`.
+//     - Grilles de compétences : `studiesSkillsGrid`, `ascensionSkillsGrid`, `prestigeSkillsGrid`.
+//       Impact : Le contenu est généré dynamiquement par `skills.js` et `ui.js`. Les styles
+//                des boîtes de compétences (`locked`, `unlocked`, `max-level`) sont dans `style.css`.
+//
+// - `<div id="settingsContainer">` : Section pour les paramètres du jeu.
+//   - Sélection du thème : `themeSelector` (select).
+//     Impact : La valeur sélectionnée est lue par `settings.js` pour appliquer la classe de thème au `<body>`.
+//   - Mode Jour/Nuit : `dayModeButton`, `nightModeButton`.
+//     Impact : Les clics sont gérés par `settings.js` pour appliquer les classes de mode au `<body>`.
+//   - Boutons de réinitialisation : `resetProgressionButton`.
+//     Impact : Géré par `core.js` et `events.js`.
+//   - Paramètres divers : `offlineProgressToggle` (checkbox), `toggleMinimalistResources` (bouton), `statsButton` (bouton).
+//     Impact : Gérés par `settings.js` et `events.js`.
+//
+// - `<div id="ascensionMenuContainer">` : Section pour le mécanisme d'ascension.
+//   - Titre cliquable d'ascension : `ascensionTitleButton`.
+//     Impact : Géré par `ascension.js` et `events.js`.
+//   - Affichage des PA : `ascensionMenuPACount`.
+//   - Boutons d'achat d'ascension : `acheterEcoleButton`, `acheterLyceeButton`, `acheterCollegeButton`.
+//     - Affichage des coûts : `coutEcole`.
+//     - Affichage des quantités/multiplicateurs : `nombreEcoles`, `ecoleMultiplier`, `nombreLyceesDisplay`,
+//       `lyceeMultiplierDisplay`, `nombreCollegesDisplay`, `collegeMultiplierDisplay`.
+//     Impact : Gérés par `ascension.js` et `events.js`.
+//   - Boutons de déverrouillage : `unlockMultiPurchaseButton`, `unlockmaxPurchaseButton`,
+//     `unlockNewSettingsButton`, `unlockAutomationCategoryButton`.
+//     Impact : Gérés par `core.js` et `events.js`.
+//
+// - `<div id="prestigeMenuContainer">` : Section pour le mécanisme de prestige.
+//   - Titre cliquable de prestige : `prestigeTitleButton`.
+//     Impact : Géré par `prestige.js` et `events.js`.
+//   - Affichage des PP : `prestigeMenuPPCount`.
+//   - Boutons d'achat de prestige : `acheterLicenceButton`, `acheterMaster1Button`,
+//     `acheterMaster2Button`, `acheterDoctoratButton`, `acheterPostDoctoratButton`.
+//     - Affichage des quantités/boosts : `nombreLicences`, `licenceBoost`, `nombreMaster1`,
+//       `master1Boost`, `nombreMaster2`, `master2Boost`, `nombreDoctorat`, `doctoratBoost`,
+//       `doctoratMinClasses`, `nombrePostDoctorat`, `postDoctoratBoost`.
+//     Impact : Gérés par `prestige.js` et `events.js`.
+//
+// - `<div id="questsContainer">` : Section pour les quêtes.
+//   - Conteneurs des listes de quêtes : `questsList` (actives), `completedQuestsList` (terminées).
+//     Impact : Le contenu est généré dynamiquement par `quests.js` et `ui.js`.
+//
+// - `<div id="achievementsContainer">` : Section pour les succès.
+//   - Grille des succès : `achievementsGrid`.
+//     Impact : Le contenu est généré dynamiquement par `achievements.js` et `ui.js`.
+//   - Infobulle des succès : `achievementTooltip`.
+//     Impact : Gérée par `achievements.js` et `events.js`.
+//
+// - `<footer id="page-footer">` : Pied de page.
+//
+// - `<div id="notifications-container">` : Conteneur pour les notifications pop-up.
+//   Impact : Les notifications sont ajoutées dynamiquement par `ui.js`.
+//
+// - `<div id="minimalistResources">` : Panneau d'affichage minimaliste des ressources.
+//   - Affichage des ressources : `miniBonsPoints`, `miniImages`, `miniProfesseur`,
+//     `miniAscensionPoints`, `miniAscensionCount`, `miniPrestigePoints`, `miniPrestigeCount`.
+//     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
+//
+// - Modales de confirmation : `confirmResetModal`, `confirmAscensionModal`, `confirmPrestigeModal`.
+//   - Contenu des modales : `modal-content`.
+//   - Boutons de confirmation : `confirmResetYes`, `confirmResetNo`, `confirmAscensionYes`,
+//     `confirmAscensionNo`, `confirmPrestigeYes`, `confirmPrestigeNo`.
+//     Impact : Leur visibilité est gérée par `ui.js`. Les actions sont gérées par `events.js`.
+//   - Éléments spécifiques à l'ascension : `ascensionModalTitle`, `firstAscensionWarning`,
+//     `subsequentAscensionWarning`, `paGainedDisplay`, `disableAscensionWarningCheckbox`.
+//   - Éléments spécifiques au prestige : `prestigeWarningText`, `disablePrestigeWarningCheckbox`.
+//
+// - `<div id="statsModal">` : Modale des statistiques.
+//   - Bouton de fermeture : `close-button`.
+//   - Catégories de statistiques : `stats-category` (avec `h3` et `p`).
+//     - Affichage des statistiques : `statsCurrentBPS`, `statsSkillBonus`, `statsAscensionBonus`,
+//       `statsPrestigeBPSBonus`, `statsAchievementBPSBonus`, `statsAllBPSMultiplier`,
+//       `statsBonsPoints`, `statsImages`, `statsProfesseur`, `statsProfMultiplier`,
+//       `statsAscensionPoints`, `statsPrestigePoints`, `statsEleveCostReduction`, etc.
+//     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - Ordre des scripts : L'ordre d'inclusion des balises `<script type="module">` est crucial
+//   en raison des dépendances entre les modules JavaScript. `break_infinity.min.js` doit être
+//   chargé globalement avant tous les modules. Ensuite, les modules sont chargés dans un ordre
+//   qui garantit que leurs dépendances sont déjà disponibles.
+//
+// - Classes CSS dynamiques : De nombreux éléments ont des styles `display: none;` ou des classes
+//   (comme `active`, `unlocked`, `can-afford`, `cannot-afford`, `normal-theme`, `day-mode`)
+//   qui sont manipulés dynamiquement par les scripts JavaScript (principalement `ui.js`, `core.js`, `settings.js`)
+//   pour contrôler leur visibilité et leur apparence.
+//
+// - Bonnes pratiques : Le code HTML est structuré de manière sémantique, avec des IDs clairs
+//   pour faciliter la manipulation par JavaScript et des commentaires pour la lisibilité.
+//   Les styles inline ont été minimisés au profit de classes CSS gérées par `style.css`.
+//
+// ---------------------------------------------------------------------
+-->
+
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu Incrémental - Cahier d'Étude Avancé</title>
+    <link rel="icon" href="data:," type="image/x-icon">
+    <script src="break_infinity.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="main-game-wrapper">
+        <div id="side-menu">
+            <h2>Navigation</h2>
+            <button id="studiesTabBtn">Études</button>
+            <button id="automationTabBtn" style="display: none;">Automatisation</button>
+            <button id="skillsTabBtn" style="display: none;">Compétences</button>
+            <button id="ascensionTabBtn" style="display: none;">Menu Ascension</button>
+            <button id="prestigeTabBtn" style="display: none;">Menu Prestige</button>
+            <button id="settingsTabBtn" style="display: none;">Paramètres</button>
+            <button id="questsTabBtn" style="display: none;">Quêtes</button>
+            <button id="achievementsTabBtn" style="display: none;">Succès</button>
+            <button id="statsButton" style="display: none;">Statistiques</button>
+        </div>
+
+        <div id="main-content">
+            <div class="container">
+                <div class="ressources" id="mainResourcesDisplay">
+                    <div class="resource-group">
+                        <p>Bons points : <span id="bonsPoints" class="bons-points-color">0</span> <span
+                                class="production-inline">(<span id="totalBpsInline">0</span> bp/s)</span></p>
+                        <p id="imagesDisplay" style="display: none;">Images : <span id="imagesCount"
+                                class="images-color">0</span></p>
+                        <p id="nombreProfesseurDisplay" style="display: none;">Professeur : <span id="nombreProfesseur"
+                                class="Professeur-color">0</span></p>
+                    </div>
+                    <div class="resource-group">
+                        <p id="ascensionBonusDisplay" style="display: none;">Bonus d'Ascension : <span
+                                id="ascensionBonusValue" class="ascension-points-color">1.00x</span></p>
+                        <p id="currentAscensionPointsDisplay" style="display: none;">Points d'Ascension : <span
+                                id="ascensionPointsCount" class="ascension-points-color">0</span> <span
+                                class="production-inline">(Total: <span id="totalPAEarnedSpanInline">0</span> PA)</span>
+                        </p>
+                        <p id="ascensionCountDisplay" style="display: none;">Ascensions : <span
+                                id="ascensionCountSpan" class="ascension-points-color">0</span></p>
+                    </div>
+                    <div class="resource-group">
+                        <p id="prestigePointsDisplay" style="display: none;">Points de Prestige : <span
+                                id="prestigePointsCount" class="prestige-points-color">0</span></p>
+                        <p id="prestigeCountDisplay" style="display: none;">Prestiges : <span id="prestigeCountSpan"
+                                class="prestige-points-color">0</span></p>
+                    </div>
+                </div>
+                <h1 id="studiesTitleButton">Études (<span id="clickBonsPointsDisplay">+0 BP</span>)</h1>
+            </div>
+
+            <div id="studiesMainContainer" style="display: flex;">
+                <div class="header-row">
+                    <div id="purchaseMultiplierSelection" class="achat-section" style="display: none;">
+                        <h3>Qté Achat</h3>
+                        <div id="multiplierButtonsContainer">
+                            <button id="setMultiplierX1" class="multiplier-button active" data-multiplier="1">x1</button>
+                            <button id="setMultiplierX10" class="multiplier-button" data-multiplier="10">x10</button>
+                            <button id="setMultiplierX100" class="multiplier-button" data-multiplier="100">x100</button>
+                            <button id="setMultiplierXmax" class="multiplier-button" data-multiplier="max"
+                                style="display: none;">Xmax</button>
+                        </div>
+                    </div>
+                    <h1 id="studiesTitleButton">Études (<span id="clickBonsPointsDisplay">+0 BP</span>)</h1>
+                </div>
+
+                <div class="studies-sections-wrapper">
+                    <div class="studies-section-group">
+                        <div id="achatEleveSection" class="achat-section" style="display: none;">
+                            <button id="acheterEleveButton">Élève : <span class="bons-points-color">10 BP</span></button>
+                            <p>Quantité : <span id="nombreEleves">0</span></p>
+                            <p class="production" title="Production de bons points par seconde par élève">bp/s élèves :
+                                <span id="elevesBpsPerItem">0</span>
+                            </p>
+                        </div>
+                        <div id="achatClasseSection" class="achat-section" style="display: none;">
+                            <button id="acheterClasseButton">Salle de classe : <span class="bons-points-color">100
+                                    BP</span></button>
+                            <p>Quantité : <span id="nombreClasses">0</span></p>
+                            <p class="production" title="Production de bons points par seconde par classe">bp/s classes
+                                : <span id="classesBpsPerItem">0</span></p>
+                        </div>
+                    </div>
+                    <div class="studies-sections-group">
+                        <div id="achatProfesseurSection" class="achat-section" style="display: none;">
+                            <button id="acheterProfesseurButton">Professeur<span id="buyProfesseur"></span> :
+                                <span class="images-color">2
+                                    I</span></button>
+                        </div>
+                        <div id="achatImageSection" class="achat-section" style="display: none;">
+                            <button id="acheterImageButton">Image : <span class="bons-points-color">1 k BP</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="automationMainContainer" style="display: none;">
+                <h1>Automatisation</h1>
+                <div id="automationSection" class="achat-section">
+                    <h3>Automatisation</h3>
+                    <div id="automationControls">
+                        <button id="autoEleveBtn">Automatiser Élèves : <span class="ascension-points-color">100
+                                PA</span></button>
+                        <button id="autoClasseBtn">Automatiser Classes : <span class="ascension-points-color">500
+                                PA</span></button>
+                        <button id="autoImageBtn">Automatiser Images : <span class="ascension-points-color">10 k
+                                PA</span></button>
+                        <button id="autoProfesseurBtn">Automatiser Professeur<span id="autoProfesseurSpan"></span> :
+                            <span class="ascension-points-color">100 k PA</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="skillsContainer" style="display: none;">
+                <div class="header-row">
+                    <h1>Arbre de Compétences</h1>
+                    <div class="skill-header-buttons">
+                        <button id="resetSkillsButton">Réinitialiser</button>
+                        <button id="buyAllSkillsButton">Tout acheter</button>
+                    </div>
+                </div>
+
+                <div id="skillPanels">
+                    <div id="studiesPanel" class="skill-panel">
+                        <h2>Études</h2>
+                        <p class="points-display">Points disponibles : <span id="studiesSkillsPointsCount">0</span></p>
+                        <div id="studiesSkillsGrid"></div>
+                    </div>
+                    <div id="ascensionPanel" class="skill-panel" style="display: none;">
+                        <h2>Ascension</h2>
+                        <p class="points-display">Points disponibles : <span id="ascensionSkillsPointsCount">0</span></p>
+                        <div id="ascensionSkillsGrid"></div>
+                    </div>
+                    <div id="prestigePanel" class="skill-panel" style="display: none;">
+                        <h2>Prestige</h2>
+                        <p class="points-display">Points disponibles : <span id="prestigeSkillsPointsCount">0</span></p>
+                        <div id="prestigeSkillsGrid"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settingsContainer" style="display: none;">
+                <h1>Paramètres</h1>
+                <div class="achat-section" id="themeSelectionSetting">
+                    <h3>Sélection du Thème</h3>
+                    <select id="themeSelector">
+                        <option value="normal-theme">Normal</option>
+                        <option value="neon-sci-fi-theme">Neon Sci-Fi</option>
+                        <option value="steampunk-theme">Steampunk</option>
+                        <option value="retro-theme">Rétro</option>
+                        <option value="pink-theme">Pink</option>
+                        <option value="black-gold-theme">Black & Gold</option>
+                        <option value="rgb-theme">RGB</option>
+                    </select>
+                </div>
+                <div class="achat-section" id="dayNightModeSetting">
+                    <h3>Mode Jour/Nuit</h3>
+                    <button id="dayModeButton" class="multiplier-button active">Jour</button>
+                    <button id="nightModeButton" class="multiplier-button">Nuit</button>
+                </div>
+                <div class="achat-section">
+                    <button id="resetProgressionButton">Réinitialiser la Progression (10 I)</button>
+                </div>
+                <div class="achat-section" id="offlineProgressSetting" style="display: none;">
+                    <label for="offlineProgressToggle">Activer progression hors ligne :</label>
+                    <input type="checkbox" id="offlineProgressToggle" checked>
+                </div>
+                <div class="achat-section" id="minimizeResourcesSetting" style="display: none;">
+                    <button id="toggleMinimalistResources">Minimiser la section ressources</button>
+                </div>
+                <div class="achat-section" id="statsButtonSetting" style="display: none;">
+                    <button id="statsButton">Statistiques</button>
+                </div>
+            </div>
+
+            <div id="ascensionMenuContainer" style="display: none;">
+                <h1 id="ascensionTitleButton">Ascension !</h1>
+                <p>Points d'Ascension disponibles : <span id="ascensionMenuPACount"
+                        class="ascension-points-color">0</span>
+                </p>
+                <div
+                    style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; max-width: 800px;">
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="acheterEcoleButton">Acheter une école : <span id="coutEcole"
+                                class="ascension-points-color">15 PA</span></button>
+                        <p>Quantité : <span id="nombreEcoles">0</span></p>
+                        <p class="production">Multiplicateur BP/s : <span id="ecoleMultiplier">1.0x</span></p>
+                    </div>
+                    <div id="achatLyceeSection" class="achat-section" style="flex: 1 1 300px; display: none;">
+                        <button id="acheterLyceeButton">Lycée : <span class="ascension-points-color">50
+                                PA</span></button>
+                        <p>Quantité : <span id="nombreLyceesDisplay">0</span></p>
+                        <p class="production">Boost multiplicateur Écoles : <span
+                                id="lyceeMultiplierDisplay">1.0x</span>
+                        </p>
+                    </div>
+                    <div id="achatCollegeSection" class="achat-section" style="flex: 1 1 300px; display: none;">
+                        <button id="acheterCollegeButton">Collège : <span class="ascension-points-color">250
+                                PA</span></button>
+                        <p>Quantité : <span id="nombreCollegesDisplay">0</span></p>
+                        <p class="production">Boost production Écoles : <span
+                                id="collegeMultiplierDisplay">1.0x</span>
+                        </p>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="unlockMultiPurchaseButton">Débloquer Achat Multiple : <span
+                                class="ascension-points-color">10 PA</span></button>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="unlockmaxPurchaseButton">Débloquer Achat Multiple Max : <span
+                                class="ascension-points-color">100 PA</span></button>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="unlockNewSettingsButton">Débloquer de nouveaux réglages : <span
+                                class="ascension-points-color">10 PA</span></button>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="unlockAutomationCategoryButton">Débloquer Automatisation : <span
+                                class="ascension-points-color">1 k PA</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="prestigeMenuContainer" style="display: none;">
+                <h1 id="prestigeTitleButton">Prestige !</h1>
+                <p>Points de Prestige disponibles : <span id="prestigeMenuPPCount"
+                        class="prestige-points-color">0</span>
+                </p>
+                <div
+                    style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; width: 100%; max-width: 800px;">
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="acheterLicenceButton">Licence : <span class="prestige-points-color">100
+                                PP</span></button>
+                        <p>Quantité : <span id="nombreLicences">0</span></p>
+                        <p class="production">Boost Professeur : <span id="licenceBoost">0%</span></p>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="acheterMaster1Button">Master I : <span class="prestige-points-color">200
+                                PP</span></button>
+                        <p>Quantité : <span id="nombreMaster1">0</span></p>
+                        <p class="production">Boost Classes : <span id="master1Boost">0%</span></p>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="acheterMaster2Button">Master II : <span class="prestige-points-color">1 k
+                                PP</span></button>
+                        <p>Quantité : <span id="nombreMaster2">0</span></p>
+                        <p class="production">Boost Classes : <span id="master2Boost">0%</span></p>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="acheterDoctoratButton">Doctorat : <span class="prestige-points-color">1 k
+                                PP</span></button>
+                        <p>Quantité : <span id="nombreDoctorat">0</span></p>
+                        <p class="production">Boost BP/s : <span id="doctoratBoost">0%</span></p>
+                        <p class="production">Doctorat Min Classes après Ascension: <span id="doctoratMinClasses">0</span></p>
+                    </div>
+                    <div class="achat-section" style="flex: 1 1 300px;">
+                        <button id="acheterPostDoctoratButton">Post-Doctorat : <span class="prestige-points-color">10 k
+                                PP</span></button>
+                        <p>Quantité : <span id="nombrePostDoctorat">0</span></p>
+                        <p class="production">Boost PA/Ascension : <span id="postDoctoratBoost">0%</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="questsContainer" style="display: none;">
+                <h1>Quêtes</h1>
+                <div>
+                    <p>Quêtes complétées : <span id="questsCompletedCount">0</span> / <span id="questsTotalCount">0</span></p>
+                    <div id="questsList">
+                    </div>
+                </div>
+                <div id="completedQuests" class="achat-section">
+                    <h3>Quêtes Terminées</h3>
+                    <div id="completedQuestsList"></div>
+                </div>
+            </div>
+
+            <div id="achievementsContainer" style="display: none;">
+                <h1>Succès</h1>
+                <div id="achievementsGrid"></div>
+                <div id="achievementTooltip" class="achievement-tooltip" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="page-footer">
+        Crée par Terrafaust & IA
+    </footer>
+
+    <div id="notifications-container"></div>
+
+    <div id="minimalistResources" style="display: none;">
+        <p class="resource-line"><span class="resource-label">BP:</span> <span id="miniBonsPoints"
+                class="bons-points-color">0</span></p>
+        <p class="resource-line"><span class="resource-label">I:</span> <span id="miniImages"
+                class="images-color">0</span></p>
+        <p class="resource-line"><span class="resource-label">P:</span> <span id="miniProfesseur"
+                class="Professeur-color">0</span></p>
+        <hr style="width: 80%; border-color: #777; margin: 5px 0;">
+        <p class="resource-line"><span class="resource-label">PA:</span> <span id="miniAscensionPoints"
+                class="ascension-points-color">0</span></p>
+        <p class="resource-line"><span class="resource-label">A:</span> <span id="miniAscensionCount"
+                class="ascension-points-color">0</span></p>
+        <hr style="width: 80%; border-color: #777; margin: 5px 0;">
+        <p class="resource-line"><span class="resource-label">PP:</span> <span id="miniPrestigePoints"
+                class="prestige-points-color">0</span></p>
+        <p class="resource-line"><span class="resource-label">P:</span> <span id="miniPrestigeCount"
+                class="prestige-points-color">0</span></p>
+    </div>
+
+    <div id="confirmResetModal">
+        <div class="modal-content">
+            <h3 class="warning-color">Réinitialiser la progression ?</h3>
+            <p>Cela réinitialisera tout votre jeu et coûtera 10 images. Êtes-vous sûr ?</p>
+            <div class="modal-buttons">
+                <button id="confirmResetYes">Oui</button>
+                <button id="confirmResetNo">Non</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmAscensionModal">
+        <div class="modal-content">
+            <h3 id="ascensionModalTitle" class="warning-color">Ascensionner ?</h3>
+            <div id="firstAscensionWarning" style="display: none;">
+                <p><span class="info-color">C'est votre première Ascension !</span> Voici ce que cela implique :</p>
+                <ul>
+                    <li><span class="warning-color">Vous perdrez </span> (Constructions, Bons Points, Images, Compétences
+                        ).</li>
+                    <li><span class="info-color">Vous conserverez la monnaie <span
+                                class="ascension-points-color">PA (Points d'Ascension)</span>.</span></li>
+                    <li><span class="info-color">Vous obtiendrez <span id="paGainedDisplay"
+                                class="ascension-points-color">X PA</span> basés sur le nombre de Professeur que vous
+                            avez au moment de l'Ascension.</span></li>
+                    <li><span class="info-color">Vous débloquerez un <span
+                                class="ascension-points-color">Bonus d'Ascension</span> permanent</span> qui augmentera
+                        votre production totale de Bons Points par seconde. Ce bonus est calculé comme suit :<br>
+                        <span style="font-weight: bold;">1 + (Nombre total d'ascensions) x (PA totaux gagnés) x
+                            0.01</span>.
+                    </li>
+                </ul>
+                <p><span class="info-color">Il est recommandé de faire votre première Ascension à environ <span
+                                class="ascension-points-color">20 PA</span> pour un bon départ !</span></p>
+                <div class="modal-checkbox">
+                    <input type="checkbox" id="disableAscensionWarningCheckbox">
+                    <label for="disableAscensionWarningCheckbox">Ne plus afficher cet avertissement pour les prochaines
+                        Ascensions</label>
+                </div>
+            </div>
+            <p id="subsequentAscensionWarning" style="display: none;">Vous êtes sur le point d'Ascensionner ! Cela
+                réinitialisera votre progression actuelle mais vous rapportera des Points d'Ascension. </p>
+            <div class="modal-buttons">
+                <button id="confirmAscensionYes">Oui</button>
+                <button id="confirmAscensionNo">Non</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="confirmPrestigeModal">
+        <div class="modal-content">
+            <h3 class="warning-color">Prestige !</h3>
+            <p id="prestigeWarningText">Êtes-vous sûr de vouloir effectuer un Prestige ?</p>
+            <div class="modal-checkbox">
+                <input type="checkbox" id="disablePrestigeWarningCheckbox">
+                <label for="disablePrestigeWarningCheckbox">Ne plus afficher cet avertissement pour les prochains
+                    Prestiges</label>
+            </div>
+            <div class="modal-buttons">
+                <button id="confirmPrestigeYes">Oui</button>
+                <button id="confirmPrestigeNo">Non</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="statsModal">
+        <div class="modal-content">
+            <button class="close-button" onclick="closeStatsModal()">&times;</button>
+            <h2>Statistiques du Jeu</h2>
+
+            <div class="stats-category">
+                <h3>Production Globale</h3>
+                <p>Production BP/s actuelle: <span class="bons-points-color stat-value" id="statsCurrentBPS">0</span></p>
+                <p>Bonus total des compétences: <span class="info-color stat-value" id="statsSkillBonus">0%</span></p>
+                <p>Bonus total des ascensions: <span class="ascension-points-color stat-value"
+                        id="statsAscensionBonus">1.00x</span></p>
+                <p>Bonus total du prestige: <span class="prestige-points-color stat-value"
+                        id="statsPrestigeBPSBonus">1.00x</span></p>
+                <p>Bonus permanent des succès: <span class="info-color stat-value"
+                        id="statsAchievementBPSBonus">0%</span></p>
+                <p>Multiplicateur global BP: <span class="info-color stat-value"
+                        id="statsAllBPSMultiplier">1.00x</span></p>
+            </div>
+
+            <div class="stats-category">
+                <h3>Ressources et Multiplicateurs</h3>
+                <p>Bons Points: <span class="bons-points-color stat-value" id="statsBonsPoints">0</span></p>
+                <p>Images: <span class="images-color stat-value" id="statsImages">0</span></p>
+                <p>Professeur<span id="statsProfesseurSpan"></span>: <span class="Professeur-color stat-value"
+                        id="statsProfesseur">0</span></p>
+                <p>Multiplicateur Professeur: <span class="info-color stat-value"
+                        id="statsProfMultiplier">1.00x</span></p>
+                <p>Points d'Ascension: <span class="ascension-points-color stat-value"
+                        id="statsAscensionPoints">0</span></p>
+                <p>Points de Prestige: <span class="prestige-points-color stat-value"
+                        id="statsPrestigePoints">0</span></p>
+            </div>
+
+            <div class="stats-category">
+                <h3>Coûts et Réductions</h3>
+                <p>Réduction coût Élèves: <span class="info-color stat-value"
+                        id="statsEleveCostReduction">0%</span></p>
+                <p>Réduction coût Classes: <span class="info-color stat-value"
+                        id="statsClasseCostReduction">0%</span></p>
+                <p>Réduction coût Images: <span class="info-color stat-value"
+                        id="statsImageCostReduction">0%</span></p>
+                <p>Réduction coût Professeur: <span class="info-color stat-value"
+                        id="statsProfesseurCostReduction">0%</span></p>
+                <p>Réduction coût Écoles: <span class="info-color stat-value"
+                        id="statsEcoleCostReduction">0%</span></p>
+                <p>Réduction coût Automatisations: <span class="info-color stat-value"
+                        id="statsAutomationCostReduction">0%</span></p>
+                <p>Réduction coût global: <span class="info-color stat-value"
+                        id="statsAllCostReduction">0%</span></p>
+            </div>
+
+            <div class="stats-category">
+                <h3>Bonus Spécifiques</h3>
+                <p>BP par clic: <span class="bons-points-color stat-value" id="statsClickBPSBonus">0</span></p>
+                <p>Multiplicateur gain PA: <span class="ascension-points-color stat-value"
+                        id="statsPAGainMultiplier">0%</span></p>
+                <p>Augmentation bonus Ascension: <span class="ascension-points-color stat-value"
+                        id="statsAscensionBonusIncrease">0x</span></p>
+                <p>Augmentation production hors ligne: <span class="info-color stat-value"
+                        id="statsOfflineProductionIncrease">0%</span></p>
+                <p>Multiplicateur production structures: <span class="info-color stat-value"
+                        id="statsAllProductionMultiplier">0%</span></p>
+            </div>
+
+            <div class="stats-category">
+                <h3>Progression</h3>
+                <p>Total Clics: <span class="info-color stat-value" id="statsTotalClicks">0</span></p>
+                <p>Ascensions effectuées: <span class="ascension-points-color stat-value"
+                        id="statsAscensionCount">0</span></p>
+                <p>Total PA gagnés: <span class="ascension-points-color stat-value"
+                        id="statsTotalPAEarned">0</span></p>
+                <p>Prestiges effectués: <span class="prestige-points-color stat-value"
+                        id="statsPrestigeCount">0</span></p>
+            </div>
+
+            <div class="stats-category">
+                <h3>Bonus Prestige Spécifiques</h3>
+                <p>Boost Licence (Professeur): <span class="prestige-points-color stat-value"
+                        id="statsLicenceBoost">0%</span></p>
+                <p>Boost Master I (Classes par Prof): <span class="prestige-points-color stat-value"
+                        id="statsMaster1Boost">0%</span></p>
+                <p>Boost Master II (Classes par PP): <span class="prestige-points-color stat-value"
+                        id="statsMaster2Boost">0%</span></p>
+                <p>Boost Doctorat (BP/s): <span class="prestige-points-color stat-value"
+                        id="statsDoctoratBPSBoost">0%</span></p>
+                <p>Doctorat Min Classes après Ascension: <span class="prestige-points-color stat-value"
+                        id="statsDoctoratMinClasses">0</span></p>
+                <p>Boost Post-Doctorat (PA/Ascension): <span class="prestige-points-color stat-value"
+                        id="statsPostDoctoratBoost">0%</span></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="break_infinity.min.js"></script>
+
+    <script type="module" src="data.js"></script>
+    <script type="module" src="core.js"></script>
+    <script type="module" src="ui.js"></script>
+    <script type="module" src="studies.js"></script>
+    <script type="module" src="automation.js"></script>
+    <script type="module" src="skills.js"></script>
+    <script type="module" src="ascension.js"></script>
+    <script type="module" src="prestige.js"></script>
+    <script type="module" src="settings.js"></script>
+    <script type="module" src="quests.js"></script>
+    <script type="module" src="achievements.js"></script>
+    <script type="module" src="events.js"></script>
+
+    <script type="module">
+        // Importez la fonction d'initialisation du jeu depuis core.js
+        import { initializeGame } from './core.js';
+
+        // Appelez la fonction d'initialisation du jeu une fois que le DOM est prêt.
+        // Cela garantit que tous les éléments HTML sont chargés et que les scripts sont disponibles.
+        window.onload = function () {
+            initializeGame();
+        };
+    </script>
+</body>
+
+</html>

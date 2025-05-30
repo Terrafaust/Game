@@ -341,6 +341,11 @@ export let nombreMaster2;
 export let nombreDoctorat;
 export let nombrePostDoctorat;
 
+// Variables pour les quêtes (maj 30/05 Quetes)
+export let completedQuests = {}; // Objet pour suivre l'état de complétion et de réclamation des quêtes (maj 30/05 Quetes)
+export let paMultiplierFromQuests = new Decimal(1); // Multiplicateur de gain de PA provenant des quêtes (maj 30/05 Quetes)
+
+
 // Objets de bonus cumulés (mis à jour par applyAllSkillEffects)
 // Ces objets agrègent tous les multiplicateurs et réductions de coût
 // provenant des compétences, succès, et achats de prestige.
@@ -404,7 +409,7 @@ import { calculateAutomationCost, runAutomation } from './automation.js';
 import { skillsData } from './data.js'; // skillsData est défini dans data.js
 import { calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js';
 import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
-import { updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests } from './quests.js';
+import { updateQuestProgress, questsData } from './quests.js'; // completedQuests et paMultiplierFromQuests sont maintenant définis dans core.js (maj 30/05 Quetes)
 import { checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements } from './achievements.js'; // (maj 30/05 core)
 import { updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
          updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
@@ -721,8 +726,8 @@ export function saveGameState() {
         lastUpdate: Date.now(), // Enregistrer le timestamp de la sauvegarde
         unlockedAchievements: unlockedAchievements, // Sauvegarder l'état des succès (maj 30/05 core)
         permanentBpsBonusFromAchievements: permanentBpsBonusFromAchievements.toString(), // (maj 30/05 core)
-        completedQuests: completedQuests, // Sauvegarder les quêtes terminées (maj 30/05 core)
-        paMultiplierFromQuests: paMultiplierFromQuests.toString(), // (maj 30/05 core)
+        completedQuests: completedQuests, // Sauvegarder les quêtes terminées (maj 30/05 Quetes)
+        paMultiplierFromQuests: paMultiplierFromQuests.toString(), // (maj 30/05 Quetes)
     };
     localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
     // showNotification("Jeu sauvegardé !"); // Désactivé pour éviter le spam
@@ -804,8 +809,8 @@ export function loadGameState() {
         lastUpdate = gameState.lastUpdate || Date.now(); // Enregistrer le timestamp de la sauvegarde
         unlockedAchievements = gameState.unlockedAchievements || {}; // (maj 30/05 core)
         permanentBpsBonusFromAchievements = new Decimal(gameState.permanentBpsBonusFromAchievements || 0); // (maj 30/05 core)
-        completedQuests = gameState.completedQuests || {}; // (maj 30/05 core)
-        paMultiplierFromQuests = new Decimal(gameState.paMultiplierFromQuests || 1); // (maj 30/05 core)
+        completedQuests = gameState.completedQuests || {}; // (maj 30/05 Quetes)
+        paMultiplierFromQuests = new Decimal(gameState.paMultiplierFromQuests || 1); // (maj 30/05 Quetes)
 
         // Appliquer le thème immédiatement après le chargement
         document.body.classList.toggle('dark-theme', !isDayTheme); // (maj 30/05 core)
@@ -895,12 +900,13 @@ export function resetGameVariables() {
     unlockedAchievements = {}; // (maj 30/05 core)
     permanentBpsBonusFromAchievements = new Decimal(0); // (maj 30/05 core)
 
-    // Réinitialiser les quêtes (maj 30/05 core)
-    completedQuests = {}; // (maj 30/05 core)
-    paMultiplierFromQuests = new Decimal(1); // (maj 30/05 core)
+    // Réinitialiser les quêtes (maj 30/05 Quetes)
+    completedQuests = {}; // (maj 30/05 Quetes)
+    paMultiplierFromQuests = new Decimal(1); // (maj 30/05 Quetes)
 
     resetSkillEffects();
     updateCosts();
+    applyAllSkillEffects();
     updateCachedMultipliers();
     calculateTotalBPS();
     updateDisplay();
@@ -996,18 +1002,17 @@ export function softResetGame() {
     studiesSkillLevels = {}; // Les compétences d'études sont réinitialisées
     secretSkillClicks = 0;
 
-    // Réinitialiser les quêtes non permanentes (maj 30/05 core)
+    // Réinitialiser les quêtes non permanentes (maj 30/05 Quetes)
     for (const questId in questsData) {
         if (!questsData[questId].permanent) {
             // Seules les quêtes non permanentes sont réinitialisées
             const quest = questsData[questId];
             if (completedQuests[quest.id]) { // Si la quête était complétée
-                delete completedQuests[quest.id]; // La retirer des quêtes complétées (maj 30/05 core)
+                delete completedQuests[quest.id]; // La retirer des quêtes complétées (maj 30/05 Quetes)
             }
         }
     }
-    // Les quêtes terminées permanentes restent dans completedQuests - Pas besoin de les toucher ici (maj 30/05 core)
-    // paMultiplierFromQuests est géré par quests.js lors de la réinitialisation des quêtes. (maj 30/05 core)
+    paMultiplierFromQuests = new Decimal(1); // Réinitialiser le multiplicateur de PA des quêtes (maj 30/05 Quetes)
 
     updateCosts();
     applyAllSkillEffects(); // Réappliquer les effets après la réinitialisation
@@ -1075,7 +1080,7 @@ export function superSoftResetGame() {
     ascensionSkillLevels = {};
     secretSkillClicks = 0;
 
-    // Les quêtes sont réinitialisées sauf si permanentes (maj 30/05 core)
+    // Les quêtes sont réinitialisées sauf si permanentes (maj 30/05 Quetes)
     for (const questId in questsData) {
         if (!questsData[questId].permanent) {
             const quest = questsData[questId];
@@ -1084,7 +1089,7 @@ export function superSoftResetGame() {
             }
         }
     }
-    // Les succès débloqués restent débloqués, mais leurs effets sont réappliqués.
+    paMultiplierFromQuests = new Decimal(1); // Réinitialiser le multiplicateur de PA des quêtes (maj 30/05 Quetes)
 
     resetSkillEffects(); // Réinitialiser tous les effets
     updateCosts();
@@ -1326,8 +1331,8 @@ export function applyAllSkillEffects() {
     // skillEffects.allBpsMultiplier est déjà multiplié par achievementBpsMultiplier dans calculateTotalBPS.
     // Donc, pas de modification directe de skillEffects.allBpsMultiplier ici pour permanentBpsBonusFromAchievements.
 
-    // Appliquer les multiplicateurs de PA des quêtes (maj 30/05 core)
-    skillEffects.paGainMultiplier = skillEffects.paGainMultiplier.times(paMultiplierFromQuests); // (maj 30/05 core)
+    // Appliquer les multiplicateurs de PA des quêtes (maj 30/05 Quetes)
+    skillEffects.paGainMultiplier = skillEffects.paGainMultiplier.times(paMultiplierFromQuests); // (maj 30/05 Quetes)
 
     // Appliquer les bonus des achats de prestige (maj 30/05 core)
     // Ces bonus sont déjà cumulés dans les variables nombreLicences, etc.,

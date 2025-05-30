@@ -106,6 +106,7 @@
 //     - `id` (string) : Identifiant unique.
 //     - `name` (string) : Nom affiché.
 //     - `description` (string) : Texte décrivant l'objectif.
+//     - `category` (string) : Catégorie de la quête (ex: "Fondations", "Expansion Académique"). (Maj 30/05 Quetes)
 //     - `condition` (function) : Fonction qui retourne `true` si l'objectif est atteint (prend des variables d'état du jeu).
 //     - `reward` (object) : Objet décrivant la récompense (`type`, `amount`).
 //     - `rewardText` (string) : Description textuelle de la récompense.
@@ -432,95 +433,350 @@ export const prestigePurchasesData = [
     },
 ];
 
-// --- Définitions des Quêtes ---
+// --- Définitions des Quêtes --- (Maj 30/05 Quetes)
 export const questsData = [
+    // Catégorie : Fondations
     {
-        id: 'click_10',
+        id: 'Q_FOUND_CLICKS_10',
         name: 'Premiers Clics',
         description: 'Cliquez 10 fois sur "Étudier sagement".',
+        category: 'Fondations',
         condition: (totalClicks) => totalClicks.gte(10),
         reward: { type: 'studiesSkillPoints', amount: new Decimal(1) },
         rewardText: '1 Point de Compétence Études',
-        current: 0,
-        unlocked: false,
         permanent: false,
     },
     {
-        id: 'eleves_10',
+        id: 'Q_FOUND_ELEVES_10',
         name: 'Petite Classe',
         description: 'Achetez 10 Élèves.',
+        category: 'Fondations',
         condition: (nombreEleves) => nombreEleves.gte(10),
         reward: { type: 'studiesSkillPoints', amount: new Decimal(1) },
         rewardText: '1 Point de Compétence Études',
-        current: 0,
-        unlocked: false,
         permanent: false,
     },
     {
-        id: 'classes_1',
+        id: 'Q_FOUND_CLASSES_1',
         name: 'Première Salle',
         description: 'Achetez 1 Salle de classe.',
+        category: 'Fondations',
         condition: (nombreClasses) => nombreClasses.gte(1),
         reward: { type: 'studiesSkillPoints', amount: new Decimal(1) },
         rewardText: '1 Point de Compétence Études',
-        current: 0,
-        unlocked: false,
         permanent: false,
     },
     {
-        id: 'professeur_1',
+        id: 'Q_FOUND_PROF_1',
         name: 'Le Mentor',
         description: 'Achetez 1 Professeur.',
+        category: 'Fondations',
         condition: (nombreProfesseur) => nombreProfesseur.gte(1),
         reward: { type: 'ascensionSkillPoints', amount: new Decimal(1) },
         rewardText: '1 Point de Compétence Ascension',
-        current: 0,
-        unlocked: false,
         permanent: true,
     },
     {
-        id: 'ascension_1',
-        name: 'Renaissance Académique',
-        description: 'Effectuez votre première Ascension.',
-        condition: (ascensionCount) => ascensionCount.gte(1),
-        reward: { type: 'prestigeSkillPoints', amount: new Decimal(1) },
-        rewardText: '1 Point de Compétence Prestige',
-        current: 0,
-        unlocked: false,
-        permanent: true,
+        id: 'Q_FOUND_BP_1K',
+        name: 'Première Richesse',
+        description: 'Gagnez un total de 1 000 Bons Points.',
+        category: 'Fondations',
+        condition: (bonsPointsTotal) => bonsPointsTotal.gte(1000),
+        reward: { type: 'bonsPoints', amount: new Decimal(500) },
+        rewardText: '500 Bons Points',
+        permanent: false,
+    },
+
+    // Catégorie : Expansion Académique
+    {
+        id: 'Q_EXP_CLASSES_10',
+        name: 'Classes Multiples',
+        description: 'Possédez 10 Salles de classe.',
+        category: 'Expansion Académique',
+        condition: (nombreClasses) => nombreClasses.gte(10),
+        reward: { type: 'images', amount: new Decimal(5) },
+        rewardText: '5 Images',
+        permanent: false,
     },
     {
-        id: 'total_pa_100',
-        name: 'Richesse Académique',
-        description: 'Gagnez un total de 100 PA.',
-        condition: (totalPAEarned) => totalPAEarned.gte(100),
-        reward: { type: 'paMultiplier', amount: new Decimal(0.1) }, // 10% de boost aux gains de PA
-        rewardText: '+10% au gain de PA',
-        current: 0,
-        unlocked: false,
-        permanent: true,
-    },
-    {
-        id: 'prestige_1',
-        name: 'Le Savoir Ultime',
-        description: 'Effectuez votre premier Prestige.',
-        condition: (prestigeCount) => prestigeCount.gte(1),
-        reward: { type: 'ppMultiplier', amount: new Decimal(0.1) }, // 10% de boost aux gains de PP
-        rewardText: '+10% au gain de PP',
-        current: 0,
-        unlocked: false,
-        permanent: true,
-    },
-    {
-        id: 'images_50',
+        id: 'Q_EXP_IMAGES_50',
         name: 'Collection d\'Images',
         description: 'Possédez 50 Images.',
+        category: 'Expansion Académique',
         condition: (images) => images.gte(50),
         reward: { type: 'studiesSkillPoints', amount: new Decimal(2) },
         rewardText: '2 Points de Compétence Études',
-        current: 0,
-        unlocked: false,
         permanent: false,
+    },
+    {
+        id: 'Q_EXP_PROF_5',
+        name: 'Équipe Pédagogique',
+        description: 'Possédez 5 Professeurs.',
+        category: 'Expansion Académique',
+        condition: (nombreProfesseur) => nombreProfesseur.gte(5),
+        reward: { type: 'ascensionSkillPoints', amount: new Decimal(1) },
+        rewardText: '1 Point de Compétence Ascension',
+        permanent: true,
+    },
+    {
+        id: 'Q_EXP_BPS_100',
+        name: 'Rythme Soutenu',
+        description: 'Atteignez une production de 100 Bons Points par seconde (BP/s).',
+        category: 'Expansion Académique',
+        condition: (totalBonsPointsParSeconde) => totalBonsPointsParSeconde.gte(100),
+        reward: { type: 'bonsPoints', amount: new Decimal(10000) },
+        rewardText: '10 000 Bons Points',
+        permanent: false,
+    },
+    {
+        id: 'Q_EXP_ECOLE_1',
+        name: 'Première École',
+        description: 'Achetez 1 École.',
+        category: 'Expansion Académique',
+        condition: (schoolCount) => schoolCount.gte(1),
+        reward: { type: 'ascensionPoints', amount: new Decimal(5) },
+        rewardText: '5 Points d\'Ascension',
+        permanent: true,
+    },
+
+    // Catégorie : Maîtrise de l'Ascension
+    {
+        id: 'Q_ASC_FIRST',
+        name: 'Renaissance Académique',
+        description: 'Effectuez votre première Ascension.',
+        category: 'Maîtrise de l\'Ascension',
+        condition: (ascensionCount) => ascensionCount.gte(1),
+        reward: { type: 'prestigeSkillPoints', amount: new Decimal(1) },
+        rewardText: '1 Point de Compétence Prestige',
+        permanent: true,
+    },
+    {
+        id: 'Q_ASC_PA_100',
+        name: 'Richesse Académique',
+        description: 'Gagnez un total de 100 PA.',
+        category: 'Maîtrise de l\'Ascension',
+        condition: (totalPAEarned) => totalPAEarned.gte(100),
+        reward: { type: 'paMultiplier', amount: new Decimal(0.1) }, // +10% au gain de PA
+        rewardText: '+10% au gain de PA',
+        permanent: true,
+    },
+    {
+        id: 'Q_ASC_ECOLE_3',
+        name: 'Réseau Scolaire',
+        description: 'Possédez 3 Écoles.',
+        category: 'Maîtrise de l\'Ascension',
+        condition: (schoolCount) => schoolCount.gte(3),
+        reward: { type: 'ascensionPoints', amount: new Decimal(20) },
+        rewardText: '20 Points d\'Ascension',
+        permanent: true,
+    },
+    {
+        id: 'Q_ASC_LYCEE_1',
+        name: 'Nouveau Niveau',
+        description: 'Achetez 1 Lycée.',
+        category: 'Maîtrise de l\'Ascension',
+        condition: (nombreLycees) => nombreLycees.gte(1),
+        reward: { type: 'ascensionSkillPoints', amount: new Decimal(2) },
+        rewardText: '2 Points de Compétence Ascension',
+        permanent: true,
+    },
+    {
+        id: 'Q_ASC_COLLEGE_1',
+        name: 'L\'Élite du Savoir',
+        description: 'Achetez 1 Collège.',
+        category: 'Maîtrise de l\'Ascension',
+        condition: (nombreColleges) => nombreColleges.gte(1),
+        reward: { type: 'paMultiplier', amount: new Decimal(0.15) }, // +15% au gain de PA
+        rewardText: '+15% au gain de PA',
+        permanent: true,
+    },
+
+    // Catégorie : L'Ère du Prestige
+    {
+        id: 'Q_PRES_FIRST',
+        name: 'Le Savoir Ultime',
+        description: 'Effectuez votre premier Prestige.',
+        category: 'L\'Ère du Prestige',
+        condition: (prestigeCount) => prestigeCount.gte(1),
+        reward: { type: 'ppMultiplier', amount: new Decimal(0.1) }, // +10% au gain de PP
+        rewardText: '+10% au gain de PP',
+        permanent: true,
+    },
+    {
+        id: 'Q_PRES_PP_100',
+        name: 'Héritage Prestigieux',
+        description: 'Gagnez un total de 100 PP.',
+        category: 'L\'Ère du Prestige',
+        condition: (prestigePoints) => prestigePoints.gte(100), // Assuming prestigePoints tracks total earned
+        reward: { type: 'prestigePoints', amount: new Decimal(20) },
+        rewardText: '20 Points de Prestige',
+        permanent: true,
+    },
+    {
+        id: 'Q_PRES_LICENCE_1',
+        name: 'Premier Degré',
+        description: 'Achetez 1 Licence.',
+        category: 'L\'Ère du Prestige',
+        condition: (nombreLicences) => nombreLicences.gte(1),
+        reward: { type: 'prestigeSkillPoints', amount: new Decimal(1) },
+        rewardText: '1 Point de Compétence Prestige',
+        permanent: true,
+    },
+    {
+        id: 'Q_PRES_MASTER1_1',
+        name: 'Spécialisation',
+        description: 'Achetez 1 Master I.',
+        category: 'L\'Ère du Prestige',
+        condition: (nombreMaster1) => nombreMaster1.gte(1),
+        reward: { type: 'prestigeSkillPoints', amount: new Decimal(1) },
+        rewardText: '1 Point de Compétence Prestige',
+        permanent: true,
+    },
+    {
+        id: 'Q_PRES_DOCTORAT_1',
+        name: 'Recherche Avancée',
+        description: 'Achetez 1 Doctorat.',
+        category: 'L\'Ère du Prestige',
+        condition: (nombreDoctorat) => nombreDoctorat.gte(1),
+        reward: { type: 'ppMultiplier', amount: new Decimal(0.2) }, // +20% au gain de PP
+        rewardText: '+20% au gain de PP',
+        permanent: true,
+    },
+
+    // Catégorie : Automatisation et Efficacité
+    {
+        id: 'Q_AUTO_UNLOCK',
+        name: 'Déblocage de l\'Automatisation',
+        description: 'Débloquez la catégorie "Automatisation".',
+        category: 'Automatisation et Efficacité',
+        condition: (automationCategoryUnlocked) => automationCategoryUnlocked === true,
+        reward: { type: 'ascensionPoints', amount: new Decimal(10) },
+        rewardText: '10 Points d\'Ascension',
+        permanent: true,
+    },
+    {
+        id: 'Q_AUTO_ELEVE',
+        name: 'Automate Élèves',
+        description: 'Activez l\'automatisation des Élèves.',
+        category: 'Automatisation et Efficacité',
+        condition: (autoEleveActive) => autoEleveActive === true,
+        reward: { type: 'bonsPoints', amount: new Decimal(1e5) },
+        rewardText: '100 000 Bons Points',
+        permanent: true,
+    },
+    {
+        id: 'Q_AUTO_ALL',
+        name: 'Maître de l\'Automate',
+        description: 'Activez toutes les automatisations (Élèves, Classes, Images, Professeurs).',
+        category: 'Automatisation et Efficacité',
+        condition: (autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive) =>
+            autoEleveActive && autoClasseActive && autoImageActive && autoProfesseurActive,
+        reward: { type: 'paMultiplier', amount: new Decimal(0.05) }, // +5% au gain de PA
+        rewardText: '+5% au gain de PA',
+        permanent: true,
+    },
+
+    // Catégorie : Profondeur du Savoir
+    {
+        id: 'Q_DEEP_MASTER2_1',
+        name: 'Expertise Approfondie',
+        description: 'Achetez 1 Master II.',
+        category: 'Profondeur du Savoir',
+        condition: (nombreMaster2) => nombreMaster2.gte(1),
+        reward: { type: 'prestigeSkillPoints', amount: new Decimal(2) },
+        rewardText: '2 Points de Compétence Prestige',
+        permanent: true,
+    },
+    {
+        id: 'Q_DEEP_POSTDOC_1',
+        name: 'Pionnier de la Recherche',
+        description: 'Achetez 1 Post-Doctorat.',
+        category: 'Profondeur du Savoir',
+        condition: (nombrePostDoctorat) => nombrePostDoctorat.gte(1),
+        reward: { type: 'ppMultiplier', amount: new Decimal(0.25) }, // +25% au gain de PP
+        rewardText: '+25% au gain de PP',
+        permanent: true,
+    },
+    {
+        id: 'Q_DEEP_LICENCE_5',
+        name: 'Multi-Diplômé',
+        description: 'Possédez 5 Licences.',
+        category: 'Profondeur du Savoir',
+        condition: (nombreLicences) => nombreLicences.gte(5),
+        reward: { type: 'prestigePoints', amount: new Decimal(50) },
+        rewardText: '50 Points de Prestige',
+        permanent: true,
+    },
+
+    // Catégorie : Grandeur Totale
+    {
+        id: 'Q_GRAND_BP_1E9',
+        name: 'Milliardaire de Bons Points',
+        description: 'Gagnez un total de 1 000 000 000 Bons Points.',
+        category: 'Grandeur Totale',
+        condition: (bonsPointsTotal) => bonsPointsTotal.gte(new Decimal('1e9')),
+        reward: { type: 'paMultiplier', amount: new Decimal(0.1) }, // +10% au gain de PA
+        rewardText: '+10% au gain de PA',
+        permanent: true,
+    },
+    {
+        id: 'Q_GRAND_ASC_10',
+        name: 'Maître des Réincarnations',
+        description: 'Effectuez 10 Ascensions.',
+        category: 'Grandeur Totale',
+        condition: (ascensionCount) => ascensionCount.gte(10),
+        reward: { type: 'ppMultiplier', amount: new Decimal(0.1) }, // +10% au gain de PP
+        rewardText: '+10% au gain de PP',
+        permanent: true,
+    },
+    {
+        id: 'Q_GRAND_PRES_3',
+        name: 'Triple Couronne',
+        description: 'Effectuez 3 Prestiges.',
+        category: 'Grandeur Totale',
+        condition: (prestigeCount) => prestigeCount.gte(3),
+        reward: { type: 'ascensionPoints', amount: new Decimal(500) },
+        rewardText: '500 Points d\'Ascension',
+        permanent: true,
+    },
+    {
+        id: 'Q_GRAND_ALL_STUDIES_SKILLS',
+        name: 'Savant Complet',
+        description: 'Débloquez toutes les compétences d\'Études.',
+        category: 'Grandeur Totale',
+        condition: (studiesSkillLevels) => {
+            const studiesSkills = skillsData.studies;
+            return studiesSkills.every(skill => studiesSkillLevels[skill.id] === skill.maxLevel);
+        },
+        reward: { type: 'permanentBpsBonus', amount: new Decimal(0.05) }, // +5% BP/s permanent
+        rewardText: '+5% de production de BP/s permanente',
+        permanent: true,
+    },
+    {
+        id: 'Q_GRAND_ALL_ASCENSION_SKILLS',
+        name: 'Architecte Céleste',
+        description: 'Débloquez toutes les compétences d\'Ascension.',
+        category: 'Grandeur Totale',
+        condition: (ascensionSkillLevels) => {
+            const ascensionSkills = skillsData.ascension;
+            return ascensionSkills.every(skill => ascensionSkillLevels[skill.id] === skill.maxLevel);
+        },
+        reward: { type: 'paMultiplier', amount: new Decimal(0.2) }, // +20% au gain de PA
+        rewardText: '+20% au gain de PA',
+        permanent: true,
+    },
+    {
+        id: 'Q_GRAND_ALL_PRESTIGE_SKILLS',
+        name: 'Légende Éternelle',
+        description: 'Débloquez toutes les compétences de Prestige.',
+        category: 'Grandeur Totale',
+        condition: (prestigeSkillLevels) => {
+            const prestigeSkills = skillsData.prestige;
+            return prestigeSkills.every(skill => prestigeSkillLevels[skill.id] === skill.maxLevel);
+        },
+        reward: { type: 'ppMultiplier', amount: new Decimal(0.2) }, // +20% au gain de PP
+        rewardText: '+20% au gain de PP',
+        permanent: true,
     },
 ];
 
