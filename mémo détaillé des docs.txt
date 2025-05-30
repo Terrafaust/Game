@@ -2037,6 +2037,7 @@ MonJeuIncremental/
 //     - `saveGameState`: Pour sauvegarder l'état du jeu après complétion ou réclamation d'une quête.
 //     - `applyAllSkillEffects`: Pour recalculer les bonus globaux si une quête affecte
 //       des multiplicateurs (ex: `paMultiplierFromQuests`).
+//     - `formatNumber`: Utilisée pour afficher les nombres (ressources, progression) de manière lisible.
 //     Impact : Permet la persistance des données et l'intégration des récompenses de quêtes
 //              dans la logique globale du jeu.
 //
@@ -2048,7 +2049,6 @@ MonJeuIncremental/
 //
 // - De './ui.js' :
 //   - Fonctions :
-//     - `formatNumber`: Utilisée pour afficher les nombres (ressources, progression) de manière lisible.
 //     - `showNotification`: Pour informer le joueur de la complétion ou de la réclamation d'une quête.
 //     - `updateDisplay`: Pour rafraîchir l'affichage global du jeu après une réclamation de quête.
 //     Impact : Assure le retour visuel au joueur et la mise à jour de l'interface.
@@ -2159,7 +2159,6 @@ MonJeuIncremental/
 // - Les commentaires `(30/05 Quetes update)` marquent les modifications récentes.
 //
 // -------------------------------------------------------------------------------------------
-
 
 
 
