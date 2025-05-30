@@ -7,16 +7,15 @@
 
 // Dépendances :
 // Ce fichier dépend de la disponibilité globale des variables et fonctions définies dans :
-// - core.js : Pour les fonctions principales du jeu (e.g., checkUnlockConditions, saveGameState,
-//   updateDisplay, applyAllSkillEffects, calculateTotalBPS, calculateItemBPS,
-//   softResetGame, superSoftResetGame, hardResetGame, showNotification, images, formatNumber).
+// - core.js : Pour les fonctions principales du jeu (e.g., checkUnlockConditions, saveGameState, applyAllSkillEffects, calculateTotalBPS, calculateItemBPS,
+//   softResetGame, superSoftResetGame, hardResetGame, images, formatNumber).
 // - data.js : Pour les structures de données comme `skillsData`, `prestigePurchasesData`, `questsData`,
 //   `achievementsData`, `bonusPointThresholds`, `prime_PA`.
 // - ui.js : Pour les fonctions de mise à jour de l'affichage (e.g., updateButtonStates,
 //   updateAutomationButtonStates, updateSettingsButtonStates, renderQuests,
 //   renderAchievements, renderSkillsMenu, updateSectionVisibility, updateStatsDisplay,
 //   openTab, closeStatsModal, showAchievementTooltip, hideAchievementTooltip,
-//   toggleAchievementTooltip).
+//   toggleAchievementTooltip), mais aussi les fonctions d'affichage générale : updateDisplay, showNotification,
 // - studies.js : Pour les fonctions d'achat spécifiques aux études (e.g., performPurchase).
 // - automation.js : Pour les fonctions d'automatisation (e.g., runAutomation, calculateAutomationCost).
 // - skills.js : Pour la logique d'achat et de réinitialisation des compétences (e.g., handleSkillClick).
@@ -177,13 +176,13 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * et que toutes les variables globales nécessaires sont initialisées.
  */
 import { toggleTheme, toggleOfflineProgress, toggleMinimizeResources, openStats } from './settings.js';
-import { hardResetGame, images, showNotification, saveGameState, updateDisplay, updateSettingsButtonStates, updateSectionVisibility, openStatsModal, closeStatsModal, checkUnlockConditions, formatNumber, calculateTotalBPS, applyAllSkillEffects, updateButtonStates } from './core.js';
+import { hardResetGame, images, saveGameState, updateSettingsButtonStates, updateSectionVisibility, openStatsModal, closeStatsModal, checkUnlockConditions, formatNumber, calculateTotalBPS, applyAllSkillEffects, updateButtonStates } from './core.js';
 import { performPurchase } from './studies.js';
 import { handleSkillClick } from './skills.js';
 import { calculatePAGained, performAscension } from './ascension.js';
 import { calculatePPGained, getPrestigeBonusMultiplier, performPrestige } from './prestige.js'; // Import functions from prestige.js
 import { calculateAutomationCost } from './automation.js'; // Import calculateAutomationCost from automation.js
-import { openTab, updateMultiplierButtons, renderSkillsMenu, renderQuests, renderAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip } from './ui.js'; // Import all necessary UI functions
+import { openTab, updateMultiplierButtons, updateDisplay, showNotification, renderSkillsMenu, renderQuests, renderAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip } from './ui.js'; // Import all necessary UI functions
 import { skillsData, achievementsData } from './data.js'; // Import data needed for skills and achievements
 
 export function initEventListeners() {

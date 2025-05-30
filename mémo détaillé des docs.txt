@@ -682,7 +682,7 @@ Notes Spécifiques :
 
 
 
----------------------------- Fiche Mémo : events.js -----------------------------------
+// Fiche Mémo : events.js
 // Description : Ce fichier est dédié à la gestion de tous les écouteurs d'événements (clicks, changes, etc.)
 // de l'interface utilisateur du jeu. Son rôle principal est d'attacher des gestionnaires d'événements
 // aux éléments DOM et d'appeler les fonctions de logique de jeu appropriées définies dans d'autres modules
@@ -691,16 +691,15 @@ Notes Spécifiques :
 
 // Dépendances :
 // Ce fichier dépend de la disponibilité globale des variables et fonctions définies dans :
-// - core.js : Pour les fonctions principales du jeu (e.g., checkUnlockConditions, saveGameState,
-//   updateDisplay, applyAllSkillEffects, calculateTotalBPS, calculateItemBPS,
-//   softResetGame, superSoftResetGame, hardResetGame, showNotification, images, formatNumber).
+// - core.js : Pour les fonctions principales du jeu (e.g., checkUnlockConditions, saveGameState, applyAllSkillEffects, calculateTotalBPS, calculateItemBPS,
+//   softResetGame, superSoftResetGame, hardResetGame, images, formatNumber).
 // - data.js : Pour les structures de données comme `skillsData`, `prestigePurchasesData`, `questsData`,
 //   `achievementsData`, `bonusPointThresholds`, `prime_PA`.
 // - ui.js : Pour les fonctions de mise à jour de l'affichage (e.g., updateButtonStates,
 //   updateAutomationButtonStates, updateSettingsButtonStates, renderQuests,
 //   renderAchievements, renderSkillsMenu, updateSectionVisibility, updateStatsDisplay,
 //   openTab, closeStatsModal, showAchievementTooltip, hideAchievementTooltip,
-//   toggleAchievementTooltip).
+//   toggleAchievementTooltip), mais aussi les fonctions d'affichage générale : updateDisplay, showNotification,
 // - studies.js : Pour les fonctions d'achat spécifiques aux études (e.g., performPurchase).
 // - automation.js : Pour les fonctions d'automatisation (e.g., runAutomation, calculateAutomationCost).
 // - skills.js : Pour la logique d'achat et de réinitialisation des compétences (e.g., handleSkillClick).
@@ -854,7 +853,6 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 // let newSettingsUnlocked; // Assumed global for the new settings unlock state
 // let activeAchievementTooltip; // Assumed global for achievement tooltip state
 */
-
 
 
 
