@@ -16,7 +16,7 @@
 // export function logError(message, errorObject = null)
 //   // Enregistre un message d'erreur.
 //   // - message: Le message d'erreur (string).
-//   // - errorObject: L'objet d'erreur JavaScript (Error) si disponible, pour plus de détails.
+//   // - errorObject: L'objet d'erreur JavaScript (Error) si disponible.
 //
 // export function logWarning(message)
 //   // Enregistre un message d'avertissement.
@@ -44,8 +44,12 @@ const MAX_LOG_ENTRIES = 100; // Limite le nombre d'entrées de log pour éviter 
  */
 export function initLogger() {
     // Vérifie si la clé de stockage existe, sinon initialise un tableau vide.
-    if (!localStorage.getItem(LOG_STORAGE_KEY)) {
-        localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify([]));
+    try { // (maj 31/05 debug + log) Ajout de try-catch pour la robustesse du localStorage
+        if (!localStorage.getItem(LOG_STORAGE_KEY)) {
+            localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify([]));
+        }
+    } catch (e) {
+        console.error("Erreur lors de l'initialisation du logger dans le localStorage:", e);
     }
 }
 
@@ -133,7 +137,11 @@ export function getLogs() {
  * Efface tous les logs enregistrés.
  */
 export function clearLogs() {
-    localStorage.removeItem(LOG_STORAGE_KEY);
-    initLogger(); // Réinitialise le tableau vide après effacement
-    console.info("Logs effacés.");
+    try { // (maj 31/05 debug + log) Ajout de try-catch pour la robustesse du localStorage
+        localStorage.removeItem(LOG_STORAGE_KEY);
+        initLogger(); // Réinitialise le tableau vide après effacement
+        console.info("Logs effacés.");
+    } catch (e) {
+        console.error("Erreur lors de l'effacement des logs dans le localStorage:", e);
+    }
 }
