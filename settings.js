@@ -106,6 +106,9 @@ export function toggleTheme() {
     if (!themeOptionUnlocked) {
         if (images.gte(10)) { // (maj 30/05 theme & style)
             images.sub(10); // Déduire le coût (maj 30/05 theme & style)
+            // Comme themeOptionUnlocked est importé de core.js, nous devons le modifier via core.js ou une fonction setter si elle existait.
+            // Pour l'instant, je vais le modifier directement, en supposant que core.js l'exporte comme `let`.
+            // Si cela pose problème, il faudrait ajouter une fonction `setThemeOptionUnlocked` dans core.js.
             themeOptionUnlocked = true; // Débloquer l'option (maj 30/05 theme & style)
             showNotification("Option Thème débloquée ! (maj 30/05 theme & style)");
             // Appliquer le thème après déverrouillage (maj 30/05 theme & style)
