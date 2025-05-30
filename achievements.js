@@ -67,18 +67,20 @@
 //
 // Dépendances (Imports) :
 // - De './core.js' :
-//   - Variables d'état (lecture pour les conditions) : `bonsPoints`, `images`, `nombreEleves`,
-//     `nombreClasses`, `nombreProfesseur`, `schoolCount`, `nombreLycees`, `nombreColleges`,
-//     `ascensionCount`, `totalClicks`, `totalPAEarned`, `nombreLicences`, `nombreMaster1`,
-//     `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`, `prestigeCount`, `prestigePoints`,
-//     `autoEleveActive`, `autoClasseActive`, `autoImageActive`, `autoProfesseurActive`,
-//     `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels`, `totalBonsPointsParSeconde`,
-//     `completedQuests`.
+//   - Variables d'état (lecture pour les conditions et modification pour les récompenses additives) :
+//     `bonsPoints`, `images`, `nombreEleves`, `nombreClasses`, `nombreProfesseur`, `schoolCount`,
+//     `nombreLycees`, `nombreColleges`, `ascensionCount`, `totalClicks`, `totalPAEarned`,
+//     `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`,
+//     `prestigeCount`, `prestigePoints`, `autoEleveActive`, `autoClasseActive`, `autoImageActive`,
+//     `autoProfesseurActive`, `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels`,
+//     `totalBonsPointsParSeconde`, `completedQuests`, `ascensionPoints` (pour récompenses additives). (maj 30/05 achievements)
 //   - Objets d'effets (modification pour les récompenses permanentes) : `skillEffects`.
 //   - Fonctions de logique (appelées après déverrouillage) : `saveGameState`, `applyAllSkillEffects`,
 //     `checkUnlockConditions`, `formatNumber`.
 // - De './ui.js' :
 //   - Fonctions d'affichage : `showNotification`, `updateDisplay`.
+// - De './quests.js' : (maj 30/05 achievements)
+//   - Variables d'état : `questsData` (nécessaire pour la condition `ACH_QUESTS_ALL`). (maj 30/05 achievements)
 //
 // Variables Globales Accédées (définies dans core.js, mais non importées directement car elles sont gérées par `window` ou via des fonctions de `ui.js`) :
 // - `window.achievementsButtonUnlocked` : Utilisé pour vérifier si le bouton des succès est débloqué avant de rendre la grille.
@@ -93,13 +95,15 @@
 //
 // 1. Définition des Succès : `achievementsData` contient toutes les informations statiques.
 // 2. Vérification : `checkAchievements()` est appelée régulièrement par `core.js`.
-//    Elle évalue la `condition()` de chaque succès non débloqué en lisant l'état du jeu (variables importées de `core.js`).
+//    Elle évalue la `condition()` de chaque succès non débloqué en lisant l'état du jeu (variables importées de `core.js` et `quests.js`). (maj 30/05 achievements)
 // 3. Déverrouillage : Si une condition est remplie, le succès est marqué dans `unlockedAchievements`.
 // 4. Récompense : La `rewardFn()` du succès est exécutée.
-//    - Pour les bonus permanents (multiplicateurs, réductions de coût), elle modifie des propriétés de l'objet `skillEffects`
+//    - Pour les bonus permanents (multiplicateurs, réductions de coût), elle modifie des propriétés de l'objet `skillEffects`.
 //      ou la variable `permanentBpsBonusFromAchievements`. Ces variables sont ensuite utilisées par `core.js`
 //      dans ses calculs de production (`calculateTotalBPS`) et d'effets (`applyAllSkillEffects`).
-//    - Pour les gains additifs (ex: +X PA), elle modifie directement la variable de ressource correspondante dans `core.js`.
+//    - Pour les gains additifs (ex: +X PA), elle modifie directement la variable de ressource correspondante dans `core.js`
+//      (ex: `ascensionPoints = ascensionPoints.add(X)`). La `rewardFn` doit retourner la nouvelle valeur pour que `achievements.js`
+//      puisse la réassigner à la variable globale dans `core.js` via l'importation. (maj 30/05 achievements)
 // 5. Mise à Jour UI : `renderAchievements()` est appelée pour rafraîchir l'affichage des succès.
 //    `showNotification()` est appelée pour informer le joueur.
 //    `updateDisplay()` de `ui.js` est appelée pour rafraîchir l'ensemble de l'interface.
@@ -117,9 +121,11 @@ import {
     nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat,
     prestigeCount, prestigePoints, skillEffects, studiesSkillLevels, ascensionSkillLevels,
     prestigeSkillLevels, totalBonsPointsParSeconde, completedQuests,
-    saveGameState, applyAllSkillEffects, checkUnlockConditions, formatNumber
+    saveGameState, applyAllSkillEffects, checkUnlockConditions, formatNumber,
+    ascensionPoints // Importation de ascensionPoints pour les récompenses additives (maj 30/05 achievements)
 } from './core.js';
 import { showNotification, updateDisplay } from './ui.js';
+import { questsData } from './quests.js'; // Importation de questsData pour la condition ACH_QUESTS_ALL (maj 30/05 achievements)
 
 // --- Données des Succès ---
 export const achievementsData = [
@@ -490,7 +496,7 @@ export const achievementsData = [
         description: 'Effectuer votre première Ascension.',
         condition: () => ascensionCount.gte(1),
         rewardText: '+5 PA uniques',
-        rewardFn: () => { ascensionPoints = ascensionPoints.add(5); }
+        rewardFn: () => { return ascensionPoints.add(5); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_ASCEND_2',
@@ -498,7 +504,7 @@ export const achievementsData = [
         description: 'Effectuer 2 Ascensions.',
         condition: () => ascensionCount.gte(2),
         rewardText: '+10 PA uniques',
-        rewardFn: () => { ascensionPoints = ascensionPoints.add(10); }
+        rewardFn: () => { return ascensionPoints.add(10); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_ASCEND_5',
@@ -506,7 +512,7 @@ export const achievementsData = [
         description: 'Effectuer 5 Ascensions.',
         condition: () => ascensionCount.gte(5),
         rewardText: '+25 PA uniques',
-        rewardFn: () => { ascensionPoints = ascensionPoints.add(25); }
+        rewardFn: () => { return ascensionPoints.add(25); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_ASCEND_10',
@@ -514,7 +520,7 @@ export const achievementsData = [
         description: 'Effectuer 10 Ascensions.',
         condition: () => ascensionCount.gte(10),
         rewardText: '+50 PA uniques',
-        rewardFn: () => { ascensionPoints = ascensionPoints.add(50); }
+        rewardFn: () => { return ascensionPoints.add(50); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_ASCEND_25',
@@ -522,7 +528,7 @@ export const achievementsData = [
         description: 'Effectuer 25 Ascensions.',
         condition: () => ascensionCount.gte(25),
         rewardText: '+100 PA uniques',
-        rewardFn: () => { ascensionPoints = ascensionPoints.add(100); }
+        rewardFn: () => { return ascensionPoints.add(100); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_ASCEND_50',
@@ -530,7 +536,7 @@ export const achievementsData = [
         description: 'Effectuer 50 Ascensions.',
         condition: () => ascensionCount.gte(50),
         rewardText: '+250 PA uniques',
-        rewardFn: () => { ascensionPoints = ascensionPoints.add(250); }
+        rewardFn: () => { return ascensionPoints.add(250); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_TOTAL_PA_100',
@@ -604,6 +610,7 @@ export const achievementsData = [
         id: 'ACH_CLICK_10',
         name: 'Dix Clics',
         description: 'Cliquez 10 fois sur "Étudier sagement".',
+        condition: () => totalClicks.gte(10), // (maj 30/05 achievements)
         rewardText: '+0.5 BP par clic',
         rewardFn: () => { skillEffects.clickBonsPointsBonus = skillEffects.clickBonsPointsBonus.add(0.5); }
     },
@@ -611,6 +618,7 @@ export const achievementsData = [
         id: 'ACH_CLICK_100',
         name: 'Cent Clics',
         description: 'Cliquez 100 fois sur "Étudier sagement".',
+        condition: () => totalClicks.gte(100),
         rewardText: '+1 BP par clic',
         rewardFn: () => { skillEffects.clickBonsPointsBonus = skillEffects.clickBonsPointsBonus.add(1); }
     },
@@ -618,6 +626,7 @@ export const achievementsData = [
         id: 'ACH_CLICK_200',
         name: 'Deux Cents Clics',
         description: 'Cliquez 200 fois sur "Étudier sagement".',
+        condition: () => totalClicks.gte(200),
         rewardText: '+2 BP par clic',
         rewardFn: () => { skillEffects.clickBonsPointsBonus = skillEffects.clickBonsPointsBonus.add(2); }
     },
@@ -625,6 +634,7 @@ export const achievementsData = [
         id: 'ACH_CLICK_500',
         name: 'Cinq Cents Clics',
         description: 'Cliquez 500 fois sur "Étudier sagement".',
+        condition: () => totalClicks.gte(500),
         rewardText: '+5 BP par clic',
         rewardFn: () => { skillEffects.clickBonsPointsBonus = skillEffects.clickBonsPointsBonus.add(5); }
     },
@@ -632,6 +642,7 @@ export const achievementsData = [
         id: 'ACH_CLICK_1K',
         name: 'Mille Clics',
         description: 'Cliquez 1 000 fois sur "Étudier sagement".',
+        condition: () => totalClicks.gte(1000),
         rewardText: '+10 BP par clic',
         rewardFn: () => { skillEffects.clickBonsPointsBonus = skillEffects.clickBonsPointsBonus.add(10); }
     },
@@ -759,7 +770,7 @@ export const achievementsData = [
         description: 'Terminer 1 quête.',
         condition: () => Object.keys(completedQuests).length >= 1,
         rewardText: '+1 point de compétence d\'études',
-        rewardFn: () => { studiesSkillPoints = studiesSkillPoints.add(1); }
+        rewardFn: () => { return studiesSkillPoints.add(1); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_QUESTS_5',
@@ -767,20 +778,15 @@ export const achievementsData = [
         description: 'Terminer 5 quêtes.',
         condition: () => Object.keys(completedQuests).length >= 5,
         rewardText: '+1 point de compétence d\'ascension',
-        rewardFn: () => { ascensionSkillPoints = ascensionSkillPoints.add(1); }
+        rewardFn: () => { return ascensionSkillPoints.add(1); } // (maj 30/05 achievements)
     },
     {
         id: 'ACH_QUESTS_ALL',
         name: 'Maître des Quêtes',
         description: 'Terminer toutes les quêtes disponibles.',
-        condition: () => {
-            // Cette condition nécessite d'importer questsData pour connaître le nombre total de quêtes.
-            // Pour l'instant, c'est un placeholder.
-            // Exemple si questsData était importé: Object.keys(completedQuests).length === Object.keys(questsData).length
-            return false;
-        },
+        condition: () => Object.keys(completedQuests).length === questsData.length, // (maj 30/05 achievements)
         rewardText: '+1 point de compétence de prestige',
-        rewardFn: () => { prestigeSkillPoints = prestigeSkillPoints.add(1); }
+        rewardFn: () => { return prestigeSkillPoints.add(1); } // (maj 30/05 achievements)
     },
 
     // Skill Achievements (NEW)
@@ -825,7 +831,7 @@ export function renderAchievements() {
     const achievementsGrid = document.getElementById('achievementsGrid');
     // achievementsButtonUnlocked est une variable globale définie dans core.js
     // Pas besoin de window. pour les imports directs.
-    const achievementsButtonUnlocked = typeof window.achievementsButtonUnlocked !== 'undefined' ? window.achievementsButtonUnlocked : false; // (modif 30/05)
+    const achievementsButtonUnlocked = typeof window.achievementsButtonUnlocked !== 'undefined' ? window.achievementsButtonUnlocked : false; // (maj 30/05 achievements)
 
     if (!achievementsGrid || !achievementsButtonUnlocked) return;
     achievementsGrid.innerHTML = ''; // Effacer la grille pour le re-rendu
@@ -860,11 +866,38 @@ export function checkAchievements() {
 
     achievementsData.forEach(ach => {
         const isUnlocked = unlockedAchievements[ach.id];
-        const canUnlock = ach.condition();
+        let canUnlock = false; // (maj 30/05 achievements)
+
+        // Gestion spécifique de la condition pour ACH_QUESTS_ALL (maj 30/05 achievements)
+        if (ach.id === 'ACH_QUESTS_ALL') { // (maj 30/05 achievements)
+            canUnlock = ach.condition(completedQuests, questsData); // (maj 30/05 achievements)
+        } else { // (maj 30/05 achievements)
+            canUnlock = ach.condition(); // (maj 30/05 achievements)
+        } // (maj 30/05 achievements)
 
         if (!isUnlocked && canUnlock) {
             unlockedAchievements[ach.id] = true;
-            ach.rewardFn();
+            // Gérer les récompenses additives qui modifient directement une variable globale
+            // La rewardFn doit retourner la nouvelle valeur (maj 30/05 achievements)
+            if (ach.id.startsWith('ACH_ASCEND_') || ach.id.startsWith('ACH_QUESTS_')) { // (maj 30/05 achievements)
+                // Pour les récompenses qui ajoutent des points (PA, SP), la rewardFn retourne la nouvelle valeur
+                if (ach.id.startsWith('ACH_ASCEND_')) { // (maj 30/05 achievements)
+                    ascensionPoints = ach.rewardFn(); // (maj 30/05 achievements)
+                } else if (ach.id.startsWith('ACH_QUESTS_')) { // (maj 30/05 achievements)
+                    // Gérer les différents types de points de compétence des quêtes (maj 30/05 achievements)
+                    if (ach.rewardText.includes('point de compétence d\'études')) { // (maj 30/05 achievements)
+                        studiesSkillPoints = ach.rewardFn(); // (maj 30/05 achievements)
+                    } else if (ach.rewardText.includes('point de compétence d\'ascension')) { // (maj 30/05 achievements)
+                        ascensionSkillPoints = ach.rewardFn(); // (maj 30/05 achievements)
+                    } else if (ach.rewardText.includes('point de compétence de prestige')) { // (maj 30/05 achievements)
+                        prestigeSkillPoints = ach.rewardFn(); // (maj 30/05 achievements)
+                    }
+                }
+            } else {
+                // Pour les récompenses qui modifient skillEffects ou permanentBpsBonusFromAchievements directement
+                ach.rewardFn();
+            }
+
             showNotification(`Succès débloqué : ${ach.name} ! (${ach.rewardText})`);
             newAchievementUnlocked = true;
         }

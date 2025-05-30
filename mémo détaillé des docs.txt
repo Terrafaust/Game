@@ -476,6 +476,87 @@ MonJeuIncremental/
 
 
 
+
+
+// ------------------ Fiche Mémo : break_infinity.min.js ----------------------------
+//
+// Description : Ce fichier est la version minifiée de la bibliothèque JavaScript "Break Infinity".
+// Il fournit une implémentation de nombres à virgule flottante de très haute précision,
+// capable de gérer des valeurs beaucoup plus grandes et plus petites que les nombres
+// natifs de JavaScript (qui sont des nombres à virgule flottante de double précision IEEE 754).
+//
+// Objectif : Dans les jeux incrémentaux, les quantités de ressources, les coûts et les productions
+// peuvent rapidement atteindre des valeurs astronomiques (bien au-delà de 1e308, la limite de JavaScript).
+// Cette bibliothèque résout ce problème en permettant de représenter et de manipuler des nombres
+// avec une mantisse et un exposant séparés, prévenant ainsi les erreurs d'arrondi et les "Infinity"
+// prématurés.
+//
+// ------------------ Concepts Clés et Fonctionnement ------------------
+//
+// 1.  **Objet `Decimal`** : La bibliothèque expose une classe globale nommée `Decimal`.
+//     Tous les nombres qui sont susceptibles de devenir très grands (ou très petits)
+//     doivent être instanciés comme des objets `Decimal` (ex: `new Decimal(1e300)`).
+//
+// 2.  **Représentation Interne** : Un nombre `Decimal` est généralement stocké sous la forme de :
+//     * `mantissa` (mantisse) : Un nombre à virgule flottante standard (généralement entre 1 et 10, ou -1 et -10 pour les négatifs).
+//     * `exponent` (exposant) : Un entier représentant la puissance de 10 par laquelle la mantisse est multipliée.
+//     Par exemple, 1e309 serait représenté comme `mantissa: 1, exponent: 309`.
+//
+// 3.  **Opérations Arithmétiques** : La bibliothèque surcharge toutes les opérations arithmétiques
+//     standard (`add`, `sub`, `mul`, `div`, `pow`, `log`, `sqrt`, etc.) pour qu'elles fonctionnent
+//     avec les objets `Decimal`. Il est crucial d'utiliser ces méthodes de la bibliothèque
+//     pour toutes les opérations impliquant des nombres `Decimal`, et non les opérateurs JavaScript natifs.
+//     Ex: `nombre.add(autreNombre)` au lieu de `nombre + autreNombre`.
+//
+// 4.  **Conversion** : Des méthodes sont fournies pour convertir des nombres natifs ou des chaînes
+//     en objets `Decimal` (`new Decimal(value)`, `Decimal.fromNumber(value)`, `Decimal.fromString(value)`)
+//     et pour reconvertir des objets `Decimal` en nombres natifs ou chaînes pour l'affichage
+//     (`toNumber()`, `toString()`, `toExponential()`, `toFixed()`).
+//
+// 5.  **Précision** : La bibliothèque gère la précision des calculs pour éviter les pertes
+//     significatives qui se produiraient avec les nombres natifs de JavaScript.
+//
+// ------------------ Dépendances ------------------
+//
+// - Aucune dépendance externe. C'est une bibliothèque autonome.
+//
+// ------------------ Impact sur d'autres Modules ------------------
+//
+// - **`core.js`** : Toutes les variables d'état du jeu qui représentent des quantités
+//   (Bons Points, Images, Élèves, PA, PP, etc.), des productions (BP/s), des coûts,
+//   ou des multiplicateurs qui peuvent devenir très grands (ou très petits) DOIVENT
+//   être des instances de `Decimal`. Toutes les opérations sur ces variables doivent
+//   utiliser les méthodes de l'objet `Decimal`.
+// - **`data.js`** : Toutes les valeurs numériques initiales ou constantes définies dans `data.js`
+//   qui sont destinées à être manipulées comme de grands nombres doivent être des objets `Decimal`.
+// - **`studies.js`, `ascension.js`, `prestige.js`, `automation.js`, `skills.js`, `quests.js`, `achievements.js`** :
+//   Tout module qui effectue des calculs arithmétiques ou des comparaisons avec les variables
+//   d'état du jeu (qui sont des `Decimal`) doit impérativement utiliser les méthodes de l'objet `Decimal`
+//   pour ces opérations.
+// - **`ui.js`** : Lors de l'affichage de ces nombres, `ui.js` doit utiliser les méthodes de
+//   formatage de `Decimal` (comme `toFixed()`, `toExponential()`, `toString()`) ou la fonction
+//   `formatNumber` de `core.js` qui elle-même utilise `Decimal`.
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - **Version Minifiée** : Le fichier `break_infinity.min.js` est une version compressée
+//   pour la production. Son code est difficilement lisible directement.
+// - **Chargement Global** : Cette bibliothèque est généralement chargée via une balise `<script>`
+//   dans `index.html` AVANT tous les autres scripts du jeu, rendant la classe `Decimal`
+//   disponible globalement.
+// - **GitHub du Créateur** : Pour des informations détaillées sur l'API et le fonctionnement
+//   interne, il est recommandé de consulter le dépôt GitHub officiel de la bibliothèque
+//   (par exemple, le dépôt de "Break Infinity" par Patashu).
+//
+// ---------------------------------------------------------------------
+
+
+
+
+
+
+
+
 // ------------------ Fiche Mémo : core.js ----------------------------
 //
 // Description : Ce fichier est le cœur de la logique du jeu incrémental.
@@ -565,7 +646,7 @@ MonJeuIncremental/
 //
 // ------------------ Objets de Bonus Cumulés (skillEffects) ------------------
 // Cet objet agrège tous les multiplicateurs et réductions de coût provenant
-// des compétences, succès et achats de prestige. Il est mis à jour par applyAllSkillEffects.
+// des compétences, succès et achats de prestige. Il est mis à jour par `applyAllSkillEffects`.
 //
 // export let skillEffects = {
 //     clickBonsPointsBonus: new Decimal(0),       // Bonus additif aux BP gagnés par clic.
@@ -642,19 +723,23 @@ MonJeuIncremental/
 // export function saveGameState()
 //   // Sauvegarde l'état actuel de toutes les variables du jeu dans le localStorage.
 //   // Convertit les objets Decimal en chaînes de caractères pour la sauvegarde.
+//   // Inclut les données de succès (`unlockedAchievements`, `permanentBpsBonusFromAchievements`)
+//   // et de quêtes (`completedQuests`, `paMultiplierFromQuests`). (maj 30/05 core)
 //
 // export function loadGameState()
 //   // Charge l'état du jeu depuis le localStorage.
 //   // Si aucune sauvegarde n'est trouvée, initialise le jeu à son état par défaut.
 //   // Convertit les chaînes de caractères chargées en objets Decimal.
 //   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
+//   // Gère la rétrocompatibilité des sauvegardes pour les nouvelles variables. (maj 30/05 core)
 //
 // export function resetGameVariables()
 //   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
 //   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
+//   // Réinitialise également l'état des succès et des quêtes non permanentes. (maj 30/05 core)
 //
 // function resetSkillEffects()
-//   // Réinitialise l'objet skillEffects à ses valeurs par défaut.
+//   // Réinitialise l'objet `skillEffects` à ses valeurs par défaut.
 //   // Appelée avant d'appliquer les effets des compétences/bonus pour éviter les cumuls incorrects.
 //
 // export function hardResetGame()
@@ -665,11 +750,13 @@ MonJeuIncremental/
 //   // Effectue une réinitialisation douce du jeu (soft reset), utilisée après une Ascension.
 //   // Réinitialise certaines variables (BP, images, élèves, classes, professeurs, clics, compétences d'études)
 //   // tout en conservant les déverrouillages majeurs et les progrès d'Ascension/Prestige.
+//   // Réinitialise les quêtes non permanentes. (maj 30/05 core)
 //
 // export function superSoftResetGame()
 //   // Effectue une réinitialisation super douce du jeu (super soft reset), utilisée après un Prestige.
 //   // Réinitialise la plupart des variables comme un soft reset, mais conserve les points de prestige
 //   // et les achats de prestige, et réinitialise les compétences d'Ascension.
+//   // Réinitialise les quêtes non permanentes. (maj 30/05 core)
 //
 // ------------------ Fonctions de Calcul et de Mise à Jour ------------------
 //
@@ -680,20 +767,22 @@ MonJeuIncremental/
 // export function calculateTotalBPS()
 //   // Calcule la production totale de Bons Points par seconde (BP/s).
 //   // Prend en compte la production de base des unités et applique tous les multiplicateurs
-//   // provenant des compétences, de l'Ascension, du Prestige et des Succès.
+//   // provenant des compétences, de l'Ascension, du Prestige, des Succès et des Quêtes. (maj 30/05 core)
 //
 // export function checkUnlockConditions()
 //   // Vérifie les conditions de déverrouillage de toutes les fonctionnalités du jeu
 //   // (nouvelles unités, menus, options) et les débloque si les conditions sont remplies.
 //   // Met à jour la visibilité des sections de l'interface utilisateur.
+//   // Déclenche le rendu initial des quêtes et succès lors de leur déverrouillage. (maj 30/05 core)
 //
 // export function applyAllSkillEffects()
 //   // Applique tous les effets cumulés des compétences (études, ascension, prestige),
 //   // des succès permanents et des bonus des achats de prestige.
-//   // Réinitialise skillEffects puis le reconstruit avec les bonus actifs.
+//   // Réinitialise `skillEffects` puis le reconstruit avec les bonus actifs.
+//   // Intègre les multiplicateurs de PA des quêtes. (maj 30/05 core)
 //
 // export function updateCachedMultipliers()
-//   // Met à jour les multiplicateurs mis en cache, en s'assurant que calculateTotalBPS
+//   // Met à jour les multiplicateurs mis en cache, en s'assurant que `calculateTotalBPS`
 //   // est appelée pour refléter les derniers effets.
 //
 // export function calculateOfflineProgress()
@@ -708,6 +797,7 @@ MonJeuIncremental/
 //   // Charge l'état du jeu, met à jour tous les éléments d'interface,
 //   // vérifie les déverrouillages initiaux et démarre la boucle de jeu principale.
 //   // La boucle de jeu met à jour la logique et l'affichage à intervalles réguliers.
+//   // S'assure que les quêtes et succès sont rendus au démarrage. (maj 30/05 core)
 //
 // ------------------ Dépendances (Imports) ------------------
 //
@@ -719,20 +809,23 @@ MonJeuIncremental/
 // Importations depuis './data.js':
 //   - skillsData, prime_PA, prestigePurchasesData
 // Importations depuis './ascension.js':
-//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost (modif 30/05)
+//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost
 // Importations depuis './prestige.js':
-//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost (modif 30/05)
+//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
 // Importations depuis './quests.js':
-//   - checkQuests, updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests (modif 30/05)
+//   - updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests
 // Importations depuis './achievements.js':
 //   - checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements
+//   - Note : `ascensionPoints`, `studiesSkillPoints`, `ascensionSkillPoints`, `prestigeSkillPoints` sont exportés par `core.js`
+//     et peuvent être modifiés par `achievements.js` via réassignation après un `rewardFn` qui retourne une valeur. (maj 30/05 core)
 // Importations depuis './ui.js':
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
 //     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
-//     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
-//     hideAchievementTooltip, toggleAchievementTooltip, showNotification (modif 30/05)
+//     openTab, closeStatsModal, updateStatsDisplay, showNotification
+//   - Note : Les fonctions de tooltip (`showAchievementTooltip`, `hideAchievementTooltip`, `toggleAchievementTooltip`)
+//     sont gérées directement par `events.js` via délégation et appellent des fonctions de `achievements.js`. (maj 30/05 core)
 //
-// Remarque: La bibliothèque break_infinity.min.js est supposée être chargée
+// Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.
 //
 // ---------------------------------------------------------------------
@@ -828,10 +921,15 @@ MonJeuIncremental/
 //     - `name` (string) : Nom affiché.
 //     - `baseCost` (Decimal) : Coût de base en PP.
 //     - `costMultiplier` (Decimal) : Multiplicateur de coût pour les achats successifs.
-//     - `getEffectValue` (function) : Calcule la valeur numérique de l'effet pour l'affichage.
-//     - `effect` (function) : Modifie `skillEffects` (de `core.js`) pour appliquer le bonus permanent.
-//     - `getMinClasses` (function, spécifique à 'doctorat') : Calcule le nombre min de classes après Ascension.
-//     - `prerequisites` (function) : Retourne `true` si les prérequis sont remplis pour l'achat.
+//     - `getEffectValue` (function) : Calcule la valeur numérique de l'effet de l'amélioration
+//                                   en fonction de son level actuel. Utilisée pour l'affichage de l'effet.
+//     - `effect` (function) : Une fonction de rappel qui prend le niveau actuel de l'amélioration et l'objet skillEffects.
+//                           Elle modifie directement les propriétés de skillEffects pour appliquer le bonus permanent de l'amélioration.
+//     - `getMinClasses` (function, spécifique à 'doctorat') : Une fonction utilitaire pour le Doctorat,
+//                                                           calculant le nombre minimum de classes après Ascension
+//                                                           en fonction du niveau de Doctorat.
+//     - `prerequisites` (function) : Une fonction qui retourne true si les conditions préalables à l'achat
+//                                  de cette amélioration sont remplies, false sinon.
 //   Impact sur d'autres modules :
 //     - Utilisé par `prestige.js` pour la logique d'achat et l'application des effets.
 //     - Utilisé par `ui.js` dans `updateStatsDisplay` pour afficher les bonus de prestige.
@@ -882,6 +980,8 @@ MonJeuIncremental/
 //   Impact sur d'autres modules :
 //     - Utilisé par `prestige.js` dans `calculatePPGained`.
 //
+// Note sur `achievementsData` : Ce tableau est défini et géré dans `achievements.js` pour maintenir la modularité. (maj 30/05 - modularité achievements)
+//
 // ------------------ Logique Générale ------------------
 //
 // `data.js` est un fichier de configuration statique. Il ne contient aucune logique de jeu
@@ -906,7 +1006,6 @@ MonJeuIncremental/
 //   à la logique métier complexe.
 //
 // ---------------------------------------------------------------------
-
 
 
 
@@ -1854,35 +1953,101 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 
 
 
-----------------  Fiche Mémo : settings.js -----------------------------
-// Description : Ce fichier gère la logique des différentes options de paramètres du jeu.
-// Il est responsable de la modification de l'état du jeu concernant le thème,
-// la progression hors ligne, l'affichage minimaliste des ressources, et l'ouverture
-// de la modale des statistiques.
-// Les écouteurs d'événements pour ces actions sont définis dans events.js,
-// qui appellera les fonctions exportées de ce module.
-
-// Dépendances :
-// - core.js : Pour accéder et modifier les variables d'état du jeu (isDayTheme,
-//             offlineProgressEnabled, minimizeResourcesActive, themeOptionUnlocked,
-//             images), pour appeler saveGameState.
-// - ui.js : Pour appeler updateDisplay (modif 30/05), showNotification (modif 30/05), updateSectionVisibility (modif 30/05), updateSettingsButtonStates (modif 30/05), openStatsModal (modif 30/05) et closeStatsModal (modif 30/05) (bien que closeStatsModal
-//          soit gérée par l'événement de clic sur la modale elle-même dans events.js).
-
-// Fonctions Clés Définies et Exportées :
-// - toggleTheme() : Bascule entre le thème jour et nuit, gère le déverrouillage de l'option.
-// - toggleOfflineProgress(isChecked) : Active ou désactive la progression hors ligne.
-// - toggleMinimizeResources() : Active ou désactive l'affichage minimaliste des ressources.
-// - openStats() : Ouvre la modale des statistiques.
-
-// --- Imports des modules nécessaires ---
 
 
+// ------------------ Fiche Mémo : settings.js ----------------------------
+//
+// Description : Ce fichier gère la logique des différentes options de paramètres du jeu,
+// permettant au joueur de personnaliser son expérience. Il est responsable de la
+// modification de l'état du jeu concernant le thème visuel (jour/nuit), l'activation
+// ou la désactivation de la progression hors ligne, et la bascule de l'affichage
+// minimaliste des ressources. Il inclut également la fonction pour ouvrir la modale
+// des statistiques.
+//
+// Objectif : Fournir un contrôle centralisé sur les préférences du joueur, en traduisant
+// les interactions de l'interface utilisateur en modifications de l'état du jeu et en
+// assurant la persistance de ces paramètres.
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// - De './core.js' :
+//   - Variables d'état (lecture et modification) : `isDayTheme`, `offlineProgressEnabled`,
+//     `minimizeResourcesActive`, `themeOptionUnlocked`, `images`, `newSettingsUnlocked`,
+//     `statsButtonUnlocked`.
+//   - Fonctions : `saveGameState`.
+//   Impact : Accès et modification des préférences du joueur et gestion de la sauvegarde.
+//
+// - De './ui.js' :
+//   - Fonctions : `openStatsModal`, `closeStatsModal`, `updateSectionVisibility`,
+//     `updateSettingsButtonStates`, `showNotification`, `updateDisplay`.
+//   Impact : Permet de rafraîchir l'interface utilisateur en réponse aux changements de paramètres,
+//            d'afficher des notifications et de gérer la modale des statistiques.
+//
+// ------------------ Variables Clés (utilisées par settings.js, mais définies ailleurs et importées) ------------------
+//
+// - `isDayTheme` (boolean) : Indique si le thème de jour est actif. (maj 30/05 theme & style)
+// - `offlineProgressEnabled` (boolean) : Indique si la progression hors ligne est activée.
+// - `minimizeResourcesActive` (boolean) : Indique si l'affichage minimaliste des ressources est activé.
+// - `themeOptionUnlocked` (boolean) : Indique si l'option de changement de thème a été débloquée. (maj 30/05 theme & style)
+// - `images` (Decimal) : Ressource "Images" utilisée comme coût pour débloquer le thème. (maj 30/05 theme & style)
+// - `newSettingsUnlocked` (boolean) : Flag pour débloquer de nouveaux paramètres.
+// - `statsButtonUnlocked` (boolean) : Flag pour débloquer le bouton des statistiques.
+//
+// ------------------ Fonctions Clés Définies et Exportées ------------------
+//
+// - `toggleTheme()` : (maj 30/05 theme & style)
+//   Description : Bascule l'état du thème visuel entre le mode jour et le mode nuit.
+//   Si l'option de thème n'est pas encore débloquée (`themeOptionUnlocked` est false),
+//   elle vérifie si le joueur possède suffisamment d'`images` (coût : 10 Images) pour la débloquer.
+//   Une fois débloquée ou si elle l'était déjà, elle inverse la valeur de `isDayTheme`
+//   et applique la classe CSS correspondante (`dark-theme` ou non) à l'élément `<body>`.
+//   Elle déclenche ensuite une mise à jour de l'interface et une sauvegarde du jeu.
+//   Appelée par : `events.js` (via le clic sur le bouton de thème ou le sélecteur).
+//   Impacts : Modifie l'apparence globale du jeu via `style.css`.
+//
+// - `toggleOfflineProgress(isChecked)` :
+//   Description : Active ou désactive la fonctionnalité de progression hors ligne.
+//   Met à jour la variable d'état `offlineProgressEnabled` en fonction de la valeur
+//   `isChecked` (provenant d'une case à cocher). Affiche une notification et sauvegarde le jeu.
+//   Appelée par : `events.js` (via le changement d'état de la case à cocher).
+//   Impacts : Affecte les calculs de progression du jeu lorsque le joueur est absent.
+//
+// - `toggleMinimizeResources()` :
+//   Description : Bascule l'affichage entre le mode normal des ressources et un mode minimaliste.
+//   Inverse la valeur de `minimizeResourcesActive`. Appelle `updateSectionVisibility()`
+//   pour gérer l'affichage/masquage du panneau minimaliste et `updateDisplay()` pour rafraîchir
+//   les valeurs. Sauvegarde l'état du jeu.
+//   Appelée par : `events.js` (via le clic sur le bouton "Minimalist Resources").
+//   Impacts : Modifie la disposition et la quantité d'informations affichées sur les ressources.
+//
+// - `openStats()` :
+//   Description : Ouvre la modale des statistiques du jeu. Appelle la fonction
+//   `openStatsModal()` de `ui.js` pour gérer l'affichage de la modale.
+//   Appelée par : `events.js` (via le clic sur le bouton "Statistiques").
+//   Impacts : Affiche un résumé détaillé des progrès du joueur.
+//
+// ------------------ Éléments DOM Clés (Interagis par settings.js) ------------------
+//
+// Ce module interagit directement avec l'élément `<body>` pour appliquer les classes de thème.
+// Il ne récupère pas directement d'autres éléments DOM par `document.getElementById` ;
+// les interactions avec les contrôles de l'interface utilisateur (sélecteur de thème,
+// cases à cocher, boutons) sont gérées par `events.js` qui appelle les fonctions de ce module.
+//
+// - `document.body` : L'élément `<body>` de `index.html`. Les classes `dark-theme`
+//   (ou l'absence de celle-ci) sont appliquées ici pour changer l'apparence globale. (maj 30/05 theme & style)
+//
+// ------------------ Logique Générale ------------------
+//
+// `settings.js` est une couche de contrôle pour les préférences du joueur. Il ne contient
+// pas de logique de jeu complexe (calculs de production, achats d'unités). Au lieu de cela,
+// il modifie des variables d'état globales (`core.js`) et interagit avec la couche UI
+// (`ui.js`) pour refléter ces changements visuellement. Les appels à `saveGameState()`
+// sont cruciaux pour que les préférences du joueur soient persistantes entre les sessions.
+//
+// ---------------------------------------------------------------------
 
 
-   **
- * quests.js
- *
+
  * ------------------ Fiche Mémo : quests.js -----------------------------
  * Description : Ce fichier gère toute la logique et les fonctionnalités liées aux quêtes
  * (Quests) du jeu. Il permet de définir les quêtes, de vérifier leurs conditions de complétion,
@@ -2006,18 +2171,20 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 //
 // Dépendances (Imports) :
 // - De './core.js' :
-//   - Variables d'état (lecture pour les conditions) : `bonsPoints`, `images`, `nombreEleves`,
-//     `nombreClasses`, `nombreProfesseur`, `schoolCount`, `nombreLycees`, `nombreColleges`,
-//     `ascensionCount`, `totalClicks`, `totalPAEarned`, `nombreLicences`, `nombreMaster1`,
-//     `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`, `prestigeCount`, `prestigePoints`,
-//     `autoEleveActive`, `autoClasseActive`, `autoImageActive`, `autoProfesseurActive`,
-//     `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels`, `totalBonsPointsParSeconde`,
-//     `completedQuests`.
+//   - Variables d'état (lecture pour les conditions et modification pour les récompenses additives) :
+//     `bonsPoints`, `images`, `nombreEleves`, `nombreClasses`, `nombreProfesseur`, `schoolCount`,
+//     `nombreLycees`, `nombreColleges`, `ascensionCount`, `totalClicks`, `totalPAEarned`,
+//     `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`,
+//     `prestigeCount`, `prestigePoints`, `autoEleveActive`, `autoClasseActive`, `autoImageActive`,
+//     `autoProfesseurActive`, `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels`,
+//     `totalBonsPointsParSeconde`, `completedQuests`, `ascensionPoints` (pour récompenses additives). (maj 30/05 achievements)
 //   - Objets d'effets (modification pour les récompenses permanentes) : `skillEffects`.
 //   - Fonctions de logique (appelées après déverrouillage) : `saveGameState`, `applyAllSkillEffects`,
 //     `checkUnlockConditions`, `formatNumber`.
 // - De './ui.js' :
 //   - Fonctions d'affichage : `showNotification`, `updateDisplay`.
+// - De './quests.js' : (maj 30/05 achievements)
+//   - Variables d'état : `questsData` (nécessaire pour la condition `ACH_QUESTS_ALL`). (maj 30/05 achievements)
 //
 // Variables Globales Accédées (définies dans core.js, mais non importées directement car elles sont gérées par `window` ou via des fonctions de `ui.js`) :
 // - `window.achievementsButtonUnlocked` : Utilisé pour vérifier si le bouton des succès est débloqué avant de rendre la grille.
@@ -2032,13 +2199,15 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 //
 // 1. Définition des Succès : `achievementsData` contient toutes les informations statiques.
 // 2. Vérification : `checkAchievements()` est appelée régulièrement par `core.js`.
-//    Elle évalue la `condition()` de chaque succès non débloqué en lisant l'état du jeu (variables importées de `core.js`).
+//    Elle évalue la `condition()` de chaque succès non débloqué en lisant l'état du jeu (variables importées de `core.js` et `quests.js`). (maj 30/05 achievements)
 // 3. Déverrouillage : Si une condition est remplie, le succès est marqué dans `unlockedAchievements`.
 // 4. Récompense : La `rewardFn()` du succès est exécutée.
-//    - Pour les bonus permanents (multiplicateurs, réductions de coût), elle modifie des propriétés de l'objet `skillEffects`
+//    - Pour les bonus permanents (multiplicateurs, réductions de coût), elle modifie des propriétés de l'objet `skillEffects`.
 //      ou la variable `permanentBpsBonusFromAchievements`. Ces variables sont ensuite utilisées par `core.js`
 //      dans ses calculs de production (`calculateTotalBPS`) et d'effets (`applyAllSkillEffects`).
-//    - Pour les gains additifs (ex: +X PA), elle modifie directement la variable de ressource correspondante dans `core.js`.
+//    - Pour les gains additifs (ex: +X PA), elle modifie directement la variable de ressource correspondante dans `core.js`
+//      (ex: `ascensionPoints = ascensionPoints.add(X)`). La `rewardFn` doit retourner la nouvelle valeur pour que `achievements.js`
+//      puisse la réassigner à la variable globale dans `core.js` via l'importation. (maj 30/05 achievements)
 // 5. Mise à Jour UI : `renderAchievements()` est appelée pour rafraîchir l'affichage des succès.
 //    `showNotification()` est appelée pour informer le joueur.
 //    `updateDisplay()` de `ui.js` est appelée pour rafraîchir l'ensemble de l'interface.

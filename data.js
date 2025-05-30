@@ -85,10 +85,15 @@
 //     - `name` (string) : Nom affiché.
 //     - `baseCost` (Decimal) : Coût de base en PP.
 //     - `costMultiplier` (Decimal) : Multiplicateur de coût pour les achats successifs.
-//     - `getEffectValue` (function) : Calcule la valeur numérique de l'effet pour l'affichage.
-//     - `effect` (function) : Modifie `skillEffects` (de `core.js`) pour appliquer le bonus permanent.
-//     - `getMinClasses` (function, spécifique à 'doctorat') : Calcule le nombre min de classes après Ascension.
-//     - `prerequisites` (function) : Retourne `true` si les prérequis sont remplis pour l'achat.
+//     - `getEffectValue` (function) : Calcule la valeur numérique de l'effet de l'amélioration
+//                                   en fonction de son level actuel. Utilisée pour l'affichage de l'effet.
+//     - `effect` (function) : Une fonction de rappel qui prend le niveau actuel de l'amélioration et l'objet skillEffects.
+//                           Elle modifie directement les propriétés de skillEffects pour appliquer le bonus permanent de l'amélioration.
+//     - `getMinClasses` (function, spécifique à 'doctorat') : Une fonction utilitaire pour le Doctorat,
+//                                                           calculant le nombre minimum de classes après Ascension
+//                                                           en fonction du niveau de Doctorat.
+//     - `prerequisites` (function) : Une fonction qui retourne true si les conditions préalables à l'achat
+//                                  de cette amélioration sont remplies, false sinon.
 //   Impact sur d'autres modules :
 //     - Utilisé par `prestige.js` pour la logique d'achat et l'application des effets.
 //     - Utilisé par `ui.js` dans `updateStatsDisplay` pour afficher les bonus de prestige.
@@ -138,6 +143,8 @@
 //   Type : `Decimal`.
 //   Impact sur d'autres modules :
 //     - Utilisé par `prestige.js` dans `calculatePPGained`.
+//
+// Note sur `achievementsData` : Ce tableau est défini et géré dans `achievements.js` pour maintenir la modularité. (maj 30/05 - modularité achievements)
 //
 // ------------------ Logique Générale ------------------
 //
@@ -283,7 +290,7 @@ export const skillsData = {
             maxLevel: 1,
             tier: 5,
             prerequisites: ['S4_1_All_BPS'],
-            effect: (level, skillEffects) => { /* Pas d'effet direct, géré par un compteur de clics dans core.js et ui.js */ } // (maj 30/05 - thème, style & cohérence)
+            effect: (level, skillEffects) => { /* Pas d'effet direct, géré par un compteur de clics dans core.js et ui.js */ }
         }
     ],
     ascension: [
@@ -373,7 +380,7 @@ export const skillsData = {
 };
 
 // --- Définitions des Achats de Prestige ---
-export const prestigePurchasesData = [ // Changed to array to match common usage in UI/logic (maj 30/05 - thème, style & cohérence)
+export const prestigePurchasesData = [
     {
         id: 'licence',
         name: 'Licence',
@@ -426,7 +433,7 @@ export const prestigePurchasesData = [ // Changed to array to match common usage
 ];
 
 // --- Définitions des Quêtes ---
-export const questsData = [ // Changed to array to match common usage in UI/logic (maj 30/05 - thème, style & cohérence)
+export const questsData = [
     {
         id: 'click_10',
         name: 'Premiers Clics',
@@ -504,7 +511,7 @@ export const questsData = [ // Changed to array to match common usage in UI/logi
         unlocked: false,
         permanent: true,
     },
-    { // Nouvelle quête pour la ressource 'images' (maj 30/05 - thème, style & cohérence)
+    {
         id: 'images_50',
         name: 'Collection d\'Images',
         description: 'Possédez 50 Images.',
@@ -549,3 +556,5 @@ export const ASCENSION_POINT_THRESHOLD = new Decimal("1e10");
 
 // --- Seuil de Points d'Ascension Total pour gagner 1 Point de Prestige ---
 export const PRESTIGE_POINT_THRESHOLD = new Decimal("1000"); // Valeur par défaut, ajustez si nécessaire
+
+// Note sur `achievementsData` : Ce tableau est défini et géré dans `achievements.js` pour maintenir la modularité. (maj 30/05 - modularité achievements)
