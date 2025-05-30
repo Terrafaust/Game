@@ -188,7 +188,6 @@
 // Assurez-vous que break_infinity.min.js est chargé AVANT ce script dans index.html
 // Si Decimal n'est pas global, vous devrez l'importer explicitement si vous utilisez un système de modules.
 // Pour l'instant, nous supposons qu'il est globalement disponible.
-import { Decimal } from './break_infinity.min.js'; // Décommentez si vous utilisez un module bundler
 
 // Définition des coûts initiaux pour chaque type d'achat
 export const initialCosts = {
