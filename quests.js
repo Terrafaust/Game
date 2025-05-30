@@ -33,6 +33,7 @@
 //     - `saveGameState`: Pour sauvegarder l'état du jeu après complétion ou réclamation d'une quête.
 //     - `applyAllSkillEffects`: Pour recalculer les bonus globaux si une quête affecte
 //       des multiplicateurs (ex: `paMultiplierFromQuests`).
+//     - `formatNumber`: Utilisée pour afficher les nombres (ressources, progression) de manière lisible.
 //     Impact : Permet la persistance des données et l'intégration des récompenses de quêtes
 //              dans la logique globale du jeu.
 //
@@ -44,7 +45,6 @@
 //
 // - De './ui.js' :
 //   - Fonctions :
-//     - `formatNumber`: Utilisée pour afficher les nombres (ressources, progression) de manière lisible.
 //     - `showNotification`: Pour informer le joueur de la complétion ou de la réclamation d'une quête.
 //     - `updateDisplay`: Pour rafraîchir l'affichage global du jeu après une réclamation de quête.
 //     Impact : Assure le retour visuel au joueur et la mise à jour de l'interface.
@@ -184,6 +184,7 @@ import {
     ProfesseurUnlocked, // (30/05 Quetes update)
     skillEffects, // (30/05 Quetes update) - Pour des conditions basées sur les effets, ex: clickBonsPointsBonus
     saveGameState,
+    formatNumber,
     applyAllSkillEffects,
     completedQuests,
     ascensionPoints,
@@ -199,7 +200,6 @@ import {
 // Importations des fonctions d'UI depuis ui.js
 // (30/05 Quetes update: Suppression de updateQuestsUI et renderQuests des imports)
 import {
-    formatNumber,
     showNotification,
     updateDisplay
 } from './ui.js';
