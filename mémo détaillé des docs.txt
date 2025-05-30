@@ -719,6 +719,7 @@ MonJeuIncremental/
 //   // Licences, Masters, Doctorats, Post-Doctorats).
 //   // Calcule le coût, déduit les ressources, incrémente le compteur d'éléments,
 //   // met à jour les quêtes, applique les effets de compétences et sauvegarde le jeu.
+//   // Enregistre les actions d'achat via le logger. (modif 31/05 core - débug)
 //   // - itemType: Le type d'élément à acheter (chaîne de caractères).
 //   // - quantityRequested: La quantité à acheter (Decimal, '1', '10', '100', 'max').
 //   // - isAutomated: Vrai si l'achat est effectué par l'automatisation (désactive les notifications).
@@ -730,6 +731,7 @@ MonJeuIncremental/
 //   // Convertit les objets Decimal en chaînes de caractères pour la sauvegarde.
 //   // Inclut les données de succès (`unlockedAchievements`, `permanentBpsBonusFromAchievements`)
 //   // et de quêtes (`completedQuests`, `paMultiplierFromQuêtes`). (maj 30/05 core)
+//   // Enregistre l'action de sauvegarde via le logger. (modif 31/05 core - débug)
 //
 // export function loadGameState()
 //   // Charge l'état du jeu depuis le localStorage.
@@ -737,11 +739,13 @@ MonJeuIncremental/
 //   // Convertit les chaînes de caractères chargées en objets Decimal.
 //   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
 //   // Gère la rétrocompatibilité des sauvegardes pour les nouvelles variables, incluant la variable 'permanentBpsBonusFromAchievements'. (maj 30/05 core)
+//   // Enregistre l'action de chargement via le logger. (modif 31/05 core - débug)
 //
 // export function resetGameVariables()
 //   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
 //   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
 //   // Réinitialise également l'état des succès, des quêtes non permanentes et la variable 'permanentBpsBonusFromAchievements'. (maj 30/05 core)
+//   // Enregistre l'action de réinitialisation via le logger. (modif 31/05 core - débug)
 //
 // function resetSkillEffects()
 //   // Réinitialise l'objet `skillEffects` à ses valeurs par défaut.
@@ -750,18 +754,21 @@ MonJeuIncremental/
 // export function hardResetGame()
 //   // Effectue une réinitialisation complète du jeu (hard reset).
 //   // Supprime la sauvegarde du localStorage et réinitialise toutes les variables.
+//   // Enregistre l'action de hard reset via le logger. (modif 31/05 core - débug)
 //
 // export function softResetGame()
 //   // Effectue une réinitialisation douce du jeu (soft reset), utilisée après une Ascension.
 //   // Réinitialise certaines variables (BP, images, élèves, classes, professeurs, clics, compétences d'études)
 //   // tout en conservant les déverrouillages majeurs et les progrès d'Ascension/Prestige.
 //   // Réinitialise les quêtes non permanentes. (maj 30/05 core)
+//   // Enregistre l'action de soft reset via le logger. (modif 31/05 core - débug)
 //
 // export function superSoftResetGame()
 //   // Effectue une réinitialisation super douce du jeu (super soft reset), utilisée après un Prestige.
 //   // Réinitialise la plupart des variables comme un soft reset, mais conserve les points de prestige
 //   // et les achats de prestige, et réinitialise les compétences d'Ascension.
 //   // Réinitialise les quêtes non permanentes. (maj 30/05 core)
+//   // Enregistre l'action de super soft reset via le logger. (modif 31/05 core - débug)
 //
 // ------------------ Fonctions de Calcul et de Mise à Jour ------------------
 //
@@ -779,6 +786,7 @@ MonJeuIncremental/
 //   // (nouvelles unités, menus, options) et les débloque si les conditions sont remplies.
 //   // Met à jour la visibilité des sections de l'interface utilisateur.
 //   // Déclenche le rendu initial des quêtes et succès lors de leur déverrouillage. (maj 30/05 core)
+//   // Enregistre les déverrouillages via le logger. (modif 31/05 core - débug)
 //
 // export function applyAllSkillEffects()
 //   // Applique tous les effets cumulés des compétences (études, ascension, prestige),
@@ -794,33 +802,39 @@ MonJeuIncremental/
 //   // Calcule les Bons Points gagnés pendant que le joueur était hors ligne,
 //   // en fonction du temps écoulé et de la production hors ligne.
 //   // N'applique le progrès que si le temps écoulé dépasse un certain seuil.
+//   // Enregistre le gain hors ligne via le logger. (modif 31/05 core - débug)
 //
 // ------------------ Fonction d'Initialisation du Jeu ------------------
 //
 // export function initializeGame()
 //   // Fonction principale d'initialisation du jeu, appelée au chargement de la page.
+//   // Initialise le système de log. (modif 31/05 core - débug)
 //   // Charge l'état du jeu, met à jour tous les éléments d'interface,
 //   // vérifie les déverrouillages initiaux et démarre la boucle de jeu principale.
 //   // La boucle de jeu met à jour la logique et l'affichage à intervalles réguliers.
 //   // S'assure que les quêtes et succès sont rendus au démarrage. (maj 30/05 core)
+//   // Gère les erreurs de la boucle de jeu via le logger. (modif 31/05 core - débug)
 //
 // ------------------ Dépendances (Imports) ------------------
 //
 // Importations depuis './studies.js':
 //   - calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost
-//   - elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem, ProfesseurBpsPerItem
+//   - elevesBpsPerItem, classesBpsPerItem
 // Importations depuis './automation.js':
-//   - calculateAutomationCost, runAutomation
+//   - runAutomation
 // Importations depuis './data.js':
-//   - skillsData, prime_PA, prestigePurchasesData
+//   - skillsData, prestigePurchasesData, questsData, achievementsData, bonusPointThresholds, ASCENSION_POINT_THRESHOLD, PRESTIGE_POINT_THRESHOLD
+//   - Note : `prime_PA` n'est pas utilisé directement dans `core.js` et est retiré. (modif 31/05 core - débug)
 // Importations depuis './ascension.js':
-//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost
+//   - calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost
+//   - Note : `calculatePAGained` et `performAscension` ne sont pas utilisés directement dans `core.js` et sont retirés. (modif 31/05 core - débug)
 // Importations depuis './prestige.js':
-//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
+//   - getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
+//   - Note : `calculatePPGained` et `performPrestige` ne sont pas utilisés directement dans `core.js` et sont retirés. (modif 31/05 core - débug)
 // Importations depuis './quests.js':
-//   - updateQuestProgress, questsData
+//   - updateQuestProgress
 // Importations depuis './achievements.js':
-//   - checkAchievements, achievementsData, unlockedAchievements
+//   - checkAchievements, unlockedAchievements
 //   - Note : La variable 'permanentBpsBonusFromAchievements' est déclarée et exportée par 'core.js'. Elle est modifiée par 'achievements.js' via les fonctions de récompense des succès qui la reçoivent en paramètre. (maj 30/05 débug)
 // Importations depuis './ui.js':
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
@@ -828,11 +842,15 @@ MonJeuIncremental/
 //     openTab, closeStatsModal, updateStatsDisplay, showNotification
 //   - Note : Les fonctions de tooltip (`showAchievementTooltip`, `hideAchievementTooltip`, `toggleAchievementTooltip`)
 //     sont gérées directement par `events.js` via délégation et appellent des fonctions de `achievements.js`. (maj 30/05 core)
+// Importations depuis './logger.js':
+//   - initLogger, logError, logInfo, logWarning (modif 31/05 core - débug)
 //
 // Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.
 //
 // ---------------------------------------------------------------------
+
+
 
 
 

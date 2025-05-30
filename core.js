@@ -162,6 +162,7 @@
 //   // Licences, Masters, Doctorats, Post-Doctorats).
 //   // Calcule le coût, déduit les ressources, incrémente le compteur d'éléments,
 //   // met à jour les quêtes, applique les effets de compétences et sauvegarde le jeu.
+//   // Enregistre les actions d'achat via le logger. (modif 31/05 core - débug)
 //   // - itemType: Le type d'élément à acheter (chaîne de caractères).
 //   // - quantityRequested: La quantité à acheter (Decimal, '1', '10', '100', 'max').
 //   // - isAutomated: Vrai si l'achat est effectué par l'automatisation (désactive les notifications).
@@ -173,6 +174,7 @@
 //   // Convertit les objets Decimal en chaînes de caractères pour la sauvegarde.
 //   // Inclut les données de succès (`unlockedAchievements`, `permanentBpsBonusFromAchievements`)
 //   // et de quêtes (`completedQuests`, `paMultiplierFromQuêtes`). (maj 30/05 core)
+//   // Enregistre l'action de sauvegarde via le logger. (modif 31/05 core - débug)
 //
 // export function loadGameState()
 //   // Charge l'état du jeu depuis le localStorage.
@@ -180,11 +182,13 @@
 //   // Convertit les chaînes de caractères chargées en objets Decimal.
 //   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
 //   // Gère la rétrocompatibilité des sauvegardes pour les nouvelles variables, incluant la variable 'permanentBpsBonusFromAchievements'. (maj 30/05 core)
+//   // Enregistre l'action de chargement via le logger. (modif 31/05 core - débug)
 //
 // export function resetGameVariables()
 //   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
 //   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
 //   // Réinitialise également l'état des succès, des quêtes non permanentes et la variable 'permanentBpsBonusFromAchievements'. (maj 30/05 core)
+//   // Enregistre l'action de réinitialisation via le logger. (modif 31/05 core - débug)
 //
 // function resetSkillEffects()
 //   // Réinitialise l'objet `skillEffects` à ses valeurs par défaut.
@@ -193,18 +197,21 @@
 // export function hardResetGame()
 //   // Effectue une réinitialisation complète du jeu (hard reset).
 //   // Supprime la sauvegarde du localStorage et réinitialise toutes les variables.
+//   // Enregistre l'action de hard reset via le logger. (modif 31/05 core - débug)
 //
 // export function softResetGame()
 //   // Effectue une réinitialisation douce du jeu (soft reset), utilisée après une Ascension.
 //   // Réinitialise certaines variables (BP, images, élèves, classes, professeurs, clics, compétences d'études)
 //   // tout en conservant les déverrouillages majeurs et les progrès d'Ascension/Prestige.
 //   // Réinitialise les quêtes non permanentes. (maj 30/05 core)
+//   // Enregistre l'action de soft reset via le logger. (modif 31/05 core - débug)
 //
 // export function superSoftResetGame()
 //   // Effectue une réinitialisation super douce du jeu (super soft reset), utilisée après un Prestige.
 //   // Réinitialise la plupart des variables comme un soft reset, mais conserve les points de prestige
 //   // et les achats de prestige, et réinitialise les compétences d'Ascension.
 //   // Réinitialise les quêtes non permanentes. (maj 30/05 core)
+//   // Enregistre l'action de super soft reset via le logger. (modif 31/05 core - débug)
 //
 // ------------------ Fonctions de Calcul et de Mise à Jour ------------------
 //
@@ -222,6 +229,7 @@
 //   // (nouvelles unités, menus, options) et les débloque si les conditions sont remplies.
 //   // Met à jour la visibilité des sections de l'interface utilisateur.
 //   // Déclenche le rendu initial des quêtes et succès lors de leur déverrouillage. (maj 30/05 core)
+//   // Enregistre les déverrouillages via le logger. (modif 31/05 core - débug)
 //
 // export function applyAllSkillEffects()
 //   // Applique tous les effets cumulés des compétences (études, ascension, prestige),
@@ -237,33 +245,39 @@
 //   // Calcule les Bons Points gagnés pendant que le joueur était hors ligne,
 //   // en fonction du temps écoulé et de la production hors ligne.
 //   // N'applique le progrès que si le temps écoulé dépasse un certain seuil.
+//   // Enregistre le gain hors ligne via le logger. (modif 31/05 core - débug)
 //
 // ------------------ Fonction d'Initialisation du Jeu ------------------
 //
 // export function initializeGame()
 //   // Fonction principale d'initialisation du jeu, appelée au chargement de la page.
+//   // Initialise le système de log. (modif 31/05 core - débug)
 //   // Charge l'état du jeu, met à jour tous les éléments d'interface,
 //   // vérifie les déverrouillages initiaux et démarre la boucle de jeu principale.
 //   // La boucle de jeu met à jour la logique et l'affichage à intervalles réguliers.
 //   // S'assure que les quêtes et succès sont rendus au démarrage. (maj 30/05 core)
+//   // Gère les erreurs de la boucle de jeu via le logger. (modif 31/05 core - débug)
 //
 // ------------------ Dépendances (Imports) ------------------
 //
 // Importations depuis './studies.js':
 //   - calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost
-//   - elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem, ProfesseurBpsPerItem
+//   - elevesBpsPerItem, classesBpsPerItem
 // Importations depuis './automation.js':
-//   - calculateAutomationCost, runAutomation
+//   - runAutomation
 // Importations depuis './data.js':
-//   - skillsData, prime_PA, prestigePurchasesData
+//   - skillsData, prestigePurchasesData, questsData, achievementsData, bonusPointThresholds, ASCENSION_POINT_THRESHOLD, PRESTIGE_POINT_THRESHOLD
+//   - Note : `prime_PA` n'est pas utilisé directement dans `core.js` et est retiré. (modif 31/05 core - débug)
 // Importations depuis './ascension.js':
-//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost
+//   - calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost
+//   - Note : `calculatePAGained` et `performAscension` ne sont pas utilisés directement dans `core.js` et sont retirés. (modif 31/05 core - débug)
 // Importations depuis './prestige.js':
-//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
+//   - getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost
+//   - Note : `calculatePPGained` et `performPrestige` ne sont pas utilisés directement dans `core.js` et sont retirés. (modif 31/05 core - débug)
 // Importations depuis './quests.js':
-//   - updateQuestProgress, questsData
+//   - updateQuestProgress
 // Importations depuis './achievements.js':
-//   - checkAchievements, achievementsData, unlockedAchievements
+//   - checkAchievements, unlockedAchievements
 //   - Note : La variable 'permanentBpsBonusFromAchievements' est déclarée et exportée par 'core.js'. Elle est modifiée par 'achievements.js' via les fonctions de récompense des succès qui la reçoivent en paramètre. (maj 30/05 débug)
 // Importations depuis './ui.js':
 //   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
@@ -271,6 +285,8 @@
 //     openTab, closeStatsModal, updateStatsDisplay, showNotification
 //   - Note : Les fonctions de tooltip (`showAchievementTooltip`, `hideAchievementTooltip`, `toggleAchievementTooltip`)
 //     sont gérées directement par `events.js` via délégation et appellent des fonctions de `achievements.js`. (maj 30/05 core)
+// Importations depuis './logger.js':
+//   - initLogger, logError, logInfo, logWarning (modif 31/05 core - débug)
 //
 // Remarque: La bibliothèque Decimal.js (ou break_infinity.min.js) est supposée être chargée
 // globalement avant ce script pour la gestion des grands nombres.
@@ -422,17 +438,17 @@ export let lastSaveCheckTime = 0; // Dernière vérification de sauvegarde
 // Ces imports sont nécessaires pour que core.js puisse appeler les fonctions
 // ou accéder aux données définies dans ces modules.
 import { calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost,
-         elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem, ProfesseurBpsPerItem } from './studies.js';
-import { calculateAutomationCost, runAutomation } from './automation.js';
-import { skillsData } from './data.js'; // skillsData est défini dans data.js
-import { calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js';
-import { calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
-import { updateQuestProgress, questsData } from './quests.js'; // completedQuests et paMultiplierFromQuests sont maintenant définis dans core.js (maj 30/05 Quetes)
-import { checkAchievements, achievementsData, unlockedAchievements } from './achievements.js'; // permanentBpsBonusFromAchievements n'est plus importé ici, il est exporté par core.js (maj 30/05 débug)
+         elevesBpsPerItem, classesBpsPerItem } from './studies.js'; // imagesBpsPerItem, ProfesseurBpsPerItem retirés (modif 31/05 core - débug)
+import { runAutomation } from './automation.js'; // calculateAutomationCost retiré (modif 31/05 core - débug)
+import { skillsData, prestigePurchasesData, questsData, achievementsData, bonusPointThresholds, ASCENSION_POINT_THRESHOLD, PRESTIGE_POINT_THRESHOLD } from './data.js'; // prime_PA retiré (modif 31/05 core - débug)
+import { calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js'; // calculatePAGained, performAscension retirés (modif 31/05 core - débug)
+import { getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js'; // calculatePPGained, performPrestige retirés (modif 31/05 core - débug)
+import { updateQuestProgress } from './quests.js'; // questsData retiré car déjà importé de data.js (modif 31/05 core - débug)
+import { checkAchievements, unlockedAchievements } from './achievements.js'; // achievementsData retiré car déjà importé de data.js (modif 31/05 core - débug)
 import { updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
          updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
-         openTab, closeStatsModal, updateStatsDisplay, showNotification } from './ui.js'; // (maj 30/05 core)
-import { prime_PA, prestigePurchasesData } from './data.js'; // prime_PA et prestigePurchasesData sont définis dans data.js
+         openTab, closeStatsModal, updateStatsDisplay, showNotification } from './ui.js';
+import { initLogger, logError, logInfo, logWarning } from './logger.js'; // Importation du logger (modif 31/05 core - débug)
 
 // --- Fonctions Utilitaires ---
 
@@ -473,8 +489,10 @@ export function formatNumber(num, decimalPlaces = 2, exponentThreshold = 6) {
  */
 export function performPurchase(itemType, quantityRequested, isAutomated = false) {
     let currentResource, costFunction, itemCounter, resourceToDecrement;
-    let totalCostPA = new Decimal(0); // Track total PA cost for automation purchases
-    let totalCostPP = new Decimal(0); // Track total PP cost for prestige purchases
+    // totalCostPA et totalCostPP ne sont pas utilisés dans cette fonction, ils peuvent être retirés (modif 31/05 core - débug)
+    // let totalCostPA = new Decimal(0);
+    // let totalCostPP = new Decimal(0);
+    
     // First, check for and apply any new achievement multipliers before calculating cost
     checkAchievements(); // (maj 30/05 core)
 
@@ -552,6 +570,7 @@ export function performPurchase(itemType, quantityRequested, isAutomated = false
             resourceToDecrement = 'prestigePoints';
             break;
         default:
+            logWarning(`Tentative d'achat d'un type d'objet inconnu: ${itemType}`); // modif 31/05 core - débug
             return;
     }
 
@@ -559,10 +578,12 @@ export function performPurchase(itemType, quantityRequested, isAutomated = false
     // prestigePurchasesData est importé de data.js (maj 30/05 core)
     if (itemType === 'doctorat' && !prestigePurchasesData.find(p => p.id === 'doctorat').prerequisites()) {
         showNotification("Conditions pour Doctorat non remplies (10 Prestiges nécessaires) !");
+        logWarning("Conditions pour Doctorat non remplies."); // modif 31/05 core - débug
         return;
     }
     if (itemType === 'postDoctorat' && !prestigePurchasesData.find(p => p.id === 'postDoctorat').prerequisites()) {
         showNotification("Conditions pour Post-Doctorat non remplies (30 Prestiges, 100 Ascensions nécessaires) !");
+        logWarning("Conditions pour Post-Doctorat non remplies."); // modif 31/05 core - débug
         return;
     }
 
@@ -659,7 +680,6 @@ export function performPurchase(itemType, quantityRequested, isAutomated = false
 
         // Update quests related to the purchased item
         updateQuestProgress(itemType, quantityToBuy);
-        // updateQuestProgress('totalBonsPointsEarned', currentCost); // If applicable for BP purchases - This line seems incorrect, totalBonsPointsEarned is not a purchase type (maj 30/05 core)
 
         // Apply skill effects and update display after purchase
         applyAllSkillEffects();
@@ -671,9 +691,11 @@ export function performPurchase(itemType, quantityRequested, isAutomated = false
 
         if (!isAutomated) {
             showNotification(`Acheté ${formatNumber(quantityToBuy, 0)} ${itemType}(s) !`);
+            logInfo(`Achat réussi : ${formatNumber(quantityToBuy, 0)} ${itemType}(s) pour ${formatNumber(currentCost, 2)} ${resourceToDecrement}.`); // modif 31/05 core - débug
         }
     } else if (!isAutomated) {
         showNotification(`Pas assez de ressources pour acheter ${itemType}(s) !`);
+        logInfo(`Achat échoué : Pas assez de ressources pour acheter ${itemType}(s). Coût: ${formatNumber(costFunction(itemCounter), 2)} ${resourceToDecrement}, Actuel: ${formatNumber(currentResource, 2)}.`); // modif 31/05 core - débug
     }
 }
 
@@ -682,78 +704,82 @@ export function performPurchase(itemType, quantityRequested, isAutomated = false
  * Sauvegarde l'état actuel du jeu dans le localStorage.
  */
 export function saveGameState() {
-    const gameState = {
-        bonsPoints: bonsPoints.toString(),
-        totalBonsPointsParSeconde: totalBonsPointsParSeconde.toString(),
-        bonsPointsTotal: bonsPointsTotal.toString(),
-        images: images.toString(),
-        nombreEleves: nombreEleves.toString(),
-        nombreClasses: nombreClasses.toString(),
-        nombreProfesseur: nombreProfesseur.toString(),
-        schoolCount: schoolCount.toString(),
-        nombreLycees: nombreLycees.toString(),
-        nombreColleges: nombreColleges.toString(),
-        ascensionPoints: ascensionPoints.toString(),
-        ascensionCount: ascensionCount.toString(),
-        totalPAEarned: totalPAEarned.toString(),
-        ascensionBonus: ascensionBonus.toString(),
-        prestigePoints: prestigePoints.toString(),
-        prestigeCount: prestigeCount.toString(),
-        totalClicks: totalClicks.toString(),
-        currentPurchaseMultiplier: currentPurchaseMultiplier,
-        elevesUnlocked: elevesUnlocked,
-        classesUnlocked: classesUnlocked,
-        imagesUnlocked: imagesUnlocked,
-        ProfesseurUnlocked: ProfesseurUnlocked,
-        ascensionUnlocked: ascensionUnlocked,
-        prestigeUnlocked: prestigeUnlocked,
-        skillsButtonUnlocked: skillsButtonUnlocked,
-        settingsButtonUnlocked: settingsButtonUnlocked,
-        automationCategoryUnlocked: automationCategoryUnlocked,
-        questsUnlocked: questsUnlocked,
-        achievementsButtonUnlocked: achievementsButtonUnlocked,
-        newSettingsUnlocked: newSettingsUnlocked,
-        multiPurchaseOptionUnlocked: multiPurchaseOptionUnlocked,
-        maxPurchaseOptionUnlocked: maxPurchaseOptionUnlocked,
-        statsButtonUnlocked: statsButtonUnlocked,
-        prestigeMenuButtonUnlocked: prestigeMenuButtonUnlocked,
-        ascensionMenuButtonUnlocked: ascensionMenuButtonUnlocked,
-        lyceesUnlocked: lyceesUnlocked, // (maj 30/05 - debug)
-        collegesUnlocked: collegesUnlocked, // (maj 30/05 - debug)
-        studiesSkillsUnlocked: studiesSkillsUnlocked, // (maj 30/05 - debug)
-        ascensionSkillsUnlocked: ascensionSkillsUnlocked, // (maj 30/05 - debug)
-        prestigeSkillsUnlocked: prestigeSkillsUnlocked, // (maj 30/05 - debug)
-        autoEleveActive: autoEleveActive,
-        autoClasseActive: autoClasseActive,
-        autoImageActive: autoImageActive,
-        autoProfesseurActive: autoProfesseurActive,
-        studiesSkillPoints: studiesSkillPoints.toString(),
-        ascensionSkillPoints: ascensionSkillPoints.toString(),
-        prestigeSkillPoints: prestigeSkillPoints.toString(),
-        studiesSkillLevels: studiesSkillLevels,
-        ascensionSkillLevels: ascensionSkillLevels,
-        prestigeSkillLevels: prestigeSkillLevels,
-        secretSkillClicks: secretSkillClicks,
-        isDayTheme: isDayTheme,
-        themeOptionUnlocked: themeOptionUnlocked,
-        offlineProgressEnabled: offlineProgressEnabled,
-        minimizeResourcesActive: minimizeResourcesActive,
-        disableAscensionWarning: disableAscensionWarning,
-        firstAscensionPerformed: firstAscensionPerformed,
-        disablePrestigeWarning: disablePrestigeWarning,
-        nombreLicences: nombreLicences.toString(),
-        nombreMaster1: nombreMaster1.toString(),
-        nombreMaster2: nombreMaster2.toString(),
-        nombreDoctorat: nombreDoctorat.toString(),
-        nombrePostDoctorat: nombrePostDoctorat.toString(),
-        lastUpdate: Date.now(), // Enregistrer le timestamp de la sauvegarde
-        unlockedAchievements: unlockedAchievements, // Sauvegarder l'état des succès (maj 30/05 core)
-        permanentBpsBonusFromAchievements: permanentBpsBonusFromAchievements.toString(), // (maj 30/05 core)
-        completedQuests: completedQuests, // Sauvegarder les quêtes terminées (maj 30/05 Quetes)
-        paMultiplierFromQuests: paMultiplierFromQuests.toString(), // (maj 30/05 Quetes)
-    };
-    localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
-    // showNotification("Jeu sauvegardé !"); // Désactivé pour éviter le spam
+    try { // modif 31/05 core - débug
+        const gameState = {
+            bonsPoints: bonsPoints.toString(),
+            totalBonsPointsParSeconde: totalBonsPointsParSeconde.toString(),
+            bonsPointsTotal: bonsPointsTotal.toString(),
+            images: images.toString(),
+            nombreEleves: nombreEleves.toString(),
+            nombreClasses: nombreClasses.toString(),
+            nombreProfesseur: nombreProfesseur.toString(),
+            schoolCount: schoolCount.toString(),
+            nombreLycees: nombreLycees.toString(),
+            nombreColleges: nombreColleges.toString(),
+            ascensionPoints: ascensionPoints.toString(),
+            ascensionCount: ascensionCount.toString(),
+            totalPAEarned: totalPAEarned.toString(),
+            ascensionBonus: ascensionBonus.toString(),
+            prestigePoints: prestigePoints.toString(),
+            prestigeCount: prestigeCount.toString(),
+            totalClicks: totalClicks.toString(),
+            currentPurchaseMultiplier: currentPurchaseMultiplier,
+            elevesUnlocked: elevesUnlocked,
+            classesUnlocked: classesUnlocked,
+            imagesUnlocked: imagesUnlocked,
+            ProfesseurUnlocked: ProfesseurUnlocked,
+            ascensionUnlocked: ascensionUnlocked,
+            prestigeUnlocked: prestigeUnlocked,
+            skillsButtonUnlocked: skillsButtonUnlocked,
+            settingsButtonUnlocked: settingsButtonUnlocked,
+            automationCategoryUnlocked: automationCategoryUnlocked,
+            questsUnlocked: questsUnlocked,
+            achievementsButtonUnlocked: achievementsButtonUnlocked,
+            newSettingsUnlocked: newSettingsUnlocked,
+            multiPurchaseOptionUnlocked: multiPurchaseOptionUnlocked,
+            maxPurchaseOptionUnlocked: maxPurchaseOptionUnlocked,
+            statsButtonUnlocked: statsButtonUnlocked,
+            prestigeMenuButtonUnlocked: prestigeMenuButtonUnlocked,
+            ascensionMenuButtonUnlocked: ascensionMenuButtonUnlocked,
+            lyceesUnlocked: lyceesUnlocked, // (maj 30/05 - debug)
+            collegesUnlocked: collegesUnlocked, // (maj 30/05 - debug)
+            studiesSkillsUnlocked: studiesSkillsUnlocked, // (maj 30/05 - debug)
+            ascensionSkillsUnlocked: ascensionSkillsUnlocked, // (maj 30/05 - debug)
+            prestigeSkillsUnlocked: prestigeSkillsUnlocked, // (maj 30/05 - debug)
+            autoEleveActive: autoEleveActive,
+            autoClasseActive: autoClasseActive,
+            autoImageActive: autoImageActive,
+            autoProfesseurActive: autoProfesseurActive,
+            studiesSkillPoints: studiesSkillPoints.toString(),
+            ascensionSkillPoints: ascensionSkillPoints.toString(),
+            prestigeSkillPoints: prestigeSkillPoints.toString(),
+            studiesSkillLevels: studiesSkillLevels,
+            ascensionSkillLevels: ascensionSkillLevels,
+            prestigeSkillLevels: prestigeSkillLevels,
+            secretSkillClicks: secretSkillClicks,
+            isDayTheme: isDayTheme,
+            themeOptionUnlocked: themeOptionUnlocked,
+            offlineProgressEnabled: offlineProgressEnabled,
+            minimizeResourcesActive: minimizeResourcesActive,
+            disableAscensionWarning: disableAscensionWarning,
+            firstAscensionPerformed: firstAscensionPerformed,
+            disablePrestigeWarning: disablePrestigeWarning,
+            nombreLicences: nombreLicences.toString(),
+            nombreMaster1: nombreMaster1.toString(),
+            nombreMaster2: nombreMaster2.toString(),
+            nombreDoctorat: nombreDoctorat.toString(),
+            nombrePostDoctorat: nombrePostDoctorat.toString(),
+            lastUpdate: Date.now(), // Enregistrer le timestamp de la sauvegarde
+            unlockedAchievements: unlockedAchievements, // Sauvegarder l'état des succès (maj 30/05 core)
+            permanentBpsBonusFromAchievements: permanentBpsBonusFromAchievements.toString(), // (maj 30/05 core)
+            completedQuests: completedQuests, // Sauvegarder les quêtes terminées (maj 30/05 Quetes)
+            paMultiplierFromQuests: paMultiplierFromQuests.toString(), // (maj 30/05 Quetes)
+        };
+        localStorage.setItem('incrementalGameSave', JSON.stringify(gameState));
+        logInfo("Jeu sauvegardé !"); // modif 31/05 core - débug
+    } catch (e) { // modif 31/05 core - débug
+        logError("Erreur lors de la sauvegarde du jeu.", e); // modif 31/05 core - débug
+    }
 }
 
 /**
@@ -761,94 +787,103 @@ export function saveGameState() {
  * Initialise les variables de jeu si aucune sauvegarde n'est trouvée.
  */
 export function loadGameState() {
-    const savedState = localStorage.getItem('incrementalGameSave');
-    if (savedState) {
-        const gameState = JSON.parse(savedState);
+    try { // modif 31/05 core - débug
+        const savedState = localStorage.getItem('incrementalGameSave');
+        if (savedState) {
+            const gameState = JSON.parse(savedState);
 
-        bonsPoints = new Decimal(gameState.bonsPoints || 0);
-        totalBonsPointsParSeconde = new Decimal(gameState.totalBonsPointsParSeconde || 0);
-        bonsPointsTotal = new Decimal(gameState.bonsPointsTotal || 0);
-        images = new Decimal(gameState.images || 0);
-        nombreEleves = new Decimal(gameState.nombreEleves || 0);
-        nombreClasses = new Decimal(gameState.nombreClasses || 0);
-        nombreProfesseur = new Decimal(gameState.nombreProfesseur || 0);
-        schoolCount = new Decimal(gameState.schoolCount || 0);
-        nombreLycees = new Decimal(gameState.nombreLycees || 0);
-        nombreColleges = new Decimal(gameState.nombreColleges || 0);
-        ascensionPoints = new Decimal(gameState.ascensionPoints || 0);
-        ascensionCount = new Decimal(gameState.ascensionCount || 0);
-        totalPAEarned = new Decimal(gameState.totalPAEarned || 0);
-        ascensionBonus = new Decimal(gameState.ascensionBonus || 1); // Default to 1
-        prestigePoints = new Decimal(gameState.prestigePoints || 0);
-        prestigeCount = new Decimal(gameState.prestigeCount || 0);
-        totalClicks = new Decimal(gameState.totalClicks || 0);
-        currentPurchaseMultiplier = gameState.currentPurchaseMultiplier || '1';
+            bonsPoints = new Decimal(gameState.bonsPoints || 0);
+            totalBonsPointsParSeconde = new Decimal(gameState.totalBonsPointsParSeconde || 0);
+            bonsPointsTotal = new Decimal(gameState.bonsPointsTotal || 0);
+            images = new Decimal(gameState.images || 0);
+            nombreEleves = new Decimal(gameState.nombreEleves || 0);
+            nombreClasses = new Decimal(gameState.nombreClasses || 0);
+            nombreProfesseur = new Decimal(gameState.nombreProfesseur || 0);
+            schoolCount = new Decimal(gameState.schoolCount || 0);
+            nombreLycees = new Decimal(gameState.nombreLycees || 0);
+            nombreColleges = new Decimal(gameState.nombreColleges || 0);
+            ascensionPoints = new Decimal(gameState.ascensionPoints || 0);
+            ascensionCount = new Decimal(gameState.ascensionCount || 0);
+            totalPAEarned = new Decimal(gameState.totalPAEarned || 0);
+            ascensionBonus = new Decimal(gameState.ascensionBonus || 1); // Default to 1
+            prestigePoints = new Decimal(gameState.prestigePoints || 0);
+            prestigeCount = new Decimal(gameState.prestigeCount || 0);
+            totalClicks = new Decimal(gameState.totalClicks || 0);
+            currentPurchaseMultiplier = gameState.currentPurchaseMultiplier || '1';
 
-        elevesUnlocked = gameState.elevesUnlocked || false;
-        classesUnlocked = gameState.classesUnlocked || false;
-        imagesUnlocked = gameState.imagesUnlocked || false;
-        ProfesseurUnlocked = gameState.ProfesseurUnlocked || false;
-        ascensionUnlocked = gameState.ascensionUnlocked || false;
-        prestigeUnlocked = gameState.prestigeUnlocked || false;
-        skillsButtonUnlocked = gameState.skillsButtonUnlocked || false;
-        settingsButtonUnlocked = gameState.settingsButtonUnlocked || false;
-        automationCategoryUnlocked = gameState.automationCategoryUnlocked || false;
-        questsUnlocked = gameState.questsUnlocked || false;
-        achievementsButtonUnlocked = gameState.achievementsButtonUnlocked || false;
-        newSettingsUnlocked = gameState.newSettingsUnlocked || false;
-        multiPurchaseOptionUnlocked = gameState.multiPurchaseOptionUnlocked || false;
-        maxPurchaseOptionUnlocked = gameState.maxPurchaseOptionUnlocked || false;
-        statsButtonUnlocked = gameState.statsButtonUnlocked || false;
-        prestigeMenuButtonUnlocked = gameState.prestigeMenuButtonUnlocked || false;
-        ascensionMenuButtonUnlocked = gameState.ascensionMenuButtonUnlocked || false;
-        lyceesUnlocked = gameState.lyceesUnlocked || false; // (maj 30/05 - debug)
-        collegesUnlocked = gameState.collegesUnlocked || false; // (maj 30/05 - debug)
-        studiesSkillsUnlocked = gameState.studiesSkillsUnlocked || false; // (maj 30/05 - debug)
-        ascensionSkillsUnlocked = gameState.ascensionSkillsUnlocked || false; // (maj 30/05 - debug)
-        prestigeSkillsUnlocked = gameState.prestigeSkillsUnlocked || false; // (maj 30/05 - debug)
+            elevesUnlocked = gameState.elevesUnlocked || false;
+            classesUnlocked = gameState.classesUnlocked || false;
+            imagesUnlocked = gameState.imagesUnlocked || false;
+            ProfesseurUnlocked = gameState.ProfesseurUnlocked || false;
+            ascensionUnlocked = gameState.ascensionUnlocked || false;
+            prestigeUnlocked = gameState.prestigeUnlocked || false;
+            skillsButtonUnlocked = gameState.skillsButtonUnlocked || false;
+            settingsButtonUnlocked = gameState.settingsButtonUnlocked || false;
+            automationCategoryUnlocked = gameState.automationCategoryUnlocked || false;
+            questsUnlocked = gameState.questsUnlocked || false;
+            achievementsButtonUnlocked = gameState.achievementsButtonUnlocked || false;
+            newSettingsUnlocked = gameState.newSettingsUnlocked || false;
+            multiPurchaseOptionUnlocked = gameState.multiPurchaseOptionUnlocked || false;
+            maxPurchaseOptionUnlocked = gameState.maxPurchaseOptionUnlocked || false;
+            statsButtonUnlocked = gameState.statsButtonUnlocked || false;
+            prestigeMenuButtonUnlocked = gameState.prestigeMenuButtonUnlocked || false;
+            ascensionMenuButtonUnlocked = gameState.ascensionMenuButtonUnlocked || false;
+            lyceesUnlocked = gameState.lyceesUnlocked || false; // (maj 30/05 - debug)
+            collegesUnlocked = gameState.collegesUnlocked || false; // (maj 30/05 - debug)
+            studiesSkillsUnlocked = gameState.studiesSkillsUnlocked || false; // (maj 30/05 - debug)
+            ascensionSkillsUnlocked = gameState.ascensionSkillsUnlocked || false; // (maj 30/05 - debug)
+            prestigeSkillsUnlocked = gameState.prestigeSkillsUnlocked || false; // (maj 30/05 - debug)
 
-        autoEleveActive = gameState.autoEleveActive || false;
-        autoClasseActive = gameState.autoClasseActive || false;
-        autoImageActive = gameState.autoImageActive || false;
-        autoProfesseurActive = gameState.autoProfesseurActive || false;
+            autoEleveActive = gameState.autoEleveActive || false;
+            autoClasseActive = gameState.autoClasseActive || false;
+            autoImageActive = gameState.autoImageActive || false;
+            autoProfesseurActive = gameState.autoProfesseurActive || false;
 
-        studiesSkillPoints = new Decimal(gameState.studiesSkillPoints || 0);
-        ascensionSkillPoints = new Decimal(gameState.ascensionSkillPoints || 0);
-        prestigeSkillPoints = new Decimal(gameState.prestigeSkillPoints || 0);
-        studiesSkillLevels = gameState.studiesSkillLevels || {};
-        ascensionSkillLevels = gameState.ascensionSkillLevels || {};
-        prestigeSkillLevels = gameState.prestigeSkillLevels || {};
-        secretSkillClicks = gameState.secretSkillClicks || 0;
+            studiesSkillPoints = new Decimal(gameState.studiesSkillPoints || 0);
+            ascensionSkillPoints = new Decimal(gameState.ascensionSkillPoints || 0);
+            prestigeSkillPoints = new Decimal(gameState.prestigeSkillPoints || 0);
+            studiesSkillLevels = gameState.studiesSkillLevels || {};
+            ascensionSkillLevels = gameState.ascensionSkillLevels || {};
+            prestigeSkillLevels = gameState.prestigeSkillLevels || {};
+            secretSkillClicks = gameState.secretSkillClicks || 0;
 
-        isDayTheme = gameState.isDayTheme !== undefined ? gameState.isDayTheme : true;
-        themeOptionUnlocked = gameState.themeOptionUnlocked || false;
-        offlineProgressEnabled = gameState.offlineProgressEnabled !== undefined ? gameState.offlineProgressEnabled : true;
-        minimizeResourcesActive = gameState.minimizeResourcesActive || false;
-        disableAscensionWarning = gameState.disableAscensionWarning || false;
-        firstAscensionPerformed = gameState.firstAscensionPerformed || false;
-        disablePrestigeWarning = gameState.disablePrestigeWarning || false;
+            isDayTheme = gameState.isDayTheme !== undefined ? gameState.isDayTheme : true;
+            themeOptionUnlocked = gameState.themeOptionUnlocked || false;
+            offlineProgressEnabled = gameState.offlineProgressEnabled !== undefined ? gameState.offlineProgressEnabled : true;
+            minimizeResourcesActive = gameState.minimizeResourcesActive || false;
+            disableAscensionWarning = gameState.disableAscensionWarning || false;
+            firstAscensionPerformed = gameState.firstAscensionPerformed || false;
+            disablePrestigeWarning = gameState.disablePrestigeWarning || false;
 
-        nombreLicences = new Decimal(gameState.nombreLicences || 0);
-        nombreMaster1 = new Decimal(gameState.nombreMaster1 || 0);
-        nombreMaster2 = new Decimal(gameState.nombreMaster2 || 0);
-        nombreDoctorat = new Decimal(gameState.nombreDoctorat || 0);
-        nombrePostDoctorat = new Decimal(gameState.nombrePostDoctorat || 0);
+            nombreLicences = new Decimal(gameState.nombreLicences || 0);
+            nombreMaster1 = new Decimal(gameState.nombreMaster1 || 0);
+            nombreMaster2 = new Decimal(gameState.nombreMaster2 || 0);
+            nombreDoctorat = new Decimal(gameState.nombreDoctorat || 0);
+            nombrePostDoctorat = new Decimal(gameState.nombrePostDoctorat || 0);
 
-        lastUpdate = gameState.lastUpdate || Date.now(); // Enregistrer le timestamp de la sauvegarde
-        unlockedAchievements = gameState.unlockedAchievements || {}; // (maj 30/05 core)
-        permanentBpsBonusFromAchievements = new Decimal(gameState.permanentBpsBonusFromAchievements || 0); // Initialisation de la variable (maj 30/05 débug)
-        completedQuests = gameState.completedQuests || {}; // (maj 30/05 Quetes)
-        paMultiplierFromQuests = new Decimal(gameState.paMultiplierFromQuests || 1); // (maj 30/05 Quetes)
+            lastUpdate = gameState.lastUpdate || Date.now(); // Enregistrer le timestamp de la sauvegarde
+            unlockedAchievements = gameState.unlockedAchievements || {}; // (maj 30/05 core)
+            permanentBpsBonusFromAchievements = new Decimal(gameState.permanentBpsBonusFromAchievements || 0); // Initialisation de la variable (maj 30/05 débug)
+            completedQuests = gameState.completedQuests || {}; // (maj 30/05 Quetes)
+            paMultiplierFromQuests = new Decimal(gameState.paMultiplierFromQuests || 1); // (maj 30/05 Quetes)
 
-        // Appliquer le thème immédiatement après le chargement
-        document.body.classList.toggle('dark-theme', !isDayTheme); // (maj 30/05 core)
+            // Appliquer le thème immédiatement après le chargement
+            document.body.classList.toggle('dark-theme', !isDayTheme); // (maj 30/05 core)
 
-        calculateOfflineProgress(); // Calculer le progrès hors ligne
-        showNotification("Jeu chargé !");
-    } else {
-        // Initialiser le jeu si aucune sauvegarde n'existe
-        resetGameVariables();
-        showNotification("Nouveau jeu commencé !");
+            calculateOfflineProgress(); // Calculer le progrès hors ligne
+            showNotification("Jeu chargé !");
+            logInfo("Jeu chargé avec succès depuis la sauvegarde."); // modif 31/05 core - débug
+        } else {
+            // Initialiser le jeu si aucune sauvegarde n'existe
+            resetGameVariables();
+            showNotification("Nouveau jeu commencé !");
+            logInfo("Aucune sauvegarde trouvée, nouveau jeu commencé."); // modif 31/05 core - débug
+        }
+    } catch (e) { // modif 31/05 core - débug
+        logError("Erreur lors du chargement du jeu.", e); // modif 31/05 core - débug
+        // En cas d'erreur de chargement, réinitialiser pour éviter un état corrompu
+        resetGameVariables(); // modif 31/05 core - débug
+        showNotification("Erreur de chargement de la sauvegarde, nouveau jeu commencé.", 'error'); // modif 31/05 core - débug
     }
     // Mettre à jour les coûts initiaux après le chargement ou l'initialisation
     updateCosts();
@@ -953,6 +988,7 @@ export function resetGameVariables() {
     openTab(document.getElementById('studiesMainContainer')); // Revenir à l'onglet Études
     document.body.classList.remove('dark-theme'); // S'assurer du thème par défaut (maj 30/05 core)
     closeStatsModal(); // Fermer la modale des stats si ouverte
+    logInfo("Variables du jeu réinitialisées."); // modif 31/05 core - débug
 }
 
 /**
@@ -999,6 +1035,7 @@ export function hardResetGame() {
     localStorage.removeItem('incrementalGameSave');
     resetGameVariables();
     showNotification("Jeu complètement réinitialisé !");
+    logWarning("Hard Reset effectué : toutes les données du jeu ont été effacées."); // modif 31/05 core - débug
 }
 
 /**
@@ -1065,6 +1102,7 @@ export function softResetGame() {
     renderAchievements();
     openTab(document.getElementById('studiesMainContainer'));
     saveGameState();
+    logInfo("Soft Reset effectué (Ascension)."); // modif 31/05 core - débug
 }
 
 /**
@@ -1113,6 +1151,7 @@ export function superSoftResetGame() {
     studiesSkillPoints = new Decimal(0);
     ascensionSkillPoints = new Decimal(0);
     prestigeSkillPoints = prestigeSkillPoints.add(1); // Gagner 1 point de prestige
+    prestigeSkillLevels = {}; // Réinitialisation des compétences de prestige (modif 31/05 core - débug)
     studiesSkillLevels = {};
     ascensionSkillLevels = {};
     secretSkillClicks = 0;
@@ -1143,6 +1182,7 @@ export function superSoftResetGame() {
     renderAchievements();
     openTab(document.getElementById('studiesMainContainer'));
     saveGameState();
+    logInfo("Super Soft Reset effectué (Prestige)."); // modif 31/05 core - débug
 }
 
 /**
@@ -1210,6 +1250,7 @@ export function checkUnlockConditions() {
     if (!elevesUnlocked) {
         elevesUnlocked = true;
         updateSectionVisibility();
+        logInfo("Fonctionnalité 'Élèves' débloquée."); // modif 31/05 core - débug
     }
 
     // Déverrouillage des classes
@@ -1217,6 +1258,7 @@ export function checkUnlockConditions() {
         classesUnlocked = true;
         showNotification("Salles de classe débloquées !");
         updateSectionVisibility();
+        logInfo("Fonctionnalité 'Classes' débloquée."); // modif 31/05 core - débug
     }
 
     // Déverrouillage des images
@@ -1224,6 +1266,7 @@ export function checkUnlockConditions() {
         imagesUnlocked = true;
         showNotification("Images débloquées !");
         updateSectionVisibility();
+        logInfo("Fonctionnalité 'Images' débloquée."); // modif 31/05 core - débug
     }
 
     // Déverrouillage des professeurs
@@ -1231,6 +1274,7 @@ export function checkUnlockConditions() {
         ProfesseurUnlocked = true;
         showNotification("Professeurs débloqués !");
         updateSectionVisibility();
+        logInfo("Fonctionnalité 'Professeurs' débloquée."); // modif 31/05 core - débug
     }
 
     // Déverrouillage du menu Ascension
@@ -1238,6 +1282,7 @@ export function checkUnlockConditions() {
         ascensionMenuButtonUnlocked = true;
         showNotification("Menu Ascension débloqué !");
         updateSectionVisibility();
+        logInfo("Menu 'Ascension' débloqué."); // modif 31/05 core - débug
     }
 
     // Déverrouillage de l'Ascension elle-même (peut être effectuée)
@@ -1245,6 +1290,7 @@ export function checkUnlockConditions() {
         ascensionUnlocked = true;
         showNotification("Vous pouvez maintenant Ascensionner !");
         updateSectionVisibility();
+        logInfo("Ascension disponible."); // modif 31/05 core - débug
     }
 
     // Déverrouillage du menu Prestige (si au moins 1 ascension effectuée)
@@ -1252,6 +1298,7 @@ export function checkUnlockConditions() {
         prestigeMenuButtonUnlocked = true;
         showNotification("Menu Prestige débloqué !");
         updateSectionVisibility();
+        logInfo("Menu 'Prestige' débloqué."); // modif 31/05 core - débug
     }
 
     // Déverrouillage du Prestige lui-même (si au moins 1 PA gagné)
@@ -1259,6 +1306,7 @@ export function checkUnlockConditions() {
         prestigeUnlocked = true;
         showNotification("Vous pouvez maintenant effectuer un Prestige !");
         updateSectionVisibility();
+        logInfo("Prestige disponible."); // modif 31/05 core - débug
     }
 
     // Déverrouillage du bouton Compétences
@@ -1266,6 +1314,7 @@ export function checkUnlockConditions() {
         skillsButtonUnlocked = true;
         showNotification("Arbre de compétences débloqué !");
         updateSectionVisibility();
+        logInfo("Bouton 'Compétences' débloqué."); // modif 31/05 core - débug
     }
 
     // Déverrouillage du bouton Paramètres
@@ -1273,6 +1322,7 @@ export function checkUnlockConditions() {
         settingsButtonUnlocked = true;
         showNotification("Menu Paramètres débloqué !");
         updateSectionVisibility();
+        logInfo("Bouton 'Paramètres' débloqué."); // modif 31/05 core - débug
     }
 
     // Déverrouillage des quêtes
@@ -1281,6 +1331,7 @@ export function checkUnlockConditions() {
         showNotification("Quêtes débloquées !");
         updateSectionVisibility();
         updateQuestProgress(); // Initialiser les quêtes (maj 30/05 core)
+        logInfo("Fonctionnalité 'Quêtes' débloquée."); // modif 31/05 core - débug
     }
 
     // Déverrouillage des succès
@@ -1289,6 +1340,7 @@ export function checkUnlockConditions() {
         showNotification("Succès débloqués !");
         updateSectionVisibility();
         renderAchievements(); // Afficher les succès pour la première fois (maj 30/05 core)
+        logInfo("Fonctionnalité 'Succès' débloquée."); // modif 31/05 core - débug
     }
 
     // Déverrouillage de l'option d'achat multiple (x10, x100)
@@ -1319,11 +1371,13 @@ export function checkUnlockConditions() {
         lyceesUnlocked = true;
         showNotification("Lycées débloqués !");
         updateSectionVisibility();
+        logInfo("Fonctionnalité 'Lycées' débloquée."); // modif 31/05 core - débug
     }
     if (nombreLycees.gte(1) && !collegesUnlocked) {
         collegesUnlocked = true;
         showNotification("Collèges débloqués !");
         updateSectionVisibility();
+        logInfo("Fonctionnalité 'Collèges' débloquée."); // modif 31/05 core - débug
     }
 
     // Déverrouillage des panneaux de compétences (maj 30/05 - debug)
@@ -1331,16 +1385,19 @@ export function checkUnlockConditions() {
         studiesSkillsUnlocked = true;
         showNotification("Compétences d'Études débloquées !");
         updateSectionVisibility();
+        logInfo("Panneau 'Compétences d'Études' débloqué."); // modif 31/05 core - débug
     }
     if (ascensionSkillPoints.gt(0) && !ascensionSkillsUnlocked) {
         ascensionSkillsUnlocked = true;
         showNotification("Compétences d'Ascension débloquées !");
         updateSectionVisibility();
+        logInfo("Panneau 'Compétences d'Ascension' débloqué."); // modif 31/05 core - débug
     }
     if (prestigeSkillPoints.gt(0) && !prestigeSkillsUnlocked) {
         prestigeSkillsUnlocked = true;
         showNotification("Compétences de Prestige débloquées !");
         updateSectionVisibility();
+        logInfo("Panneau 'Compétences de Prestige' débloqué."); // modif 31/05 core - débug
     }
 
 
@@ -1437,6 +1494,7 @@ export function calculateOfflineProgress() {
         bonsPointsTotal = bonsPointsTotal.add(bonsPointsGained);
 
         showNotification(`Vous avez gagné ${formatNumber(bonsPointsGained, 2)} BP hors ligne !`, 8000);
+        logInfo(`Gain hors ligne : ${formatNumber(bonsPointsGained, 2)} BP gagnés pendant ${formatNumber(timeElapsed, 0)} secondes.`); // modif 31/05 core - débug
     }
     lastUpdate = now; // Mettre à jour le dernier timestamp après le calcul
 }
@@ -1444,65 +1502,76 @@ export function calculateOfflineProgress() {
 // --- Initialisation du Jeu ---
 // Cette fonction sera appelée par le script principal (index.html) une fois le DOM chargé.
 export function initializeGame() {
-    loadGameState(); // Charge l'état du jeu ou l'initialise
-    updateCosts(); // Mettre à jour les coûts initiaux
-    applyAllSkillEffects(); // Appliquer tous les effets des compétences/succès/prestige
-    updateCachedMultipliers(); // S'assurer que les multiplicateurs sont à jour
-    calculateTotalBPS(); // Calculer la production initiale
-    updateDisplay(); // Mettre à jour l'affichage initial
-    checkUnlockConditions(); // Vérifier les déverrouillages initiaux
-    updateButtonStates(); // Mettre à jour l'état des boutons
-    updateAutomationButtonStates(); // Mettre à jour l'état des boutons d'automatisation
-    updateSettingsButtonStates(); // Mettre à jour l'état des boutons de paramètres
-    renderQuests(); // Rendre les quêtes
-    renderAchievements(); // Rendre les succès (maj 30/05 core)
-    renderSkillsMenu(); // Rendre l'arbre de compétences
+    initLogger(); // Initialise le système de log (modif 31/05 core - débug)
+    try { // modif 31/05 core - débug
+        loadGameState(); // Charge l'état du jeu ou l'initialise
+        updateCosts(); // Mettre à jour les coûts initiaux
+        applyAllSkillEffects(); // Appliquer tous les effets des compétences/succès/prestige
+        updateCachedMultipliers(); // S'assurer que les multiplicateurs sont à jour
+        calculateTotalBPS(); // Calculer la production initiale
+        updateDisplay(); // Mettre à jour l'affichage initial
+        checkUnlockConditions(); // Vérifier les déverrouillages initiaux
+        updateButtonStates(); // Mettre à jour l'état des boutons
+        updateAutomationButtonStates(); // Mettre à jour l'état des boutons d'automatisation
+        updateSettingsButtonStates(); // Mettre à jour l'état des boutons de paramètres
+        renderQuests(); // Rendre les quêtes
+        renderAchievements(); // Rendre les succès (maj 30/05 core)
+        renderSkillsMenu(); // Rendre l'arbre de compétences
 
-    // S'assurer que l'onglet Études est ouvert par défaut au chargement
-    // studiesMainContainer est un élément DOM, il doit être accessible globalement ou importé
-    // Pour l'instant, on suppose qu'il est accessible via ui.js ou directement.
-    const studiesMainContainer = document.getElementById('studiesMainContainer');
-    if (studiesMainContainer) {
-        openTab(studiesMainContainer);
+        // S'assurer que l'onglet Études est ouvert par défaut au chargement
+        // studiesMainContainer est un élément DOM, il doit être accessible globalement ou importé
+        // Pour l'instant, on suppose qu'il est accessible via ui.js ou directement.
+        const studiesMainContainer = document.getElementById('studiesMainContainer');
+        if (studiesMainContainer) {
+            openTab(studiesMainContainer);
+        }
+
+        showNotification("Bienvenue dans le Cahier d'Étude Avancé ! Prêt à apprendre ?", 5000);
+        logInfo("Jeu initialisé et boucle de jeu démarrée."); // modif 31/05 core - débug
+
+        // Démarrer la boucle de jeu principale
+        setInterval(() => {
+            try { // modif 31/05 core - débug
+                const now = Date.now();
+                const deltaTime = gameTickInterval / 1000; // Convertir ms en secondes
+
+                // Logique de jeu principale
+                checkUnlockConditions();
+                updateButtonStates(); // Mettre à jour les états des boutons d'achat
+                updateAutomationButtonStates();
+                updateSettingsButtonStates();
+                updateQuestProgress(); // Vérifier la progression des quêtes
+                checkAchievements(); // Vérifier les succès (maj 30/05 core)
+
+                // Production de Bons Points
+                bonsPoints = bonsPoints.plus(totalBonsPointsParSeconde.times(deltaTime));
+                bonsPointsTotal = bonsPointsTotal.plus(totalBonsPointsParSeconde.times(deltaTime));
+
+                // Exécuter l'automatisation
+                runAutomation();
+
+                // Mettre à jour l'affichage moins fréquemment pour la performance
+                if (now - lastDisplayUpdateTime >= displayUpdateInterval) {
+                    updateDisplay();
+                    renderSkillsMenu(); // Re-rendre les compétences pour mettre à jour déverrouillage/abordabilité
+                    renderQuests(); // Re-rendre les quêtes pour mettre à jour la progression
+                    renderAchievements(); // Re-rendre les succès (maj 30/05 core)
+                    updateStatsDisplay(); // Mettre à jour les statistiques si la modale est ouverte
+                    lastDisplayUpdateTime = now;
+                }
+
+                // Vérifier les déverrouillages et sauvegarder moins fréquemment
+                if (now - lastSaveCheckTime >= saveCheckInterval) {
+                    checkUnlockConditions();
+                    saveGameState();
+                    lastSaveCheckTime = now;
+                }
+            } catch (loopError) { // modif 31/05 core - débug
+                logError("Erreur dans la boucle de jeu principale.", loopError); // modif 31/05 core - débug
+            }
+        }, gameTickInterval);
+    } catch (initError) { // modif 31/05 core - débug
+        logError("Erreur lors de l'initialisation du jeu.", initError); // modif 31/05 core - débug
+        showNotification("Une erreur critique est survenue au démarrage du jeu. Veuillez consulter les logs.", 'error'); // modif 31/05 core - débug
     }
-
-    showNotification("Bienvenue dans le Cahier d'Étude Avancé ! Prêt à apprendre ?", 5000);
-
-    // Démarrer la boucle de jeu principale
-    setInterval(() => {
-        const now = Date.now();
-        const deltaTime = gameTickInterval / 1000; // Convertir ms en secondes
-
-        // Logique de jeu principale
-        checkUnlockConditions();
-        updateButtonStates(); // Mettre à jour les états des boutons d'achat
-        updateAutomationButtonStates();
-        updateSettingsButtonStates();
-        updateQuestProgress(); // Vérifier la progression des quêtes
-        checkAchievements(); // Vérifier les succès (maj 30/05 core)
-
-        // Production de Bons Points
-        bonsPoints = bonsPoints.plus(totalBonsPointsParSeconde.times(deltaTime));
-        bonsPointsTotal = bonsPointsTotal.plus(totalBonsPointsParSeconde.times(deltaTime));
-
-        // Exécuter l'automatisation
-        runAutomation();
-
-        // Mettre à jour l'affichage moins fréquemment pour la performance
-        if (now - lastDisplayUpdateTime >= displayUpdateInterval) {
-            updateDisplay();
-            renderSkillsMenu(); // Re-rendre les compétences pour mettre à jour déverrouillage/abordabilité
-            renderQuests(); // Re-rendre les quêtes pour mettre à jour la progression
-            renderAchievements(); // Re-rendre les succès (maj 30/05 core)
-            updateStatsDisplay(); // Mettre à jour les statistiques si la modale est ouverte
-            lastDisplayUpdateTime = now;
-        }
-
-        // Vérifier les déverrouillages et sauvegarder moins fréquemment
-        if (now - lastSaveCheckTime >= saveCheckInterval) {
-            checkUnlockConditions();
-            saveGameState();
-            lastSaveCheckTime = now;
-        }
-    }, gameTickInterval);
 }
