@@ -1,173 +1,170 @@
 /**
- * ascension.js
+ * automation.js
  *
- * ------------------ Fiche Mémo : ascension.js -----------------------------
- * Description : Ce fichier gère toute la logique et les fonctionnalités liées au mécanisme
- * d'Ascension dans le jeu. L'Ascension permet au joueur de réinitialiser une partie de sa progression
- * en échange de Points d'Ascension (PA), qui peuvent ensuite être utilisés pour débloquer
- * des bonus permanents ou des automatisations. Ce module calcule les PA gagnés,
- * déclenche la réinitialisation du jeu et met à jour les éléments d'interface utilisateur
- * liés à l'Ascension.
+ * ------------------ Fiche Mémo : automation.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées à l'automatisation
+ * des achats dans le jeu. Il permet d'activer ou de désactiver l'automatisation pour
+ * les Élèves, Classes, Images et Professeurs, de calculer les coûts associés à ces automatisations,
+ * et de déclencher les achats automatiques à chaque tick de jeu.
  *
  * Dépendances :
- * - core.js : Fournit l'accès aux variables d'état globales (bonsPointsTotal, ascensionCount,
- * ascensionPoints, totalPAEarned, saveGameState, updateDisplay,
- * checkUnlockConditions, resetGameState, applyAllSkillEffects, ascensionUnlocked),
- * et la fonction de formatage des nombres (formatNumber).
- * - data.js : Contient les définitions des coûts et bonus liés à l'Ascension,
- * ainsi que les seuils pour gagner des PA (ASCENSION_POINT_THRESHOLD, ASCENSION_BASE_COST_MULTIPLIER).
- * - ui.js : Fournit la fonction de notification (showNotification) et est responsable
- * d'appeler les fonctions de mise à jour de l'interface utilisateur spécifiques à l'Ascension
- * (updateAscensionUI, updateAscensionButtonStates) en leur passant les éléments DOM.
+ * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
+ * autoClasseActive, autoImageActive, autoProfesseurActive),aux fonctions de sauvegarde (saveGameState),, à la fonction d'achat générique (performPurchase), et à la fonction
+ * de formatage des nombres (formatNumber).
+ * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
+ * - ui.js : Fournit la fonction de mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates). de mise à jour de 
+ * l'affichage global (updateDisplay),  aux fonctions de notification (showNotification),
  *
- * Variables Clés (utilisées par ascension.js, mais définies et gérées ailleurs) :
- * - bonsPointsTotal : Total cumulé de Bons Points gagnés sur toutes les parties, utilisé pour calculer les PA.
- * - ascensionCount : Nombre de fois que le joueur a effectué une Ascension.
- * - ascensionPoints : Monnaie d'Ascension actuelle du joueur.
- * - totalPAEarned : Total cumulé de Points d'Ascension gagnés sur toutes les Ascensions.
- * - ascensionUnlocked : Flag booléen indiquant si le menu d'Ascension est débloqué.
+ * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
+ * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
+ * - autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive : Flags booléens
+ * indiquant si une automatisation spécifique est active.
+ * - skillEffects : Objet contenant les effets cumulés des compétences, notamment les réductions de coût.
  *
  * Fonctions Clés Définies et Exportées :
- * - calculatePotentialAscensionPoints() : Calcule le nombre de Points d'Ascension que le joueur
- * gagnerait s'il effectuait une Ascension maintenant, basé sur bonsPointsTotal.
- * - performAscension() : Exécute le processus d'Ascension, réinitialise le jeu,
- * ajoute les PA gagnés et déclenche les mises à jour nécessaires.
- * - updateAscensionUI(domElements) : Met à jour l'affichage des informations d'Ascension
- * dans l'interface utilisateur.
- * - updateAscensionButtonStates(domElements) : Met à jour l'état (texte, classes CSS)
- * du bouton d'Ascension en fonction de la possibilité d'ascender.
+ * - runAutomation() : Exécute les achats pour toutes les automatisations actives.
+ * - toggleAutomation(itemType, baseCost) : Active ou désactive une automatisation spécifique,
+ * gère le coût en Points d'Ascension et les notifications.
  *
  * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
  * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
- * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateAscensionUI` et
- * `updateAscensionButtonStates`) reçoivent les références DOM nécessaires ou que les éléments
- * soient globalement accessibles (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateAutomationButtonStates`)
+ * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
+ * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
  *
  * Logique Générale :
- * Ce module est le cœur de la progression "soft reset". Il assure que l'Ascension est
- * un processus clair et impactant, récompensant le joueur pour sa progression globale
- * et lui permettant de débloquer de nouvelles couches de jeu. Il est appelé par `events.js`
- * pour l'interaction utilisateur et par la boucle de jeu pour les mises à jour visuelles.
+ * Ce module centralise la gestion des automatisations, permettant une séparation claire
+ * des préoccupations par rapport à la logique d'achat de base ou aux mises à jour de l'interface.
+ * Il est appelé par `events.js` pour les interactions utilisateur et par la boucle de jeu
+ * principale (`core.js`) pour l'exécution périodique des automatisations.
  */
 
 // Importations des variables d'état et fonctions globales depuis core.js
 import {
-    bonsPointsTotal,
-    ascensionCount,
     ascensionPoints,
-    totalPAEarned,
+    autoEleveActive,
+    autoClasseActive,
+    autoImageActive,
+    autoProfesseurActive,
     saveGameState,
-    updateDisplay,
-    checkUnlockConditions,
-    softResetGame, // Correction: Utiliser softResetGame pour la réinitialisation d'Ascension
-    applyAllSkillEffects,
-    ascensionUnlocked, // Flag de déverrouillage du menu d'Ascension
-    formatNumber // Import formatNumber from core.js
+    performPurchase,
+    skillEffects,
+    formatNumber
 } from './core.js';
-
-// Importations des fonctions de calcul de coût/bonus depuis data.js
+// Importations des fonctions de calcul de coût depuis data.js
 import {
-    ASCENSION_POINT_THRESHOLD, // Seuil de BP total pour gagner 1 PA
-    ASCENSION_BASE_COST_MULTIPLIER // Multiplicateur pour le coût des PA (si applicable)
+    calculateAutomationCost
 } from './data.js';
-
-// Importations des fonctions d'UI depuis ui.js
+// Importations des fonctions d'UI depuis ui.js (pour updateAutomationButtonStates)
 import {
-    showNotification // Import showNotification from ui.js
+    updateAutomationButtonStates // This function is defined in ui.js
+    showNotification,
+    updateDisplay,
+
 } from './ui.js';
-
 /**
- * Calcule le nombre de Points d'Ascension que le joueur gagnerait s'il effectuait une Ascension maintenant.
- * Basé sur le total cumulé de Bons Points gagnés (bonsPointsTotal).
- * @returns {Decimal} Le nombre de Points d'Ascension potentiels.
+ * Exécute les achats pour toutes les automatisations actives.
+ * Cette fonction est appelée par la boucle de jeu principale dans core.js.
  */
-export function calculatePotentialAscensionPoints() {
-    // Le nombre de PA gagnés est basé sur bonsPointsTotal divisé par un seuil.
-    // Chaque tranche du seuil donne 1 PA.
-    // Par exemple, si ASCENSION_POINT_THRESHOLD est 1e10, et bonsPointsTotal est 2.5e10,
-    // le joueur gagnerait 2 PA.
-    if (bonsPointsTotal.lt(ASCENSION_POINT_THRESHOLD)) {
-        return new Decimal(0);
+export function runAutomation() {
+    if (autoEleveActive) {
+        performPurchase('eleve', '1', true);
     }
-    return bonsPointsTotal.div(ASCENSION_POINT_THRESHOLD).floor();
+    if (autoClasseActive) {
+        performPurchase('classe', '1', true);
+    }
+    if (autoImageActive) {
+        performPurchase('image', '1', true);
+    }
+    if (autoProfesseurActive) {
+        performPurchase('Professeur', '1', true);
+    }
 }
 
 /**
- * Exécute le processus d'Ascension.
- * Réinitialise le jeu, ajoute les PA gagnés et déclenche les mises à jour nécessaires.
+ * Active ou désactive une automatisation spécifique.
+ * Gère le coût en Points d'Ascension et les notifications.
  * Cette fonction est appelée par events.js.
+ * @param {string} itemType - Le type d'objet à automatiser ('eleve', 'classe', 'image', 'Professeur').
+ * @param {number} baseCost - Le coût de base de l'automatisation en Points d'Ascension.
  */
-export function performAscension() {
-    const potentialPA = calculatePotentialAscensionPoints();
-
-    if (potentialPA.lt(1)) {
-        showNotification("Pas assez de Bons Points cumulés pour Ascender !");
-        return;
+export function toggleAutomation(itemType, baseCost) {
+    let currentAutomationState;
+    let automationFlagName;
+    switch (itemType) {
+        case 'eleve':
+            currentAutomationState = autoEleveActive;
+            automationFlagName = 'autoEleveActive';
+            break;
+        case 'classe':
+            currentAutomationState = autoClasseActive;
+            automationFlagName = 'autoClasseActive';
+            break;
+        case 'image':
+            currentAutomationState = autoImageActive;
+            automationFlagName = 'autoImageActive';
+            break;
+        case 'Professeur':
+            currentAutomationState = autoProfesseurActive;
+            automationFlagName = 'autoProfesseurActive';
+            break;
+        default:
+            console.error(`Type d'automatisation inconnu : ${itemType}`);
+            return;
     }
 
-    // Confirmation de l'Ascension (utilisation d'une notification personnalisée au lieu d'alert/confirm)
-    showNotification(`Ascension en cours ! Vous gagnez ${formatNumber(potentialPA, 0)} Points d'Ascension.`);
+    const cost = calculateAutomationCost(baseCost);
 
-    // Incrémenter le compteur d'Ascension
-    window.ascensionCount = ascensionCount.add(1); // Assigner le nouveau Decimal
+    if (currentAutomationState) {
+        // Désactiver l'automatisation
+        // Les variables autoEleveActive, etc., sont exportées avec 'let' de core.js,
+        // donc elles peuvent être réassignées directement.
+        if (automationFlagName === 'autoEleveActive') {
+            window.autoEleveActive = false;
+        }
+        if (automationFlagName === 'autoClasseActive') {
+            window.autoClasseActive = false;
+        }
+        if (automationFlagName === 'autoImageActive') {
+            window.autoImageActive = false;
+        }
+        if (automationFlagName === 'autoProfesseurActive') {
+            window.autoProfesseurActive = false;
+        }
 
-    // Ajouter les Points d'Ascension gagnés
-    window.ascensionPoints = ascensionPoints.add(potentialPA); // Assigner le nouveau Decimal
-    window.totalPAEarned = totalPAEarned.add(potentialPA); // Assigner le nouveau Decimal
-
-    // Réinitialiser l'état du jeu (sauf les bonus permanents et les PA)
-    softResetGame(); // Appelle la fonction de soft reset de core.js
-
-    // Appliquer tous les effets de compétences (y compris les bonus permanents d'Ascension)
-    applyAllSkillEffects();
-
-    // Mettre à jour l'interface utilisateur via updateDisplay qui orchestrera les appels UI
-    updateDisplay(); // Rafraîchit l'affichage global
-
-    // Sauvegarder l'état du jeu
-    saveGameState();
-
-    showNotification("Ascension terminée ! Une nouvelle ère commence.");
-}
-
-/**
- * Met à jour l'affichage des informations d'Ascension dans l'interface utilisateur.
- * Cette fonction est appelée par ui.js.
- * @param {object} domElements - Un objet contenant les références aux éléments DOM nécessaires.
- * Ex: { ascensionPointsDisplay, totalPAEarnedDisplay, ascensionCountDisplay, ascensionMenuContainer }
- */
-export function updateAscensionUI(domElements) {
-    const { ascensionPointsDisplay, totalPAEarnedDisplay, ascensionCountDisplay, ascensionMenuContainer } = domElements;
-
-    if (ascensionPointsDisplay) ascensionPointsDisplay.textContent = formatNumber(ascensionPoints, 0);
-    if (totalPAEarnedDisplay) totalPAEarnedDisplay.textContent = formatNumber(totalPAEarned, 0);
-    if (ascensionCountDisplay) ascensionCountDisplay.textContent = formatNumber(ascensionCount, 0);
-
-    // Contrôler la visibilité du menu d'Ascension
-    if (ascensionMenuContainer) {
-        ascensionMenuContainer.style.display = ascensionUnlocked ? 'block' : 'none';
-    }
-}
-
-/**
- * Met à jour l'état (texte, classes CSS) du bouton d'Ascension.
- * Cette fonction est appelée par ui.js.
- * @param {object} domElements - Un objet contenant les références aux éléments DOM nécessaires.
- * Ex: { ascensionButton }
- */
-export function updateAscensionButtonStates(domElements) {
-    const { ascensionButton } = domElements;
-    const potentialPA = calculatePotentialAscensionPoints();
-
-    if (!ascensionButton) return;
-
-    if (potentialPA.gte(1)) {
-        ascensionButton.innerHTML = `Ascender ! Gagner ${formatNumber(potentialPA, 0)} PA`;
-        ascensionButton.classList.add('can-ascend');
-        ascensionButton.classList.remove('cannot-ascend');
+        showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} désactivée.`);
     } else {
-        ascensionButton.innerHTML = `Pas assez de BP pour Ascender (besoin de ${formatNumber(ASCENSION_POINT_THRESHOLD, 0)} BP)`;
-        ascensionButton.classList.add('cannot-ascend');
-        ascensionButton.classList.remove('can-ascend');
+        // Activer l'automatisation
+        if (ascensionPoints.gte(cost)) {
+            // ascensionPoints est une Decimal, la soustraction retourne une nouvelle Decimal
+            window.ascensionPoints = ascensionPoints.sub(cost);
+            if (automationFlagName === 'autoEleveActive') {
+                window.autoEleveActive = true;
+            }
+            if (automationFlagName === 'autoClasseActive') {
+                window.autoClasseActive = true;
+            }
+            if (automationFlagName === 'autoImageActive') {
+                window.autoImageActive = true;
+            }
+            if (automationFlagName === 'autoProfesseurActive') {
+                window.autoProfesseurActive = true;
+            }
+            showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} activée !`);
+        } else {
+            showNotification(`Pas assez de PA (${formatNumber(cost, 0)} PA) !`);
+            return; // Ne pas continuer si pas assez de PA
+        }
     }
+
+    // `updateDisplay()` est appelée pour rafraîchir l'affichage global,
+    // ce qui inclura la mise à jour des boutons d'automatisation via `ui.js`.
+    // L'appel direct à `updateAutomationButtonStates()` ici est supprimé
+    // pour éviter la redeclaration et maintenir la séparation des responsabilités.
+    updateDisplay();
+    saveGameState();
 }
+
+// La fonction `updateAutomationButtonStates` a été déplacée dans `ui.js`
+// et n'est plus définie ici pour éviter la redeclaration.
+// Ce fichier l'importe de `ui.js` pour l'utiliser si nécessaire.

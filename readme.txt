@@ -861,6 +861,10 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 
 
 
+
+/**
+ * automation.js
+ *
  * ------------------ Fiche Mémo : automation.js -----------------------------
  * Description : Ce fichier gère toute la logique et les fonctionnalités liées à l'automatisation
  * des achats dans le jeu. Il permet d'activer ou de désactiver l'automatisation pour
@@ -869,12 +873,12 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
- * autoClasseActive, autoImageActive, autoProfesseurActive), aux fonctions de notification
- * (showNotification), de sauvegarde (saveGameState), de mise à jour de l'affichage global
- * (updateDisplay), à la fonction d'achat générique (performPurchase), et à la fonction
- * de formatage des nombres (formatNumber).
+ * autoClasseActive, autoImageActive, autoProfesseurActive), à la fonction d'achat générique (performPurchase),
+ * et à la fonction de formatage des nombres (formatNumber).
  * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
- * - ui.js : Pour la mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).
+ * - ui.js : Fournit les fonctions de notification (showNotification) et de mise à jour
+ * de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates), aux fonctions de sauvegarde (saveGameState),
+ * de mise à jour de l'affichage global (updateDisplay) 
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -886,8 +890,6 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
  * - runAutomation() : Exécute les achats pour toutes les automatisations actives.
  * - toggleAutomation(itemType, baseCost) : Active ou désactive une automatisation spécifique,
  * gère le coût en Points d'Ascension et les notifications.
- * - updateAutomationButtonStates(domElements) : Met à jour l'état (texte, classes CSS)
- * des boutons d'automatisation dans l'interface utilisateur.
  *
  * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
  * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.

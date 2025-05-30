@@ -9,11 +9,12 @@
  *
  * Dépendances :
  * - core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
- * autoClasseActive, autoImageActive, autoProfesseurActive),  de sauvegarde (saveGameState),  à la fonction d'achat générique (performPurchase), et à la fonction
- * de formatage des nombres (formatNumber).
+ * autoClasseActive, autoImageActive, autoProfesseurActive), à la fonction d'achat générique (performPurchase),
+ * et à la fonction de formatage des nombres (formatNumber).
  * - data.js : Contient la fonction de calcul des coûts d'automatisation (calculateAutomationCost).
- * - ui.js : Fournit la fonction de mise à jour de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates).aux fonctions de notification
- * (showNotification),de mise à jour de l'affichage global  * (updateDisplay),
+ * - ui.js : Fournit les fonctions de notification (showNotification) et de mise à jour
+ * de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates), aux fonctions de sauvegarde (saveGameState),
+ * de mise à jour de l'affichage global (updateDisplay) 
  *
  * Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
  * - ascensionPoints : Monnaie utilisée pour acheter les automatisations.
@@ -55,10 +56,10 @@ import {
 import {
     calculateAutomationCost
 } from './data.js';
-// Importations des fonctions d'UI depuis ui.js (pour updateAutomationButtonStates)
+// Importations des fonctions d'UI depuis ui.js
 import {
+    showNotification, // Import showNotification from ui.js
     updateAutomationButtonStates, // This function is defined in ui.js
-    showNotification,
     updateDisplay
 } from './ui.js';
 /**
@@ -117,18 +118,18 @@ export function toggleAutomation(itemType, baseCost) {
     if (currentAutomationState) {
         // Désactiver l'automatisation
         // Les variables autoEleveActive, etc., sont exportées avec 'let' de core.js,
-        // donc elles peuvent être réassignées directement.
+        // donc elles peuvent être réaffectées directement.
         if (automationFlagName === 'autoEleveActive') {
-            window.autoEleveActive = false;
+            autoEleveActive.value = false;
         }
         if (automationFlagName === 'autoClasseActive') {
-            window.autoClasseActive = false;
+            autoClasseActive.value = false;
         }
         if (automationFlagName === 'autoImageActive') {
-            window.autoImageActive = false;
+            autoImageActive.value = false;
         }
         if (automationFlagName === 'autoProfesseurActive') {
-            window.autoProfesseurActive = false;
+            autoProfesseurActive.value = false;
         }
 
         showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} désactivée.`);
@@ -136,18 +137,18 @@ export function toggleAutomation(itemType, baseCost) {
         // Activer l'automatisation
         if (ascensionPoints.gte(cost)) {
             // ascensionPoints est une Decimal, la soustraction retourne une nouvelle Decimal
-            window.ascensionPoints = ascensionPoints.sub(cost);
+            ascensionPoints.assign(ascensionPoints.sub(cost)); // Utiliser assign pour Decimal
             if (automationFlagName === 'autoEleveActive') {
-                window.autoEleveActive = true;
+                autoEleveActive.value = true;
             }
             if (automationFlagName === 'autoClasseActive') {
-                window.autoClasseActive = true;
+                autoClasseActive.value = true;
             }
             if (automationFlagName === 'autoImageActive') {
-                window.autoImageActive = true;
+                autoImageActive.value = true;
             }
             if (automationFlagName === 'autoProfesseurActive') {
-                window.autoProfesseurActive = true;
+                autoProfesseurActive.value = true;
             }
             showNotification(`Auto ${itemType.charAt(0).toUpperCase() + itemType.slice(1)} activée !`);
         } else {
