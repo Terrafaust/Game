@@ -1187,9 +1187,9 @@ const prestigePointsGainedDisplay = document.getElementById('prestigePointsGaine
 // Dépendances :
 // - core.js : Pour accéder et modifier les variables d'état du jeu (isDayTheme,
 //             offlineProgressEnabled, minimizeResourcesActive, themeOptionUnlocked,
-//             images), pour appeler showNotification, saveGameState, updateDisplay,
+//             images), pour appeler saveGameState,
 //             updateSectionVisibility, updateSettingsButtonStates.
-// - ui.js : Pour appeler openStatsModal et closeStatsModal (bien que closeStatsModal
+// - ui.js : Pour appeler updateDisplay, showNotification, openStatsModal et closeStatsModal (bien que closeStatsModal
 //          soit gérée par l'événement de clic sur la modale elle-même dans events.js).
 
 // Fonctions Clés Définies et Exportées :

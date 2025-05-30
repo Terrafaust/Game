@@ -9,9 +9,9 @@
 // Dépendances :
 // - core.js : Pour accéder et modifier les variables d'état du jeu (isDayTheme,
 //             offlineProgressEnabled, minimizeResourcesActive, themeOptionUnlocked,
-//             images), pour appeler showNotification, saveGameState, updateDisplay,
+//             images), pour appeler saveGameState,
 //             updateSectionVisibility, updateSettingsButtonStates.
-// - ui.js : Pour appeler openStatsModal et closeStatsModal (bien que closeStatsModal
+// - ui.js : Pour appeler openStatsModal, showNotification, updateDisplay, et closeStatsModal (bien que closeStatsModal
 //          soit gérée par l'événement de clic sur la modale elle-même dans events.js).
 
 // Fonctions Clés Définies et Exportées :
@@ -23,12 +23,11 @@
 // --- Imports des modules nécessaires ---
 import {
     isDayTheme, images, themeOptionUnlocked, offlineProgressEnabled,
-    minimizeResourcesActive, newSettingsUnlocked, statsButtonUnlocked,
-    showNotification, saveGameState, updateDisplay, updateSectionVisibility,
+    minimizeResourcesActive, newSettingsUnlocked, statsButtonUnlocked, saveGameState, updateSectionVisibility,
     updateSettingsButtonStates
 } from './core.js';
 
-import { openStatsModal, closeStatsModal } from './ui.js'; // closeStatsModal est exporté mais géré par events.js
+import { openStatsModal, closeStatsModal, showNotification, updateDisplay, } from './ui.js'; // closeStatsModal est exporté mais géré par events.js
 
 /**
  * Bascule entre le thème jour et nuit.
