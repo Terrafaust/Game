@@ -1,3 +1,1942 @@
+MonJeuIncremental/
+├── index.html # Structure HTML de base
+├── style.css # Styles CSS
+├── break_infinity.min.js # Bibliothèque pour les grands nombres
+├── core.js # Fonctions principales, boucle de jeu
+├── data.js # Données du jeu (coûts, etc.)
+├── ui.js # Gestion de l'interface utilisateur
+├── events.js # Gestion des événements
+├── studies.js # Logique des études
+├── automation.js # Logique de l'automatisation
+├── skills.js # Logique des compétences
+├── ascension.js # Logique de l'ascension
+├── prestige.js # Logique du prestige
+├── settings.js # Paramètres du jeu
+├── quests.js # Logique des quêtes
+├── achievements.js # Logique des succès
+├── README.md # (Optionnel) Documentation du projet
+└── assets/ # (Optionnel) Dossier pour les images, sons, etc.
+
+
+
+
+
+<!-- Fiche Mémo : index.html
+//
+// Description : Ce fichier est le point d'entrée principal de l'application web.
+// Il définit la structure HTML globale du jeu, inclut les feuilles de style CSS,
+// les bibliothèques externes (comme break_infinity.min.js), et charge tous
+// les fichiers JavaScript modulaires qui contiennent la logique du jeu.
+// Il ne contient aucune logique JavaScript active, servant uniquement de conteneur
+// pour les éléments DOM et les inclusions de scripts.
+//
+// Objectif : Structurer l'interface utilisateur et orchestrer le chargement de tous
+// les composants JavaScript et CSS nécessaires au fonctionnement du jeu,
+// en fournissant la fondation sur laquelle la logique du jeu est construite.
+//
+// ------------------ Dépendances (Inclusions de Fichiers) ------------------
+//
+// - style.css : Fournit les styles visuels pour l'interface du jeu.
+//   Impact : Indispensable pour l'apparence générale, les thèmes et les modes jour/nuit.
+//
+// - break_infinity.min.js : Bibliothèque JavaScript pour la gestion des grands nombres.
+//   Impact : Doit être chargé en premier car il expose une variable globale `Decimal`
+//             utilisée par tous les autres scripts JavaScript pour les calculs numériques.
+//
+// - core.js : Fonctions principales du jeu, gestion de l'état global, sauvegarde/chargement,
+//             et la boucle de jeu.
+//   Impact : Contient la fonction `initializeGame()` appelée au chargement de la page.
+//
+// - data.js : Données statiques du jeu (coûts, multiplicateurs, définitions des compétences,
+//             quêtes, succès, etc.).
+//   Impact : Fournit les données utilisées par tous les modules de logique.
+//
+// - ui.js : Gestion de l'interface utilisateur, mise à jour de l'affichage des ressources,
+//           états des boutons, visibilité des sections.
+//   Impact : Manipule la visibilité des éléments DOM définis ici (ex: `display: none;`).
+//             Interagit avec les éléments de sélection de thème et de mode jour/nuit.
+//
+// - studies.js : Logique spécifique aux achats et à la production liés aux études
+//                (Élèves, Classes, Images, Professeurs).
+//   Impact : Référence et met à jour les éléments DOM des sections d'achat d'études.
+//
+// - automation.js : Logique de l'automatisation des achats.
+//   Impact : Référence et met à jour les éléments DOM de la section d'automatisation.
+//
+// - skills.js : Logique de l'arbre de compétences (achat, réinitialisation, application des effets).
+//   Impact : Référence et met à jour les éléments DOM de l'arbre de compétences.
+//
+// - ascension.js : Logique du mécanisme d'ascension (calcul des PA, achats d'Ascension, réinitialisation douce).
+//   Impact : Référence et met à jour les éléments DOM de la section d'ascension.
+//
+// - prestige.js : Logique du mécanisme de prestige (calcul des PP, achats de Prestige, réinitialisation super douce).
+//   Impact : Référence et met à jour les éléments DOM de la section de prestige.
+//
+// - settings.js : Logique des paramètres du jeu (thème, progression hors ligne, minimisation des ressources).
+//   Impact : Interagit directement avec les éléments DOM de la section paramètres,
+//             notamment le `<select id="themeSelector">` et les boutons de mode jour/nuit
+//             (`dayModeButton`, `nightModeButton`) pour appliquer les classes CSS au `<body>`.
+//
+// - quests.js : Logique du système de quêtes (définition, suivi de progression, récompenses).
+//   Impact : Référence et met à jour les éléments DOM de la section des quêtes.
+//
+// - achievements.js : Logique du système de succès (définition, vérification des conditions,
+//                     récompenses, infobulles).
+//   Impact : Référence et met à jour les éléments DOM de la section des succès et de l'infobulle.
+//
+// - events.js : Gestion centralisée de tous les écouteurs d'événements DOM (clics sur les boutons,
+//               changements d'état, etc.).
+//   Impact : Attache les gestionnaires d'événements à la plupart des éléments DOM interactifs
+//             définis dans ce fichier.
+//
+// ------------------ Variables Clés (JavaScript) ------------------
+//
+// Aucune variable JavaScript clé globale n'est définie ou gérée directement dans ce fichier.
+// Il sert uniquement de conteneur pour les éléments DOM et les inclusions de scripts.
+//
+// ------------------ Fonctions Clés (JavaScript) ------------------
+//
+// Aucune fonction JavaScript n'est définie ou exécutée directement dans ce fichier,
+// à l'exception du chargement des scripts externes et de l'appel à `initializeGame()`
+// de `core.js` via `window.onload`.
+//
+// ------------------ Éléments DOM Clés (par ID) ------------------
+//
+// - `<body>` : L'élément racine du contenu. Les classes de thème et de mode (`normal-theme`,
+//               `neon-sci-fi-theme`, `day-mode`, `night-mode`, etc.) sont appliquées ici
+//               par `settings.js` et `core.js` pour contrôler l'apparence via `style.css`.
+//
+// - `<div id="side-menu">` : Menu de navigation latéral.
+//   - Boutons de navigation : `studiesTabBtn`, `automationTabBtn`, `skillsTabBtn`,
+//     `ascensionTabBtn`, `prestigeTabBtn`, `settingsTabBtn`, `questsTabBtn`,
+//     `achievementsTabBtn`, `statsButton`.
+//     Impact : Leur visibilité est gérée par `ui.js`. Leurs styles sont définis dans `style.css`.
+//
+// - `<div id="main-content">` : Conteneur principal pour le contenu dynamique des sections.
+//
+// - `<div class="container">` : Conteneur de base pour l'affichage des ressources principales
+//                                et le bouton de clic "Études".
+//   - Affichage des ressources : `bonsPoints`, `totalBpsInline`, `imagesCount`,
+//     `nombreProfesseur`, `ascensionBonusValue`, `ascensionPointsCount`,
+//     `totalPAEarnedSpanInline`, `ascensionCountSpan`, `prestigePointsCount`,
+//     `prestigeCountSpan`.
+//     Impact : Mis à jour par `ui.js`. Les classes de couleur (ex: `bons-points-color`)
+//              sont définies dans `style.css`.
+//   - Titre cliquable des études : `studiesTitleButton`, `clickBonsPointsDisplay`.
+//     Impact : Cliquable pour la production de BP, géré par `events.js` et `studies.js`.
+//
+// - `<div id="studiesMainContainer">` : Section dédiée aux achats et à la production des études.
+//   - Sélecteur de multiplicateur d'achat : `purchaseMultiplierSelection` (conteneur),
+//     `multiplierButtonsContainer` (pour délégation d'événements), `setMultiplierX1`,
+//     `setMultiplierX10`, `setMultiplierX100`, `setMultiplierXmax`.
+//     Impact : Géré par `ui.js` et `events.js`.
+//   - Sections d'achat spécifiques : `achatEleveSection`, `achatClasseSection`,
+//     `achatProfesseurSection`, `achatImageSection`.
+//     - Boutons d'achat : `acheterEleveButton`, `acheterClasseButton`, `acheterProfesseurButton`,
+//       `acheterImageButton`.
+//       Impact : Gérés par `studies.js` et `events.js`. Leurs styles (`can-afford`, `cannot-afford`)
+//                sont définis dans `style.css`.
+//     - Affichage des quantités/productions : `nombreEleves`, `elevesBpsPerItem`, `nombreClasses`,
+//       `classesBpsPerItem`, `buyProfesseur`.
+//       Impact : Mis à jour par `ui.js` et `studies.js`.
+//
+// - `<div id="automationMainContainer">` : Section pour les options d'automatisation.
+//   - Boutons d'automatisation : `autoEleveBtn`, `autoClasseBtn`, `autoImageBtn`, `autoProfesseurBtn`.
+//     Impact : Gérés par `automation.js` et `events.js`. Leurs styles (`automation-active`)
+//              sont définis dans `style.css`.
+//
+// - `<div id="skillsContainer">` : Section pour l'arbre de compétences.
+//   - Boutons d'action : `resetSkillsButton`, `buyAllSkillsButton`.
+//     Impact : Gérés par `skills.js` et `events.js`.
+//   - Panneaux de compétences : `studiesPanel`, `ascensionPanel`, `prestigePanel`.
+//     - Affichage des points : `studiesSkillsPointsCount`, `ascensionSkillsPointsCount`, `prestigeSkillsPointsCount`.
+//     - Grilles de compétences : `studiesSkillsGrid`, `ascensionSkillsGrid`, `prestigeSkillsGrid`.
+//       Impact : Le contenu est généré dynamiquement par `skills.js` et `ui.js`. Les styles
+//                des boîtes de compétences (`locked`, `unlocked`, `max-level`) sont dans `style.css`.
+//
+// - `<div id="settingsContainer">` : Section pour les paramètres du jeu.
+//   - Sélection du thème : `themeSelector` (select).
+//     Impact : La valeur sélectionnée est lue par `settings.js` pour appliquer la classe de thème au `<body>`.
+//   - Mode Jour/Nuit : `dayModeButton`, `nightModeButton`.
+//     Impact : Les clics sont gérés par `settings.js` pour appliquer les classes de mode au `<body>`.
+//   - Boutons de réinitialisation : `resetProgressionButton`.
+//     Impact : Géré par `core.js` et `events.js`.
+//   - Paramètres divers : `offlineProgressToggle` (checkbox), `toggleMinimalistResources` (bouton), `statsButton` (bouton).
+//     Impact : Gérés par `settings.js` et `events.js`.
+//
+// - `<div id="ascensionMenuContainer">` : Section pour le mécanisme d'ascension.
+//   - Titre cliquable d'ascension : `ascensionTitleButton`.
+//     Impact : Géré par `ascension.js` et `events.js`.
+//   - Affichage des PA : `ascensionMenuPACount`.
+//   - Boutons d'achat d'ascension : `acheterEcoleButton`, `acheterLyceeButton`, `acheterCollegeButton`.
+//     - Affichage des coûts : `coutEcole`.
+//     - Affichage des quantités/multiplicateurs : `nombreEcoles`, `ecoleMultiplier`, `nombreLyceesDisplay`,
+//       `lyceeMultiplierDisplay`, `nombreCollegesDisplay`, `collegeMultiplierDisplay`.
+//     Impact : Gérés par `ascension.js` et `events.js`.
+//   - Boutons de déverrouillage : `unlockMultiPurchaseButton`, `unlockmaxPurchaseButton`,
+//     `unlockNewSettingsButton`, `unlockAutomationCategoryButton`.
+//     Impact : Gérés par `core.js` et `events.js`.
+//
+// - `<div id="prestigeMenuContainer">` : Section pour le mécanisme de prestige.
+//   - Titre cliquable de prestige : `prestigeTitleButton`.
+//     Impact : Géré par `prestige.js` et `events.js`.
+//   - Affichage des PP : `prestigeMenuPPCount`.
+//   - Boutons d'achat de prestige : `acheterLicenceButton`, `acheterMaster1Button`,
+//     `acheterMaster2Button`, `acheterDoctoratButton`, `acheterPostDoctoratButton`.
+//     - Affichage des quantités/boosts : `nombreLicences`, `licenceBoost`, `nombreMaster1`,
+//       `master1Boost`, `nombreMaster2`, `master2Boost`, `nombreDoctorat`, `doctoratBoost`,
+//       `doctoratMinClasses`, `nombrePostDoctorat`, `postDoctoratBoost`.
+//     Impact : Gérés par `prestige.js` et `events.js`.
+//
+// - `<div id="questsContainer">` : Section pour les quêtes.
+//   - Conteneurs des listes de quêtes : `questsList` (actives), `completedQuestsList` (terminées).
+//     Impact : Le contenu est généré dynamiquement par `quests.js` et `ui.js`.
+//
+// - `<div id="achievementsContainer">` : Section pour les succès.
+//   - Grille des succès : `achievementsGrid`.
+//     Impact : Le contenu est généré dynamiquement par `achievements.js` et `ui.js`.
+//   - Infobulle des succès : `achievementTooltip`.
+//     Impact : Gérée par `achievements.js` et `events.js`.
+//
+// - `<footer id="page-footer">` : Pied de page.
+//
+// - `<div id="notifications-container">` : Conteneur pour les notifications pop-up.
+//   Impact : Les notifications sont ajoutées dynamiquement par `ui.js`.
+//
+// - `<div id="minimalistResources">` : Panneau d'affichage minimaliste des ressources.
+//   - Affichage des ressources : `miniBonsPoints`, `miniImages`, `miniProfesseur`,
+//     `miniAscensionPoints`, `miniAscensionCount`, `miniPrestigePoints`, `miniPrestigeCount`.
+//     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
+//
+// - Modales de confirmation : `confirmResetModal`, `confirmAscensionModal`, `confirmPrestigeModal`.
+//   - Contenu des modales : `modal-content`.
+//   - Boutons de confirmation : `confirmResetYes`, `confirmResetNo`, `confirmAscensionYes`,
+//     `confirmAscensionNo`, `confirmPrestigeYes`, `confirmPrestigeNo`.
+//     Impact : Leur visibilité est gérée par `ui.js`. Les actions sont gérées par `events.js`.
+//   - Éléments spécifiques à l'ascension : `ascensionModalTitle`, `firstAscensionWarning`,
+//     `subsequentAscensionWarning`, `paGainedDisplay`, `disableAscensionWarningCheckbox`.
+//   - Éléments spécifiques au prestige : `prestigeWarningText`, `disablePrestigeWarningCheckbox`.
+//
+// - `<div id="statsModal">` : Modale des statistiques.
+//   - Bouton de fermeture : `close-button`.
+//   - Catégories de statistiques : `stats-category` (avec `h3` et `p`).
+//     - Affichage des statistiques : `statsCurrentBPS`, `statsSkillBonus`, `statsAscensionBonus`,
+//       `statsPrestigeBPSBonus`, `statsAchievementBPSBonus`, `statsAllBPSMultiplier`,
+//       `statsBonsPoints`, `statsImages`, `statsProfesseur`, `statsProfMultiplier`,
+//       `statsAscensionPoints`, `statsPrestigePoints`, `statsEleveCostReduction`, etc.
+//     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - Ordre des scripts : L'ordre d'inclusion des balises `<script type="module">` est crucial
+//   en raison des dépendances entre les modules JavaScript. `break_infinity.min.js` doit être
+//   chargé globalement avant tous les modules. Ensuite, les modules sont chargés dans un ordre
+//   qui garantit que leurs dépendances sont déjà disponibles.
+//
+// - Classes CSS dynamiques : De nombreux éléments ont des styles `display: none;` ou des classes
+//   (comme `active`, `unlocked`, `can-afford`, `cannot-afford`, `normal-theme`, `day-mode`)
+//   qui sont manipulés dynamiquement par les scripts JavaScript (principalement `ui.js`, `core.js`, `settings.js`)
+//   pour contrôler leur visibilité et leur apparence.
+//
+// - Bonnes pratiques : Le code HTML est structuré de manière sémantique, avec des IDs clairs
+//   pour faciliter la manipulation par JavaScript et des commentaires pour la lisibilité.
+//   Les styles inline ont été minimisés au profit de classes CSS gérées par `style.css`.
+//
+// ---------------------------------------------------------------------
+
+
+
+
+
+// ------------------ Fiche Mémo : style.css ----------------------------
+//
+// Description : Ce fichier CSS est le cœur de la présentation visuelle du jeu.
+// Il définit l'apparence de tous les éléments HTML, y compris la mise en page générale,
+// les couleurs, la typographie, les transitions, et les styles spécifiques pour les
+// différents composants de l'interface utilisateur (menus, boutons, modales, sections de jeu, etc.).
+// Il inclut également des styles pour les différents thèmes et assure la réactivité de l'interface.
+//
+// Objectif : Fournir une couche de présentation cohérente et réactive pour le jeu,
+// permettant une personnalisation visuelle via des thèmes et des modes jour/nuit.
+//
+// ------------------ Variables CSS Clés Définies et Utilisées ------------------
+// Ces variables sont définies au niveau de `:root` ou sur le `body` avec des classes
+// spécifiques pour les thèmes et modes. Elles sont utilisées partout dans le CSS
+// pour assurer la cohérence visuelle et faciliter les changements de thème/mode.
+//
+// Variables de couleurs générales :
+// --main-bg-color: Couleur de fond principale du corps du document.
+// --text-color: Couleur de texte par défaut.
+// --container-bg-color: Couleur de fond des conteneurs principaux (sections de jeu, modales).
+// --border-color: Couleur des bordures générales.
+// --box-shadow-light, --box-shadow-medium, --box-shadow-dark: Couleurs pour les ombres portées, variant en intensité.
+//
+// Variables spécifiques aux éléments de l'interface :
+// --side-menu-bg-color: Couleur de fond du menu latéral.
+// --side-menu-border-color: Couleur de bordure du menu latéral.
+// --achat-section-bg-color: Couleur de fond des sections d'achat.
+// --achat-section-border-color: Couleur de bordure des sections d'achat.
+// --button-bg-color: Couleur de fond des boutons.
+// --button-text-color: Couleur du texte des boutons.
+// --button-border-color: Couleur de bordure des boutons.
+// --button-hover-bg-color: Couleur de fond des boutons au survol.
+// --button-can-afford-border: Couleur de bordure des boutons si l'achat est possible.
+// --button-cannot-afford-border: Couleur de bordure des boutons si l'achat n'est pas possible.
+// --notification-bg-color: Couleur de fond des notifications.
+// --notification-text-color: Couleur du texte des notifications.
+// --modal-bg-color: Couleur de fond des modales.
+// --modal-border-color: Couleur de bordure des modales.
+// --modal-shadow-color: Couleur de l'ombre des modales.
+// --footer-bg-color: Couleur de fond du pied de page.
+// --footer-text-color: Couleur du texte du pied de page.
+// --footer-border-color: Couleur de bordure du pied de page.
+// --skill-panel-bg-color: Couleur de fond des panneaux de compétences.
+// --skill-panel-border-color: Couleur de bordure des panneaux de compétences.
+// --skill-tier-bg-color: Couleur de fond des niveaux de compétences.
+// --skill-tier-border-color: Couleur de bordure des niveaux de compétences.
+// --skill-box-locked-bg: Couleur de fond d'une compétence verrouillée.
+// --skill-box-locked-border: Couleur de bordure d'une compétence verrouillée.
+// --skill-box-locked-text: Couleur du texte d'une compétence verrouillée.
+// --skill-box-unlocked-bg: Couleur de fond d'une compétence débloquée.
+// --skill-box-unlocked-border: Couleur de bordure d'une compétence débloquée.
+// --skill-box-unlocked-text: Couleur du texte d'une compétence débloquée.
+// --skill-box-max-level-bg: Couleur de fond d'une compétence au niveau max.
+// --skill-box-max-level-border: Couleur de bordure d'une compétence au niveau max.
+// --skill-box-max-level-text: Couleur du texte d'une compétence au niveau max.
+// --achievement-item-bg: Couleur de fond d'un élément de succès.
+// --achievement-item-border: Couleur de bordure d'un élément de succès.
+// --achievement-item-text: Couleur du texte d'un élément de succès.
+// --achievement-item-desc-text: Couleur de la description d'un élément de succès.
+// --achievement-unlocked-bg: Couleur de fond d'un succès débloqué.
+// --achievement-unlocked-border: Couleur de bordure d'un succès débloqué.
+// --achievement-tooltip-bg: Couleur de fond des infobulles de succès.
+// --achievement-tooltip-text: Couleur du texte des infobulles de succès.
+// --quest-item-bg: Couleur de fond d'un élément de quête.
+// --quest-item-border: Couleur de bordure d'un élément de quête.
+// --quest-item-text: Couleur du texte d'un élément de quête.
+// --quest-item-desc-text: Couleur de la description d'un élément de quête.
+// --quest-item-completed-bg: Couleur de fond d'une quête complétée.
+// --quest-item-completed-border: Couleur de bordure d'une quête complétée.
+// --minimalist-resource-bg: Couleur de fond du panneau de ressources minimaliste.
+// --minimalist-resource-text: Couleur du texte du panneau de ressources minimaliste.
+// --minimalist-resource-border: Couleur de bordure du panneau de ressources minimaliste.
+//
+// Variables de couleurs de ressources (utilisées pour le texte des ressources et les titres) :
+// --bons-points-color: Couleur pour les Bons Points.
+// --images-color: Couleur pour les Images.
+// --eleves-color: Couleur pour les Élèves.
+// --professeur-color: Couleur pour les Professeurs.
+// --ascension-points-color: Couleur pour les Points d'Ascension.
+// --prestige-points-color: Couleur pour les Points de Prestige.
+// --warning-color: Couleur pour les avertissements (ex: titres de modales de réinitialisation).
+// --info-color: Couleur pour les informations (ex: titres de sections).
+//
+// Variables de dégradés pour les boutons :
+// --button-gradient-start: Couleur de début du dégradé de bouton.
+// --button-gradient-end: Couleur de fin du dégradé de bouton.
+// --button-hover-gradient-start: Couleur de début du dégradé de bouton au survol.
+// --button-hover-gradient-end: Couleur de fin du dégradé de bouton au survol.
+// --button-active-gradient-start: Couleur de début du dégradé de bouton actif.
+// --button-active-gradient-end: Couleur de fin du dégradé de bouton actif.
+//
+// Variables pour les animations RGB (spécifiques au thème RGB) :
+// --rgb-color-start, --rgb-color-middle, --rgb-color-end: Couleurs utilisées dans les animations RGB.
+//
+// ------------------ Classes/Sélecteurs Clés et Leur But ------------------
+//
+// body: Style général du corps, gestion de la police, du flexbox principal, des couleurs de fond et de texte par défaut.
+// body.normal-theme.day-mode: Définit les variables CSS pour le thème "Normal" en mode "Jour".
+// body.normal-theme.night-mode: Définit les variables CSS pour le thème "Normal" en mode "Nuit".
+// body.neon-sci-fi-theme.day-mode: Définit les variables CSS pour le thème "Neon-sci-fi" en mode "Jour".
+// body.neon-sci-fi-theme.night-mode: Définit les variables CSS pour le thème "Neon-sci-fi" en mode "Nuit".
+// body.steampunk-theme.day-mode: Définit les variables CSS pour le thème "Steampunk" en mode "Jour".
+// body.steampunk-theme.night-mode: Définit les variables CSS pour le thème "Steampunk" en mode "Nuit".
+// body.retro-theme.day-mode: Définit les variables CSS pour le thème "Rétro" en mode "Jour".
+// body.retro-theme.night-mode: Définit les variables CSS pour le thème "Rétro" en mode "Nuit".
+// body.pink-theme.day-mode: Définit les variables CSS pour le thème "Pink" en mode "Jour".
+// body.pink-theme.night-mode: Définit les variables CSS pour le thème "Pink" en mode "Nuit".
+// body.black-gold-theme.day-mode: Définit les variables CSS pour le thème "Black and Gold" en mode "Jour".
+// body.black-gold-theme.night-mode: Définit les variables CSS pour le thème "Black and Gold" en mode "Nuit".
+// body.rgb-theme.day-mode: Définit les variables CSS pour le thème "RGB" en mode "Jour".
+// body.rgb-theme.night-mode: Définit les variables CSS pour le thème "RGB" en mode "Nuit".
+//
+// .main-game-wrapper: Conteneur principal flexible pour la mise en page (menu latéral + contenu principal).
+// #side-menu: Menu de navigation latéral, incluant les boutons de section.
+// .achat-section: Styles pour les blocs d'achat d'unités/améliorations.
+// #main-content: Conteneur principal du contenu de jeu (sections dynamiques).
+// .container: Style de base pour les conteneurs centrés (ex: écran d'accueil).
+// button: Styles généraux des boutons (dégradés, bordures, ombres, transitions).
+// button.can-afford: Styles spécifiques pour les boutons d'achat si le coût est abordable.
+// button.cannot-afford: Styles spécifiques pour les boutons d'achat si le coût n'est pas abordable.
+// button.automation-active: Style pour les boutons d'automatisation actifs.
+// .ressources: Conteneur pour l'affichage des ressources.
+// .resource-group: Groupe individuel de ressources (nom, quantité, production).
+// .production-inline: Texte de production par seconde affiché à côté des ressources.
+// .bons-points-color, .images-color, etc.: Classes pour appliquer les couleurs spécifiques aux ressources.
+// #notifications-container: Conteneur des notifications flottantes.
+// .notification-item: Style d'une notification individuelle.
+// #confirmResetModal, #confirmAscensionModal, etc.: Sélecteurs pour les modales de confirmation.
+// .modal-content: Contenu stylisé des modales.
+// #skillsContainer, #settingsContainer, etc.: Conteneurs des différentes sections du jeu, cachés par défaut.
+// .skill-panel: Panneau regroupant les compétences d'un type (études, ascension, prestige).
+// .skill-tier: Regroupement de compétences par niveau/palier.
+// .skill-box: Boîte individuelle représentant une compétence.
+// .skill-box.locked, .skill-box.unlocked, .skill-box.max-level: États visuels des compétences.
+// .skill-box .tooltip-text: Infobulle détaillée d'une compétence.
+// .skill-box.secret-skill: Style pour les compétences secrètes.
+// #ascensionMenuContainer .achat-section: Styles spécifiques pour les sections d'achat dans le menu d'ascension.
+// .multiplier-button: Boutons de sélection du multiplicateur d'achat (x1, x10, etc.).
+// .multiplier-button.active: État actif d'un bouton multiplicateur.
+// #achievementsGrid: Grille d'affichage des succès.
+// .achievement-item: Boîte individuelle représentant un succès.
+// .achievement-item.unlocked: État visuel d'un succès débloqué.
+// .achievement-tooltip: Infobulle détaillée d'un succès (survol/clic).
+// #page-footer: Pied de page du jeu.
+// .quest-item: Boîte individuelle représentant une quête.
+// .quest-item.completed: État visuel d'une quête complétée.
+// #side-menu .bottom-buttons: Conteneur des boutons de bas de menu (sauvegarde, reset, stats).
+// #studiesMainContainer .header-row h1: Titre cliquable de la section Études.
+// #studiesMainContainer #purchaseMultiplierSelection: Sélecteur de multiplicateur spécifique aux études.
+// .studies-sections-wrapper, .studies-section-group: Conteneurs pour organiser les sections d'études.
+// #minimalistResources: Panneau d'affichage minimaliste des ressources.
+// #statsModal .stats-category: Catégories de statistiques dans la modale des statistiques.
+//
+// ------------------ Impact sur d'Autres Documents (Dépendances/Interactions) ------------------
+//
+// - index.html : Ce fichier CSS est directement lié via `<link rel="stylesheet" href="style.css">`.
+//   Il fournit la structure visuelle à tous les éléments définis dans `index.html`.
+//
+// - core.js :
+//   - `core.js` (et potentiellement `settings.js`) ajoutent/suppriment des classes (`.normal-theme.day-mode`, `.normal-theme.night-mode`, etc.)
+//     au `<body>` de `index.html` pour basculer entre les thèmes et les modes jour/nuit.
+//   - `core.js` met à jour les valeurs affichées des ressources et des coûts, et `style.css`
+//     applique les couleurs et styles correspondants via les classes `.bons-points-color`, etc.
+//   - `core.js` gère l'état `can-afford`/`cannot-afford` des boutons, et `style.css` applique les bordures
+//     correspondantes (`--button-can-afford-border`, `--button-cannot-afford-border`).
+//   - `core.js` gère l'activation/désactivation des automatisations, et `style.css` applique le style
+//     `.automation-active`.
+//   - `core.js` déclenche les notifications, dont l'apparence est définie par `.notification-item` et l'animation `fadeInOutSmooth`.
+//   - `core.js` gère l'ouverture/fermeture des modales, et `style.css` définit leur apparence (`.modal-content`).
+//   - `core.js` gère l'affichage des sections du jeu (`#skillsContainer`, etc.) via `display: none/flex`.
+//
+// - ui.js :
+//   - `ui.js` est fortement lié à `style.css` car il est responsable de la manipulation du DOM
+//     pour afficher les éléments et appliquer les classes qui sont stylisées ici.
+//   - `ui.js` met à jour les classes des éléments (ex: `.unlocked`, `.completed`, `.active`)
+//     en fonction de l'état du jeu, et `style.css` fournit les styles visuels pour ces états.
+//   - `ui.js` gère l'affichage des infobulles (`.skill-box .tooltip-text`, `.achievement-tooltip`)
+//     en manipulant leur `visibility` et `opacity`.
+//
+// - data.js :
+//   - `data.js` définit les données du jeu, mais `style.css` ne dépend pas directement de lui.
+//   - Les couleurs et styles définis dans `style.css` sont appliqués aux éléments qui affichent
+//     les données chargées depuis `data.js` (ex: noms de compétences, descriptions de succès).
+//
+// - settings.js :
+//   - `settings.js` contient la logique pour changer le thème et le mode (jour/nuit).
+//   - Il interagit directement avec `style.css` en ajoutant ou supprimant les classes CSS
+//     (`normal-theme`, `neon-sci-fi-theme`, `day-mode`, `night-mode`) sur l'élément `<body>`
+//     afin d'appliquer les variables CSS correspondantes définies dans ce fichier.
+//
+// - achievements.js, quests.js, skills.js, ascension.js, prestige.js, automation.js, studies.js :
+//   - Ces fichiers JavaScript manipulent le DOM pour créer et mettre à jour les éléments
+//     qui sont ensuite stylisés par `style.css`.
+//   - Par exemple, `achievements.js` crée les `.achievement-item` et leur applique la classe `.unlocked`
+//     lorsqu'un succès est débloqué, ce qui déclenche les styles définis ici.
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - Thèmes et Modes : Le système de thèmes et de modes est géré par des variables CSS
+//   (`--variable-name`) définies dans des blocs de règles ciblés par des classes sur le `<body>`.
+//   Par exemple, `body.normal-theme.day-mode` définit les couleurs pour le thème normal en mode jour.
+//   Cela permet une flexibilité maximale pour créer de nouvelles combinaisons thème/mode.
+//
+// - Réactivité : Utilisation intensive de `flexbox` (`display: flex`, `flex-wrap`) et de
+//   propriétés fluides (`width: 100%`, `flex: 1 1 auto`, `min-width`) ainsi que des media queries
+//   (`@media (max-width: 768px)`) pour assurer une adaptation optimale à différentes tailles d'écran
+//   (mobile, tablette, desktop).
+//
+// - Animations/Transitions : Des transitions CSS (`transition: property duration ease`) sont appliquées
+//   à de nombreux éléments pour des changements visuels doux (ex: couleurs de fond, bordures, ombres).
+//   Des animations `@keyframes` spécifiques sont utilisées pour des effets plus complexes, comme
+//   l'animation néon des boutons pour le thème "Neon-sci-fi" et l'animation RGB pour le thème "RGB".
+//
+// - Infobulles : Les infobulles pour les compétences et les succès (`.tooltip-text`, `.achievement-tooltip`)
+//   sont positionnées de manière absolue et gérées par l'opacité et la visibilité pour apparaître
+//   fluidement au survol ou au clic.
+//
+// - Structure des Variables : Chaque thème et mode (ex: `body.normal-theme.night-mode`) redéfinit
+//   un ensemble complet de variables CSS. Cela garantit que chaque combinaison thème/mode est
+//   autonome en termes de styles, simplifiant la gestion et la modification des apparences.
+//
+// ---------------------------------------------------------------------
+
+
+
+
+
+
+// ------------------ Fiche Mémo : core.js ----------------------------
+//
+// Description : Ce fichier est le cœur de la logique du jeu incrémental.
+// Il gère l'état global du jeu, les variables principales (ressources, compteurs, déverrouillages),
+// les fonctions essentielles de sauvegarde/chargement, les calculs de production,
+// la gestion des achats, l'application des effets de compétences/bonus,
+// et la boucle de jeu principale.
+//
+// Objectif : Centraliser l'état du jeu et les fonctions critiques pour assurer
+// la cohérence des données et la bonne exécution de la logique.
+//
+// ------------------ Variables Globales (état du jeu) ------------------
+//
+// export let bonsPoints;                     // Monnaie principale du jeu.
+// export let totalBonsPointsParSeconde;      // Production totale de Bons Points par seconde (BP/s).
+// export let bonsPointsTotal;                // Total cumulé de Bons Points gagnés (pour les succès/stats).
+// export let images;                         // Ressource "Images".
+// export let nombreEleves;                   // Nombre d'unités "Élèves".
+// export let nombreClasses;                  // Nombre d'unités "Classes".
+// export let nombreProfesseur;               // Nombre d'unités "Professeur".
+// export let schoolCount;                    // Nombre d'unités "Écoles".
+// export let nombreLycees;                   // Nombre d'unités "Lycées".
+// export let nombreColleges;                 // Nombre d'unités "Collèges".
+// export let ascensionPoints;                // Monnaie d'Ascension (PA).
+// export let ascensionCount;                 // Nombre d'Ascensions effectuées.
+// export let totalPAEarned;                  // Total cumulé de PA gagnés (pour le prestige).
+// export let ascensionBonus;                 // Multiplicateur de bonus d'Ascension.
+// export let prestigePoints;                 // Monnaie de Prestige (PP).
+// export let prestigeCount;                  // Nombre de Prestiges effectués.
+// export let totalClicks;                    // Total des clics sur le bouton "Étudier".
+// export let currentPurchaseMultiplier;      // Multiplicateur d'achat actuel (x1, x10, x100, max).
+//
+// ------------------ Variables de Déverrouillage des Fonctionnalités ------------------
+//
+// export let elevesUnlocked;                 // Vrai si les Élèves sont débloqués.
+// export let classesUnlocked;                // Vrai si les Classes sont débloquées.
+// export let imagesUnlocked;                 // Vrai si les Images sont débloquées.
+// export let ProfesseurUnlocked;             // Vrai si les Professeurs sont débloqués.
+// export let ascensionUnlocked;              // Vrai si l'Ascension est débloquée (peut être effectuée).
+// export let prestigeUnlocked;               // Vrai si le Prestige est débloqué (peut être effectuée).
+// export let skillsButtonUnlocked;           // Vrai si le bouton "Compétences" est débloqué.
+// export let settingsButtonUnlocked;         // Vrai si le bouton "Paramètres" est débloqué.
+// export let automationCategoryUnlocked;     // Vrai si la catégorie "Automatisation" est débloquée.
+// export let questsUnlocked;                 // Vrai si les "Quêtes" sont débloquées.
+// export let achievementsButtonUnlocked;     // Vrai si le bouton "Succès" est débloqué.
+// export let newSettingsUnlocked;            // Vrai si de nouveaux paramètres sont débloqués.
+// export let multiPurchaseOptionUnlocked;    // Vrai si les options d'achat multiple (x10, x100) sont débloquées.
+// export let maxPurchaseOptionUnlocked;      // Vrai si l'option d'achat "max" est débloquée.
+// export let statsButtonUnlocked;            // Vrai si le bouton "Statistiques" est débloqué.
+// export let prestigeMenuButtonUnlocked;     // Vrai si le bouton de menu "Prestige" est débloqué.
+// export let ascensionMenuButtonUnlocked;    // Vrai si le bouton de menu "Ascension" est débloqué.
+//
+// ------------------ Variables d'Automatisation ------------------
+//
+// export let autoEleveActive;                // Vrai si l'automatisation des Élèves est active.
+// export let autoClasseActive;               // Vrai si l'automatisation des Classes est active.
+// export let autoImageActive;                // Vrai si l'automatisation des Images est active.
+// export let autoProfesseurActive;           // Vrai si l'automatisation des Professeurs est active.
+//
+// ------------------ Variables de Compétences ------------------
+//
+// export let studiesSkillPoints;             // Points de compétence d'Études.
+// export let ascensionSkillPoints;           // Points de compétence d'Ascension.
+// export let prestigeSkillPoints;            // Points de compétence de Prestige.
+// export let studiesSkillLevels;             // Objet { skillId: level, ... } pour les niveaux de compétences d'études.
+// export let ascensionSkillLevels;           // Objet { skillId: level, ... } pour les niveaux de compétences d'ascension.
+// export let prestigeSkillLevels;            // Objet { skillId: level, ... } pour les niveaux de compétences de prestige.
+// export let secretSkillClicks;              // Compteur pour la compétence secrète (clics).
+//
+// ------------------ Variables de Paramètres ------------------
+//
+// export let isDayTheme;                     // Vrai si le thème actuel est le thème de jour.
+// export let themeOptionUnlocked;            // Vrai si l'option de changement de thème est débloquée.
+// export let offlineProgressEnabled;         // Vrai si le progrès hors ligne est activé.
+// export let minimizeResourcesActive;        // Vrai si l'affichage des ressources est minimisé.
+// export let disableAscensionWarning;        // Vrai pour désactiver l'avertissement de première ascension.
+// export let firstAscensionPerformed;        // Vrai si la première ascension a été effectuée.
+// export let disablePrestigeWarning;         // Vrai pour désactiver l'avertissement de prestige.
+//
+// ------------------ Variables de Prestige (quantités d'achats de prestige) ------------------
+//
+// export let nombreLicences;                 // Nombre de Licences achetées.
+// export let nombreMaster1;                  // Nombre de Master 1 achetés.
+// export let nombreMaster2;                  // Nombre de Master 2 achetés.
+// export let nombreDoctorat;                 // Nombre de Doctorats achetés.
+// export let nombrePostDoctorat;             // Nombre de Post-Doctorats achetés.
+//
+// ------------------ Objets de Bonus Cumulés (skillEffects) ------------------
+// Cet objet agrège tous les multiplicateurs et réductions de coût provenant
+// des compétences, succès et achats de prestige. Il est mis à jour par applyAllSkillEffects.
+//
+// export let skillEffects = {
+//     clickBonsPointsBonus: new Decimal(0),       // Bonus additif aux BP gagnés par clic.
+//     eleveBpsMultiplier: new Decimal(1),         // Multiplicateur de production des Élèves.
+//     classeBpsMultiplier: new Decimal(1),        // Multiplicateur de production des Classes.
+//     imageBpsMultiplier: new Decimal(1),         // Multiplicateur de production des Images.
+//     ProfesseurBpsMultiplier: new Decimal(1),    // Multiplicateur de production des Professeurs.
+//     eleveCostReduction: new Decimal(0),         // Pourcentage de réduction du coût des Élèves (0 à 1).
+//     classeCostReduction: new Decimal(0),        // Pourcentage de réduction du coût des Classes.
+//     imageCostReduction: new Decimal(0),         // Pourcentage de réduction du coût des Images.
+//     ProfesseurCostReduction: new Decimal(0),    // Pourcentage de réduction du coût des Professeurs.
+//     ecoleCostReduction: new Decimal(0),         // Pourcentage de réduction du coût des Écoles.
+//     automationCostReduction: new Decimal(0),    // Pourcentage de réduction du coût d'automatisation.
+//     allCostReduction: new Decimal(0),           // Réduction de coût globale.
+//     allBpsMultiplier: new Decimal(1),           // Multiplicateur de production globale de BP/s.
+//     paGainMultiplier: new Decimal(1),           // Multiplicateur de gain de Points d'Ascension.
+//     ascensionBonusIncrease: new Decimal(0),     // Augmentation additive du bonus d'Ascension.
+//     offlineProductionIncrease: new Decimal(0),  // Augmentation du progrès hors ligne.
+//     allProductionMultiplier: new Decimal(1),    // Multiplicateur de production de toutes les structures.
+//     licenceProfMultiplier: new Decimal(0),      // Pourcentage de boost du multiplicateur Professeur par Licence.
+//     master1ClassProduction: new Decimal(0),     // Pourcentage de boost de la production des Classes par Master I.
+//     master2ClassProduction: new Decimal(0),     // Pourcentage de boost de la production des Classes par Master II.
+//     doctoratBPSBonus: new Decimal(0),           // Pourcentage de boost BP/s du Doctorat.
+//     doctoratMinClasses: 0,                      // Nombre minimum de classes après Ascension par Doctorat.
+//     postDoctoratPAGain: new Decimal(0),         // Pourcentage de boost de gain de PA par Ascension par Post-Doctorat.
+// };
+//
+// ------------------ Variables pour les Coûts Actuels ------------------
+// Ces variables stockent les coûts actuels des achats pour l'affichage dans ui.js.
+//
+// export let coutEleveActuel;                // Coût actuel d'un Élève.
+// export let coutClasseActuel;               // Coût actuel d'une Classe.
+// export let coutImageActuel;                // Coût actuel d'une Image.
+// export let coutProfesseurActuel;           // Coût actuel d'un Professeur.
+// export let coutEcoleActuel;                // Coût actuel d'une École.
+// export let coutLyceeActuel;                // Coût actuel d'un Lycée.
+// export let coutCollegeActuel;              // Coût actuel d'un Collège.
+// export let coutLicenceActuel;              // Coût actuel d'une Licence.
+// export let coutMaster1Actuel;              // Coût actuel d'un Master 1.
+// export let coutMaster2Actuel;              // Coût actuel d'un Master 2.
+// export let coutDoctoratActuel;             // Coût actuel d'un Doctorat.
+// export let coutPostDoctoratActuel;         // Coût actuel d'un Post-Doctorat.
+//
+// ------------------ Variables de Temps pour la Boucle de Jeu ------------------
+//
+// export const gameTickInterval = 50;        // Intervalle de mise à jour de la logique du jeu en ms.
+// export const displayUpdateInterval = 100;  // Intervalle de mise à jour de l'affichage en ms.
+// export const saveCheckInterval = 5000;     // Intervalle de sauvegarde en ms.
+//
+// export let lastUpdate = Date.now();        // Dernier timestamp de mise à jour pour le progrès hors ligne.
+// export let lastDisplayUpdateTime = 0;      // Dernier timestamp de mise à jour de l'affichage.
+// export let lastSaveCheckTime = 0;          // Dernier timestamp de vérification de sauvegarde.
+//
+// ------------------ Fonctions Utilitaires ------------------
+//
+// export function formatNumber(num, decimalPlaces = 2, exponentThreshold = 6)
+//   // Formate un nombre (Decimal ou number) en notation scientifique ou standard
+//   // (ex: 1.23K, 4.56M, 7.89e+9).
+//   // - num: Le nombre à formater.
+//   // - decimalPlaces: Nombre de décimales à afficher.
+//   // - exponentThreshold: Seuil d'exposant pour passer en notation scientifique.
+//
+// export function performPurchase(itemType, quantityRequested, isAutomated = false)
+//   // Gère l'achat d'un élément du jeu (Élève, Classe, Image, Professeur, École, Lycée, Collège,
+//   // Licences, Masters, Doctorats, Post-Doctorats).
+//   // Calcule le coût, déduit les ressources, incrémente le compteur d'éléments,
+//   // met à jour les quêtes, applique les effets de compétences et sauvegarde le jeu.
+//   // - itemType: Le type d'élément à acheter (chaîne de caractères).
+//   // - quantityRequested: La quantité à acheter (Decimal, '1', '10', '100', 'max').
+//   // - isAutomated: Vrai si l'achat est effectué par l'automatisation (désactive les notifications).
+//
+// ------------------ Fonctions de Sauvegarde et Chargement ------------------
+//
+// export function saveGameState()
+//   // Sauvegarde l'état actuel de toutes les variables du jeu dans le localStorage.
+//   // Convertit les objets Decimal en chaînes de caractères pour la sauvegarde.
+//
+// export function loadGameState()
+//   // Charge l'état du jeu depuis le localStorage.
+//   // Si aucune sauvegarde n'est trouvée, initialise le jeu à son état par défaut.
+//   // Convertit les chaînes de caractères chargées en objets Decimal.
+//   // Applique le thème, calcule le progrès hors ligne et affiche une notification.
+//
+// export function resetGameVariables()
+//   // Réinitialise toutes les variables du jeu à leur état initial par défaut.
+//   // Utilisée lors d'un nouveau jeu ou d'un hard reset.
+//
+// function resetSkillEffects()
+//   // Réinitialise l'objet skillEffects à ses valeurs par défaut.
+//   // Appelée avant d'appliquer les effets des compétences/bonus pour éviter les cumuls incorrects.
+//
+// export function hardResetGame()
+//   // Effectue une réinitialisation complète du jeu (hard reset).
+//   // Supprime la sauvegarde du localStorage et réinitialise toutes les variables.
+//
+// export function softResetGame()
+//   // Effectue une réinitialisation douce du jeu (soft reset), utilisée après une Ascension.
+//   // Réinitialise certaines variables (BP, images, élèves, classes, professeurs, clics, compétences d'études)
+//   // tout en conservant les déverrouillages majeurs et les progrès d'Ascension/Prestige.
+//
+// export function superSoftResetGame()
+//   // Effectue une réinitialisation super douce du jeu (super soft reset), utilisée après un Prestige.
+//   // Réinitialise la plupart des variables comme un soft reset, mais conserve les points de prestige
+//   // et les achats de prestige, et réinitialise les compétences d'Ascension.
+//
+// ------------------ Fonctions de Calcul et de Mise à Jour ------------------
+//
+// export function updateCosts()
+//   // Met à jour les coûts actuels de tous les éléments achetables (Élèves, Classes, Écoles, etc.)
+//   // en appelant les fonctions de calcul de coût respectives des autres modules.
+//
+// export function calculateTotalBPS()
+//   // Calcule la production totale de Bons Points par seconde (BP/s).
+//   // Prend en compte la production de base des unités et applique tous les multiplicateurs
+//   // provenant des compétences, de l'Ascension, du Prestige et des Succès.
+//
+// export function checkUnlockConditions()
+//   // Vérifie les conditions de déverrouillage de toutes les fonctionnalités du jeu
+//   // (nouvelles unités, menus, options) et les débloque si les conditions sont remplies.
+//   // Met à jour la visibilité des sections de l'interface utilisateur.
+//
+// export function applyAllSkillEffects()
+//   // Applique tous les effets cumulés des compétences (études, ascension, prestige),
+//   // des succès permanents et des bonus des achats de prestige.
+//   // Réinitialise skillEffects puis le reconstruit avec les bonus actifs.
+//
+// export function updateCachedMultipliers()
+//   // Met à jour les multiplicateurs mis en cache, en s'assurant que calculateTotalBPS
+//   // est appelée pour refléter les derniers effets.
+//
+// export function calculateOfflineProgress()
+//   // Calcule les Bons Points gagnés pendant que le joueur était hors ligne,
+//   // en fonction du temps écoulé et de la production hors ligne.
+//   // N'applique le progrès que si le temps écoulé dépasse un certain seuil.
+//
+// ------------------ Fonction d'Initialisation du Jeu ------------------
+//
+// export function initializeGame()
+//   // Fonction principale d'initialisation du jeu, appelée au chargement de la page.
+//   // Charge l'état du jeu, met à jour tous les éléments d'interface,
+//   // vérifie les déverrouillages initiaux et démarre la boucle de jeu principale.
+//   // La boucle de jeu met à jour la logique et l'affichage à intervalles réguliers.
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// Importations depuis './studies.js':
+//   - calculateNextEleveCost, calculateNextClasseCost, calculateNextImageCost, calculateNextProfessorCost
+//   - elevesBpsPerItem, classesBpsPerItem, imagesBpsPerItem, ProfesseurBpsPerItem
+// Importations depuis './automation.js':
+//   - calculateAutomationCost, runAutomation
+// Importations depuis './data.js':
+//   - skillsData, prime_PA, prestigePurchasesData
+// Importations depuis './ascension.js':
+//   - calculatePAGained, performAscension, calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost (modif 30/05)
+// Importations depuis './prestige.js':
+//   - calculatePPGained, performPrestige, getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost, calculateDoctoratCost, calculatePostDoctoratCost (modif 30/05)
+// Importations depuis './quests.js':
+//   - checkQuests, updateQuestProgress, questsData, completedQuests, paMultiplierFromQuests (modif 30/05)
+// Importations depuis './achievements.js':
+//   - checkAchievements, achievementsData, unlockedAchievements, permanentBpsBonusFromAchievements
+// Importations depuis './ui.js':
+//   - updateDisplay, updateButtonStates, updateSectionVisibility, updateAutomationButtonStates,
+//     updateSettingsButtonStates, renderSkillsMenu, renderQuests, renderAchievements,
+//     openTab, closeStatsModal, updateStatsDisplay, showAchievementTooltip,
+//     hideAchievementTooltip, toggleAchievementTooltip, showNotification (modif 30/05)
+//
+// Remarque: La bibliothèque break_infinity.min.js est supposée être chargée
+// globalement avant ce script pour la gestion des grands nombres.
+//
+// ---------------------------------------------------------------------
+
+
+
+
+
+// ------------------ Fiche Mémo : data.js -----------------------------
+//
+// Description : Ce fichier est le dépôt central de toutes les données statiques et de configuration du jeu.
+// Il contient les valeurs de base pour les coûts des améliorations, les productions des unités,
+// les définitions complètes des arbres de compétences (Études, Ascension, Prestige),
+// les détails des achats de Prestige, les définitions des quêtes,
+// et d'autres constantes ou seuils importants pour la progression du jeu.
+//
+// Objectif : Fournir une source unique et fiable pour toutes les données numériques et structurelles
+// du jeu qui ne changent pas dynamiquement pendant une partie.
+// Ce fichier ne contient aucune logique de jeu active (calculs, modifications d'état) ;
+// il est purement déclaratif.
+//
+// ------------------ Dépendances ------------------
+//
+// - `break_infinity.min.js` : La bibliothèque `Decimal` est supposée être globalement disponible.
+//   Impact : Essentielle pour toutes les valeurs numériques importantes définies ici,
+//             assurant une précision illimitée pour les très grands nombres.
+//             Toutes les propriétés numériques exportées sont des objets `Decimal`.
+//
+// ------------------ Variables Clés Définies et Exportées ------------------
+//
+// export const initialCosts : Objet JavaScript contenant les coûts de base initiaux pour chaque type d'achat.
+//   Description : Définit le coût de la première unité de chaque type d'amélioration.
+//   Type : Objet littéral, chaque valeur est un `Decimal`.
+//   Propriétés :
+//     - `eleve` (Decimal) : Coût de base pour acquérir un Élève.
+//     - `classe` (Decimal) : Coût de base pour acquérir une Classe.
+//     - `image` (Decimal) : Coût de base pour acquérir une Image.
+//     - `Professeur` (Decimal) : Coût de base pour acquérir un Professeur, exprimé en Images.
+//     - `ecole` (Decimal) : Coût de base pour acquérir une École, exprimé en Points d'Ascension (PA).
+//     - `lycee` (Decimal) : Coût de base pour acquérir un Lycée, exprimé en Points d'Ascension (PA).
+//     - `college` (Decimal) : Coût de base pour acquérir un Collège, exprimé en Points d'Ascension (PA).
+//     - `licence` (Decimal) : Coût de base pour acquérir une Licence, exprimé en Points de Prestige (PP).
+//     - `master1` (Decimal) : Coût de base pour acquérir un Master I, exprimé en Points de Prestige (PP).
+//     - `master2` (Decimal) : Coût de base pour acquérir un Master II, exprimé en Points de Prestige (PP).
+//     - `doctorat` (Decimal) : Coût de base pour acquérir un Doctorat, exprimé en Points de Prestige (PP).
+//     - `postDoctorat` (Decimal) : Coût de base pour acquérir un Post-Doctorat, exprimé en Points de Prestige (PP).
+//   Impact sur d'autres modules :
+//     - Utilisé par `studies.js` pour `calculateNextEleveCost`, `calculateNextClasseCost`,
+//       `calculateNextImageCost`, `calculateNextProfessorCost`.
+//     - Utilisé par `ascension.js` pour `calculateNextEcoleCost`, `calculateNextLyceeCost`,
+//       `calculateNextCollegeCost`.
+//     - Utilisé par `prestige.js` pour `calculateLicenceCost`, `calculateMaster1Cost`,
+//       `calculateMaster2Cost`, `calculateDoctoratCost`, `calculatePostDoctoratCost`.
+//     - `core.js` peut y accéder pour les coûts de base lors de la réinitialisation ou de l'initialisation.
+//
+// export const baseProductions : Objet JavaScript définissant la production de base de chaque unité.
+//   Description : Représente la quantité de Bons Points par seconde (BP/s) ou le multiplicateur
+//                 de production de base fourni par une seule unité de chaque type.
+//   Type : Objet littéral, chaque valeur est un `Decimal`.
+//   Propriétés :
+//     - `eleveBps` (Decimal) : Production de BP/s générée par un Élève.
+//     - `classeBps` (Decimal) : Production de BP/s générée par une Classe.
+//     - `imageBpsMultiplier` (Decimal) : Multiplicateur appliqué à la production totale de BP/s par Image.
+//     - `ProfesseurClassMultiplier` (Decimal) : Multiplicateur appliqué à la production des Classes par Professeur.
+//   Impact sur d'autres modules :
+//     - Utilisé par `studies.js` pour `calculateStudiesBPS`.
+//     - Utilisé par `core.js` dans `calculateTotalBPS` pour les calculs de production de base.
+//
+// export const skillsData : Objet complexe contenant les définitions structurées de tous les arbres de compétences du jeu.
+//   Description : Organisé par catégories ('studies', 'ascension', 'prestige'), chaque catégorie est un tableau de compétences.
+//                 Chaque compétence est un objet avec des propriétés définissant son comportement et son effet.
+//   Type : Objet littéral contenant des tableaux d'objets.
+//   Structure de chaque compétence :
+//     - `id` (string) : Identifiant unique.
+//     - `name` (string) : Nom affiché.
+//     - `description` (string) : Explication de l'effet.
+//     - `cost` (number) : Coût en points de compétence.
+//     - `maxLevel` (number) : Niveau maximal.
+//     - `tier` (number) : Rangée dans l'arbre.
+//     - `prerequisites` (array of strings) : IDs des compétences prérequises (doivent être au `maxLevel`).
+//     - `effect` (function) : Fonction exécutée à l'achat/changement de niveau, modifie `skillEffects` (de `core.js`).
+//   Impact sur d'autres modules :
+//     - Utilisé par `skills.js` pour la logique d'achat, de réinitialisation et d'application des effets.
+//     - Utilisé par `ui.js` dans `renderSkillPanel` pour générer l'affichage de l'arbre de compétences.
+//     - Utilisé par `core.js` dans `applyAllSkillEffects` pour appliquer les bonus cumulés.
+//
+// export const prestigePurchasesData : Tableau d'objets définissant toutes les améliorations permanentes
+//                                    qui peuvent être achetées avec la monnaie de Prestige (Points de Prestige - PP).
+//   Description : Chaque objet représente un achat de prestige avec ses propriétés, coûts, effets et prérequis.
+//   Type : Tableau d'objets.
+//   Structure de chaque achat de prestige :
+//     - `id` (string) : Identifiant unique.
+//     - `name` (string) : Nom affiché.
+//     - `baseCost` (Decimal) : Coût de base en PP.
+//     - `costMultiplier` (Decimal) : Multiplicateur de coût pour les achats successifs.
+//     - `getEffectValue` (function) : Calcule la valeur numérique de l'effet pour l'affichage.
+//     - `effect` (function) : Modifie `skillEffects` (de `core.js`) pour appliquer le bonus permanent.
+//     - `getMinClasses` (function, spécifique à 'doctorat') : Calcule le nombre min de classes après Ascension.
+//     - `prerequisites` (function) : Retourne `true` si les prérequis sont remplis pour l'achat.
+//   Impact sur d'autres modules :
+//     - Utilisé par `prestige.js` pour la logique d'achat et l'application des effets.
+//     - Utilisé par `ui.js` dans `updateStatsDisplay` pour afficher les bonus de prestige.
+//     - Utilisé par `core.js` dans `applyAllSkillEffects` pour les bonus cumulés.
+//
+// export const questsData : Tableau d'objets définissant toutes les quêtes disponibles dans le jeu.
+//   Description : Chaque quête est un objectif que le joueur peut accomplir pour obtenir des récompenses.
+//   Type : Tableau d'objets.
+//   Structure de chaque quête :
+//     - `id` (string) : Identifiant unique.
+//     - `name` (string) : Nom affiché.
+//     - `description` (string) : Texte décrivant l'objectif.
+//     - `condition` (function) : Fonction qui retourne `true` si l'objectif est atteint (prend des variables d'état du jeu).
+//     - `reward` (object) : Objet décrivant la récompense (`type`, `amount`).
+//     - `rewardText` (string) : Description textuelle de la récompense.
+//     - `current` (number, optionnel) : Suivi de la progression (géré par `quests.js`).
+//     - `unlocked` (boolean, optionnel) : Indique si la quête est visible (géré par `quests.js`).
+//     - `permanent` (boolean) : Indique si la quête persiste à travers les réinitialisations.
+//   Impact sur d'autres modules :
+//     - Utilisé par `quests.js` pour `updateQuestProgress` et `claimQuestReward`.
+//     - Utilisé par `ui.js` dans `renderQuests` pour afficher la liste des quêtes.
+//
+// export const bonusPointThresholds : Tableau d'objets Decimal définissant les seuils de Bons Points (BP)
+//                                   que le joueur doit atteindre pour gagner des Points de Compétence d'Études supplémentaires.
+//   Description : Chaque valeur représente un seuil successif pour l'obtention d'un point de compétence d'études.
+//   Type : Tableau de `Decimal`.
+//   Impact sur d'autres modules :
+//     - Utilisé par `core.js` pour la logique de gain de points de compétence d'études.
+//
+// export const prime_PA : Constante Decimal représentant la valeur de base utilisée dans le calcul
+//                       des Points d'Ascension (PA) gagnés lors d'une Ascension.
+//   Description : Sert de multiplicateur ou de base pour la formule de gain de PA.
+//   Type : `Decimal`.
+//   Impact sur d'autres modules :
+//     - Utilisé par `ascension.js` dans `calculatePAGained`.
+//
+// export const ASCENSION_POINT_THRESHOLD : Constante Decimal qui définit le seuil de Bons Points Total
+//                                        requis pour gagner 1 Point d'Ascension (PA) lors d'une Ascension.
+//   Description : Fondamentale pour déterminer la quantité de PA obtenue par le joueur.
+//   Type : `Decimal`.
+//   Impact sur d'autres modules :
+//     - Utilisé par `ascension.js` dans `calculatePAGained`.
+//
+// export const PRESTIGE_POINT_THRESHOLD : Constante Decimal qui définit le seuil de Points d'Ascension Total
+//                                        requis pour gagner 1 Point de Prestige (PP) lors d'un Prestige.
+//   Description : Fondamentale pour déterminer la quantité de PP obtenue par le joueur.
+//   Type : `Decimal`.
+//   Impact sur d'autres modules :
+//     - Utilisé par `prestige.js` dans `calculatePPGained`.
+//
+// ------------------ Logique Générale ------------------
+//
+// `data.js` est un fichier de configuration statique. Il ne contient aucune logique de jeu
+// active (pas de fonctions qui modifient l'état du jeu ou l'interface directement).
+// Son rôle est de centraliser toutes les valeurs numériques, les définitions de structures
+// (compétences, achats de prestige, quêtes) et les seuils qui sont constants tout au long
+// de la partie. Cela rend le jeu plus facile à équilibrer et à modifier, car toutes les
+// données clés sont regroupées en un seul endroit.
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - **Purement Déclaratif** : Ce fichier est conçu pour être purement déclaratif.
+//   Toutes les fonctions `effect` ou `condition` définies dans les objets (`skillsData`,
+//   `prestigePurchasesData`, `questsData`) sont des fonctions de rappel qui seront
+//   exécutées par d'autres modules (ex: `core.js`, `skills.js`, `quests.js`, `prestige.js`).
+//   Elles ne sont pas exécutées directement dans `data.js`.
+// - **Utilisation de Decimal** : L'utilisation de `new Decimal()` pour toutes les valeurs
+//   numériques importantes est cruciale pour gérer les très grands nombres inhérents aux jeux
+//   incrémentaux sans perte de précision.
+// - **Facilité de Modification** : La centralisation des données ici permet de modifier
+//   facilement l'équilibrage du jeu (coûts, productions, effets) sans avoir à toucher
+//   à la logique métier complexe.
+//
+// ---------------------------------------------------------------------
+
+
+
+
+
+
+
+// ------------------ Fiche Mémo : ui.js ----------------------------
+//
+// Description : Ce fichier est dédié à la gestion complète de l'interface utilisateur (UI) du jeu.
+// Son rôle principal est de traduire l'état interne du jeu (géré par `core.js` et d'autres modules
+// de logique) en une représentation visuelle interactive pour le joueur. Il est responsable
+// de la mise à jour de l'affichage de toutes les ressources, des états des boutons,
+// de la visibilité des sections et des onglets, de l'affichage des notifications,
+// et du rendu dynamique des menus complexes comme l'arbre de compétences, les quêtes et les succès.
+//
+// Objectif : Fournir une couche de présentation robuste et réactive, assurant que l'interface
+// utilisateur reflète fidèlement l'état actuel du jeu et permet des interactions fluides,
+// sans contenir de logique de jeu métier (calculs de production, achats, réinitialisations).
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// Ce module importe des variables d'état et des fonctions depuis d'autres fichiers JavaScript.
+//
+// - De './core.js' :
+//   - Variables d'état : `bonsPoints`, `totalBonsPointsParSeconde`, `images`, `nombreEleves`,
+//     `nombreClasses`, `nombreProfesseur`, `schoolCount`, `nombreLycees`, `nombreColleges`,
+//     `ascensionPoints`, `ascensionCount`, `totalPAEarned`, `ascensionBonus`, `prestigePoints`,
+//     `prestigeCount`, `totalClicks`, `currentPurchaseMultiplier`, `autoEleveActive`,
+//     `autoClasseActive`, `autoImageActive`, `autoProfesseurActive`, `studiesSkillPoints`,
+//     `ascensionSkillPoints`, `prestigeSkillPoints`, `studiesSkillLevels`, `ascensionSkillLevels`,
+//     `prestigeSkillLevels`, `secretSkillClicks`, `offlineProgressEnabled`, `minimizeResourcesActive`,
+//     `disableAscensionWarning`, `firstAscensionPerformed`, `disablePrestigeWarning`,
+//     `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat`,
+//     `skillEffects`, `permanentBpsBonusFromAchievements`, `paMultiplierFromQuests`.
+//   - Flags de déverrouillage : `elevesUnlocked`, `classesUnlocked`, `imagesUnlocked`, `ProfesseurUnlocked`,
+//     `ascensionUnlocked`, `prestigeUnlocked`, `skillsButtonUnlocked`, `settingsButtonUnlocked`,
+//     `automationCategoryUnlocked`, `questsUnlocked`, `achievementsButtonUnlocked`, `newSettingsUnlocked`,
+//     `multiPurchaseOptionUnlocked`, `maxPurchaseOptionUnlocked`, `statsButtonUnlocked`,
+//     `prestigeMenuButtonUnlocked`, `ascensionMenuButtonUnlocked`, `lyceesUnlocked`, `collegesUnlocked`,
+//     `studiesSkillsUnlocked`, `ascensionSkillsUnlocked`, `prestigeSkillsUnlocked`.
+//   - Fonctions utilitaires/de calcul : `formatNumber` (utilisée pour l'affichage numérique),
+//     `applyAllSkillEffects`, `updateCachedMultipliers`, `calculateTotalBPS`, `checkUnlockConditions`,
+//     `updateButtonStates`.
+//   - Multiplicateurs de structures d'ascension : `ecoleMultiplier`, `lyceeMultiplier`, `collegeMultiplier`.
+//   Impact : Fournit toutes les données dynamiques et les fonctions de base pour que l'UI puisse
+//            afficher l'état actuel du jeu et réagir aux changements.
+//
+// - De './studies.js' :
+//   - Fonctions de calcul de coût : `calculateNextEleveCost`, `calculateNextClasseCost`,
+//     `calculateNextImageCost`, `calculateNextProfessorCost`.
+//   - Valeurs de production de base : `elevesBpsPerItem`, `classesBpsPerItem`.
+//   Impact : Permet à `ui.js` d'afficher les coûts actuels des achats d'études et leurs productions.
+//
+// - De './automation.js' :
+//   - Fonction de calcul de coût : `calculateAutomationCost`.
+//   Impact : Permet d'afficher les coûts d'activation/désactivation de l'automatisation.
+//
+// - De './data.js' :
+//   - Données statiques : `skillsData` (définitions des compétences), `prestigePurchasesData`
+//     (définitions des achats de prestige), `questsData` (définitions des quêtes),
+//     `achievementsData` (définitions des succès).
+//   Impact : Fournit les structures de données nécessaires pour rendre les menus dynamiques
+//            (compétences, quêtes, succès, prestige).
+//
+// - De './ascension.js' :
+//   - Fonctions de calcul de coût : `calculateNextEcoleCost`, `calculateNextLyceeCost`,
+//     `calculateNextCollegeCost`.
+//   Impact : Permet d'afficher les coûts des achats d'ascension.
+//
+// - De './prestige.js' :
+//   - Fonctions de calcul de coût : `calculateLicenceCost`, `calculateMaster1Cost`,
+//     `calculateMaster2Cost`, `calculateDoctoratCost`, `calculatePostDoctoratCost`.
+//   - Fonction utilitaire : `getPrestigeBonusMultiplier`.
+//   Impact : Permet d'afficher les coûts des achats de prestige et leurs bonus.
+//
+// - De './skills.js' :
+//   - Fonction d'action : `buySkill`.
+//   Impact : Permet à `ui.js` de déclencher l'achat d'une compétence via `handleSkillClick`.
+//
+// - De './settings.js' :
+//   - Variables d'état : `isDayTheme`, `themeOptionUnlocked`.
+//   Impact : Permet à `ui.js` de mettre à jour l'affichage des contrôles de thème et de mode.
+//
+// - `break_infinity.min.js` : La bibliothèque `Decimal` est supposée être globalement disponible.
+//   Impact : Essentielle pour tous les calculs et affichages de nombres très grands.
+//
+// ------------------ Variables Clés (utilisées par ui.js, mais définies ailleurs et importées) ------------------
+//
+// Ce module ne définit pas de variables d'état globales, mais utilise celles importées.
+//
+// - `bonsPoints`, `images`, `nombreEleves`, `nombreClasses`, `nombreProfesseur` : Quantités des ressources principales.
+// - `totalBonsPointsParSeconde` : Production actuelle de BP/s.
+// - `ascensionPoints`, `ascensionCount`, `totalPAEarned`, `ascensionBonus` : Données liées à l'Ascension.
+// - `prestigePoints`, `prestigeCount` : Données liées au Prestige.
+// - `schoolCount`, `nombreLycees`, `nombreColleges` : Quantités des structures d'Ascension.
+// - `nombreLicences`, `nombreMaster1`, `nombreMaster2`, `nombreDoctorat`, `nombrePostDoctorat` : Quantités des achats de Prestige.
+// - `totalClicks` : Nombre total de clics.
+// - `currentPurchaseMultiplier` : Multiplicateur d'achat sélectionné (x1, x10, x100, max).
+// - `isDayTheme`, `minimizeResourcesActive`, `offlineProgressEnabled`, `themeOptionUnlocked` : États des paramètres du jeu.
+// - `autoEleveActive`, `autoClasseActive`, `autoImageActive`, `autoProfesseurActive` : États des automatisations.
+// - `elevesUnlocked`, `classesUnlocked`, `imagesUnlocked`, `ProfesseurUnlocked`, `ascensionUnlocked`,
+//   `prestigeUnlocked`, `skillsButtonUnlocked`, `settingsButtonUnlocked`, `automationCategoryUnlocked`,
+//   `questsUnlocked`, `achievementsButtonUnlocked`, `newSettingsUnlocked`, `multiPurchaseOptionUnlocked`,
+//   `maxPurchaseOptionUnlocked`, `statsButtonUnlocked`, `prestigeMenuButtonUnlocked`, `ascensionMenuButtonUnlocked`,
+//   `lyceesUnlocked`, `collegesUnlocked`, `studiesSkillsUnlocked`, `ascensionSkillsUnlocked`, `prestigeSkillsUnlocked` :
+//   Flags booléens indiquant si une fonctionnalité ou section est déverrouillée et visible.
+// - `studiesSkillPoints`, `ascensionSkillPoints`, `prestigeSkillPoints` : Points de compétence disponibles.
+// - `studiesSkillLevels`, `ascensionSkillLevels`, `prestigeSkillLevels` : Objets contenant les niveaux actuels des compétences.
+// - `secretSkillClicks` : Compteur de clics pour la compétence secrète.
+// - `unlockedAchievements` : Objet des succès débloqués.
+// - `permanentBpsBonusFromAchievements` : Bonus de BP/s permanent des succès.
+// - `paMultiplierFromQuests` : Multiplicateur de gain de PA provenant des quêtes.
+// - `skillEffects` : Objet global agrégant tous les bonus et réductions de coûts des compétences, succès et prestige.
+// - `ecoleMultiplier`, `lyceeMultiplier`, `collegeMultiplier` : Multiplicateurs de production des structures d'ascension.
+//
+// ------------------ Fonctions Clés (définies et exportées par ui.js) ------------------
+//
+// - `updateDisplay()` :
+//   Description : Fonction principale de rafraîchissement de l'interface.
+//   Elle met à jour l'affichage de toutes les ressources (BP, Images, Professeurs, PA, PP),
+//   les quantités des structures (Élèves, Classes, Écoles, Lycées, Collèges, Licences, etc.),
+//   les coûts des achats, et les bonus actifs. Elle gère également la visibilité des sections
+//   liées aux ressources et aux achats en fonction des déverrouillages.
+//   Appelée par : `core.js` (boucle de jeu), `events.js` (après actions utilisateur),
+//                 `openTab` (lors du changement d'onglet).
+//   Impact : Assure que l'intégralité de l'interface est toujours synchronisée avec l'état du jeu.
+//
+// - `showNotification(message, type = 'info', duration = 5000)` :
+//   Description : Affiche une notification pop-up temporaire en bas à droite de l'écran.
+//   - `message` (string) : Le texte de la notification.
+//   - `type` (string) : Le type de notification ('info', 'success', 'warning', 'error'),
+//     qui applique des styles CSS spécifiques.
+//   - `duration` (number) : La durée d'affichage en millisecondes.
+//   Appelée par : `core.js` (sauvegarde/chargement, réinitialisations), `studies.js` (achats),
+//                 `automation.js` (activation/désactivation auto), `skills.js` (achat de compétences),
+//                 `ascension.js` (ascension), `prestige.js` (prestige, achats de prestige),
+//                 `quests.js` (réclamation de quêtes), `achievements.js` (déverrouillage de succès).
+//   Impact : Fournit un feedback visuel au joueur pour les actions importantes.
+//
+// - `updateSectionVisibility()` :
+//   Description : Contrôle la propriété `display` des principaux conteneurs HTML
+//   (onglets du menu latéral, sections d'achat, options de paramètres)
+//   en fonction des flags de déverrouillage (`...Unlocked`).
+//   Appelée par : `core.js` (après `checkUnlockConditions`), `initializeGame` (au démarrage),
+//                 `openTab` (pour s'assurer que les sections correctes sont visibles).
+//   Impact : Gère l'accès progressif aux fonctionnalités du jeu.
+//
+// - `updateMultiplierButtons()` :
+//   Description : Met à jour l'état visuel des boutons de sélection du multiplicateur d'achat
+//   (x1, x10, x100, xMax) en ajoutant/retirant la classe 'active'.
+//   Appelée par : `updateDisplay`.
+//   Impact : Indique clairement le multiplicateur d'achat actuellement sélectionné.
+//
+// - `updateAutomationButtonStates()` :
+//   Description : Met à jour le texte et les classes CSS (`automation-active`, `can-afford`, `cannot-afford`)
+//   des boutons d'activation/désactivation de l'automatisation.
+//   Appelée par : `updateDisplay`.
+//   Impact : Reflète l'état (actif/inactif) et le coût des automatisations.
+//
+// - `updateSettingsButtonStates()` :
+//   Description : Met à jour le texte et les classes CSS des boutons et sélecteurs
+//   liés aux paramètres du jeu (thème, réinitialisation, ressources minimalistes, statistiques).
+//   Appelée par : `updateDisplay`, `openTab` (lors de l'ouverture de l'onglet paramètres).
+//   Impact : Assure que les contrôles des paramètres sont à jour.
+//
+// - `updateThemeAndModeDisplay()` : (maj 30/05 - Thème & style)
+//   Description : Spécifiquement dédiée à la mise à jour de l'état visuel
+//   du sélecteur de thème (`#themeSelector`) et des boutons de mode Jour/Nuit
+//   (`dayModeButton`, `nightModeButton`). Elle lit l'état de `isDayTheme` et
+//   `themeOptionUnlocked` de `settings.js` pour appliquer les classes 'active'
+//   et la valeur sélectionnée.
+//   Appelée par : `updateSettingsButtonStates`.
+//   Impact : Gère l'affichage correct des options de personnalisation visuelle.
+//
+// - `renderSkillsMenu()` :
+//   Description : Orchestre le rendu complet des trois panneaux de l'arbre de compétences
+//   (études, ascension, prestige). Elle contrôle la visibilité de chaque panneau
+//   et met à jour les points de compétence disponibles avant d'appeler `renderSkillPanel`
+//   pour chaque catégorie.
+//   Appelée par : `openTab` (lors de l'ouverture de l'onglet compétences).
+//   Impact : Construit et rafraîchit l'arbre de compétences.
+//
+// - `renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPanelUnlocked)` :
+//   Description : Rend un panneau de compétences spécifique (études, ascension ou prestige).
+//   Elle efface le contenu précédent, itère sur les compétences définies dans `skillsData`
+//   pour le `panelType` donné, et crée dynamiquement les éléments HTML pour chaque compétence,
+//   en appliquant les classes CSS (`locked`, `unlocked`, `max-level`) et en générant les infobulles.
+//   - `panelType` (string) : Le type de panneau ('studies', 'ascension', 'prestige').
+//   - `gridElement` (HTMLElement) : L'élément DOM parent où les compétences seront rendues.
+//   - `skillLevels` (Object) : L'objet des niveaux de compétences actuels pour ce panneau.
+//   - `skillPoints` (Decimal) : Les points de compétence disponibles.
+//   - `isPanelUnlocked` (boolean) : Indique si le panneau doit être rendu.
+//   Appelée par : `renderSkillsMenu`.
+//   Impact : Gère l'affichage détaillé de chaque compétence dans son arbre.
+//
+// - `handleSkillClick(panelType, skillId)` :
+//   Description : Fonction de gestionnaire de clic pour les compétences.
+//   Elle appelle la fonction `buySkill` du module `skills.js` pour exécuter la logique d'achat.
+//   - `panelType` (string) : Le type de panneau de compétences.
+//   - `skillId` (string) : L'ID de la compétence cliquée.
+//   Appelée par : `events.js` (via délégation d'événements sur les grilles de compétences).
+//   Impact : Point d'entrée pour l'interaction du joueur avec l'arbre de compétences.
+//
+// - `renderQuests()` :
+//   Description : Rend la liste des quêtes actives et terminées.
+//   Elle itère sur `questsData`, crée les éléments HTML pour chaque quête,
+//   affiche sa description, sa progression actuelle, et sa récompense.
+//   Elle ajoute la classe 'completed' si la quête est terminée.
+//   Appelée par : `openTab` (lors de l'ouverture de l'onglet quêtes).
+//   Impact : Affiche les objectifs et la progression du joueur.
+//
+// - `renderAchievements()` :
+//   Description : Rend la grille des succès.
+//   Elle itère sur `achievementsData`, crée les éléments HTML pour chaque succès,
+//   affiche son nom, sa description et sa récompense. Elle applique la classe 'unlocked'
+//   si le succès a déjà été débloqué.
+//   Appelée par : `openTab` (lors de l'ouverture de l'onglet succès), `achievements.js`
+//                 (après le déverrouillage d'un succès).
+//   Impact : Affiche les succès débloqués et à débloquer.
+//
+// - `showAchievementTooltip(event, ach)` :
+//   Description : Affiche une infobulle détaillée pour un succès au survol de la souris.
+//   Positionne l'infobulle près du curseur.
+//   - `event` (Event) : L'événement de la souris.
+//   - `ach` (Object) : L'objet succès.
+//   Appelée par : `events.js` (via délégation d'événements sur la grille des succès).
+//   Impact : Fournit des informations contextuelles sur les succès.
+//
+// - `hideAchievementTooltip()` :
+//   Description : Masque l'infobulle des succès.
+//   Appelée par : `events.js`, `openTab` (lors du changement d'onglet).
+//   Impact : Gère la visibilité de l'infobulle.
+//
+// - `toggleAchievementTooltip(event, ach)` :
+//   Description : Bascule la visibilité de l'infobulle d'un succès au clic.
+//   Permet de "figer" l'infobulle pour qu'elle reste visible après le `mouseout`.
+//   - `event` (Event) : L'événement de clic.
+//   - `ach` (Object) : L'objet succès.
+//   Appelée par : `events.js` (via délégation d'événements sur la grille des succès).
+//   Impact : Améliore l'expérience utilisateur pour l'exploration des succès.
+//
+// - `openTab(tabContainer)` :
+//   Description : Fonction générique pour ouvrir une section principale du jeu (un onglet)
+//   et masquer toutes les autres. Elle déclenche également un rafraîchissement spécifique
+//   pour certains onglets (compétences, quêtes, succès, paramètres).
+//   - `tabContainer` (HTMLElement) : L'élément DOM du conteneur de la section à ouvrir.
+//   Appelée par : `events.js` (clics sur les boutons du menu latéral).
+//   Impact : Gère la navigation entre les différentes vues du jeu.
+//
+// - `openStatsModal()` :
+//   Description : Ouvre la modale des statistiques et appelle `updateStatsDisplay()`
+//   pour s'assurer que son contenu est à jour.
+//   Appelée par : `events.js` (clic sur le bouton "Statistiques").
+//   Impact : Affiche une vue détaillée des statistiques du joueur.
+//
+// - `closeStatsModal()` :
+//   Description : Ferme la modale des statistiques.
+//   Appelée par : `events.js` (clic sur le bouton de fermeture de la modale).
+//   Impact : Masque la modale des statistiques.
+//
+// - `updateStatsDisplay()` :
+//   Description : Met à jour toutes les valeurs numériques et textuelles affichées
+//   dans la modale des statistiques. Elle récupère les données des variables d'état
+//   globales et des objets d'effets (`skillEffects`, `prestigePurchasesData`)
+//   pour présenter un résumé complet de la progression et des bonus du joueur.
+//   Appelée par : `openStatsModal`.
+//   Impact : Fournit une vue d'ensemble chiffrée de la partie du joueur.
+//
+// ------------------ Éléments DOM Clés (référencés par ID) ------------------
+//
+// Ce module interagit directement avec de nombreux éléments HTML définis dans `index.html`.
+// Les IDs listés ci-dessous sont ceux que `ui.js` manipule pour afficher des informations
+// ou modifier l'apparence.
+//
+// - Affichage des ressources principales :
+//   - `#bonsPoints`, `#totalBpsInline`, `#imagesCount`, `#nombreProfesseur`,
+//     `#ascensionPointsCount`, `#totalPAEarnedSpanInline`, `#ascensionCountSpan`,
+//     `#ascensionBonusValue`, `#prestigePointsCount`, `#prestigeCountSpan`.
+// - Sections d'achat et leurs éléments :
+//   - `#achatEleveSection`, `#acheterEleveButton`, `#nombreEleves`, `#elevesBpsPerItem`.
+//   - `#achatClasseSection`, `#acheterClasseButton`, `#nombreClasses`, `#classesBpsPerItem`.
+//   - `#achatImageSection`, `#acheterImageButton`.
+//   - `#achatProfesseurSection`, `#acheterProfesseurButton`.
+//   - `#studiesTitleButton`, `#clickBonsPointsDisplay` (pour le bonus de clic).
+// - Sections d'Ascension et leurs éléments :
+//   - `#ascensionMenuPACount`.
+//   - `#acheterEcoleButton`, `#coutEcole`, `#nombreEcoles`, `#ecoleMultiplier`.
+//   - `#achatLyceeSection`, `#acheterLyceeButton`, `#nombreLyceesDisplay`, `#lyceeMultiplierDisplay`.
+//   - `#achatCollegeSection`, `#acheterCollegeButton`, `#nombreCollegesDisplay`, `#collegeMultiplierDisplay`.
+//   - `#unlockMultiPurchaseButton`, `#unlockmaxPurchaseButton`, `#unlockNewSettingsButton`,
+//     `#unlockAutomationCategoryButton`.
+// - Sections de Prestige et leurs éléments :
+//   - `#prestigeMenuPPCount`.
+//   - `#acheterLicenceButton`, `#nombreLicences`, `#licenceBoost`.
+//   - `#acheterMaster1Button`, `#nombreMaster1`, `#master1Boost`.
+//   - `#acheterMaster2Button`, `#nombreMaster2`, `#master2Boost`.
+//   - `#acheterDoctoratButton`, `#nombreDoctorat`, `#doctoratBoost`, `#doctoratMinClasses`.
+//   - `#acheterPostDoctoratButton`, `#nombrePostDoctorat`, `#postDoctoratBoost`.
+// - Panneau de ressources minimalistes :
+//   - `#minimalistResources`, `#miniBonsPoints`, `#miniImages`, `#miniProfesseur`,
+//     `#miniAscensionPoints`, `#miniAscensionCount`, `#miniPrestigePoints`, `#miniPrestigeCount`.
+// - Boutons de navigation latérale :
+//   - `#automationTabBtn`, `#skillsTabBtn`, `#settingsTabBtn`, `#ascensionTabBtn`,
+//     `#prestigeTabBtn`, `#questsTabBtn`, `#achievementsTabBtn`, `#statsButton`.
+// - Conteneurs de contenu principal (gérés par `openTab`) :
+//   - `#studiesMainContainer`, `#automationMainContainer`, `#skillsContainer`,
+//     `#settingsContainer`, `#ascensionMenuContainer`, `#prestigeMenuContainer`,
+//     `#questsContainer`, `#achievementsContainer`.
+// - Notifications :
+//   - `#notifications-container`.
+// - Arbre de compétences :
+//   - `#studiesPanel`, `#ascensionPanel`, `#prestigePanel`.
+//   - `#studiesSkillsPointsCount`, `#ascensionSkillsPointsCount`, `#prestigeSkillsPointsCount`.
+//   - `#studiesSkillsGrid`, `#ascensionSkillsGrid`, `#prestigeSkillsGrid` (où les compétences sont rendues).
+// - Quêtes :
+//   - `#questsList`, `#completedQuestsList`.
+// - Succès :
+//   - `#achievementsGrid`, `#achievementTooltip`.
+// - Modale des statistiques :
+//   - `#statsModal` (le conteneur de la modale).
+//   - `#statsCurrentBPS`, `#statsSkillBonus`, `#statsAscensionBonus`, `#statsPrestigeBPSBonus`,
+//     `#statsAchievementBPSBonus`, `#statsAllBPSMultiplier`, `#statsBonsPoints`, `#statsImages`,
+//     `#statsProfesseur`, `#statsProfMultiplier`, `#statsAscensionPoints`, `#statsPrestigePoints`,
+//     `#statsEleveCostReduction`, `#statsClasseCostReduction`, `#statsImageCostReduction`,
+//     `#statsProfesseurCostReduction`, `#statsEcoleCostReduction`, `#statsAutomationCostReduction`,
+//     `#statsAllCostReduction`, `#statsClickBPSBonus`, `#statsPAGainMultiplier`,
+//     `#statsAscensionBonusIncrease`, `#statsOfflineProductionIncrease`, `#statsAllProductionMultiplier`,
+//     `#statsTotalClicks`, `#statsAscensionCount`, `#statsTotalPAEarned`, `#statsPrestigeCount`,
+//     `#statsStudiesSkillPoints`, `#statsAscensionSkillPoints`, `#statsPrestigeSkillPoints`,
+//     `#statsStudiesSkillsUnlockedCount`, `#statsAscensionSkillsUnlockedCount`, `#statsPrestigeSkillsUnlockedCount`,
+//     `#statsLicenceBoost`, `#statsMaster1Boost`, `#statsMaster2Boost`, `#statsDoctoratBPSBoost`,
+//     `#statsDoctoratMinClasses`, `#statsPostDoctoratBoost`.
+// - Paramètres spécifiques :
+//   - `#purchaseMultiplierSelection`, `#multiplierButtonsContainer`, `#setMultiplierXmax`.
+//   - `#offlineProgressSetting`, `#minimizeResourcesSetting`, `#statsButtonSetting`.
+//   - `#themeSelector`, `#dayModeButton`, `#nightModeButton`, `#themeSelectionSetting`, `#dayNightModeSetting`.
+//   - `#resetProgressionButton`.
+//
+// ------------------ Logique Générale ------------------
+//
+// `ui.js` agit comme la couche de présentation. Il ne contient pas de logique de jeu.
+// Au lieu de cela, il importe les données d'état du jeu (`core.js`) et les définitions
+// statiques (`data.js`), puis les utilise pour mettre à jour les éléments HTML.
+// Les interactions utilisateur (clics de boutons, changements de sélection) sont gérées
+// par `events.js`, qui appelle les fonctions appropriées de `ui.js` pour rafraîchir l'affichage.
+// La fonction `updateDisplay()` est le point d'entrée principal pour les mises à jour
+// visuelles régulières, tandis que d'autres fonctions gèrent des aspects spécifiques
+// (visibilité des sections, rendu des menus dynamiques, notifications, etc.).
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - **Robustesse DOM** : Des vérifications `if (element)` sont ajoutées avant de manipuler
+//   les éléments DOM pour éviter les erreurs si un élément n'existe pas encore (par exemple,
+//   s'il est déverrouillé plus tard dans le jeu).
+// - **Délégation d'événements** : Ce fichier ne contient pas d'écouteurs d'événements directs
+//   (`addEventListener`). Ces derniers sont gérés dans `events.js` qui appelle les fonctions de `ui.js`
+//   en réponse aux interactions utilisateur.
+// - **Gestion des grands nombres** : L'utilisation de la bibliothèque `Decimal` est implicite
+//   pour tous les nombres affichés via `formatNumber`, garantissant la précision pour les
+//   valeurs très grandes.
+// - **Séparation des préoccupations** : La logique métier est strictement séparée de la logique de présentation.
+//   `ui.js` ne fait que "lire" l'état et "écrire" sur l'interface.
+//
+// ---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+---------------------- ------------------ Fiche Mémo : events.js---------------------------------------------
+// Description : Ce fichier est dédié à la gestion de tous les écouteurs d'événements (clicks, changes, etc.)
+// de l'interface utilisateur du jeu. Son rôle principal est d'attacher des gestionnaires d'événements
+// aux éléments DOM et d'appeler les fonctions de logique de jeu appropriées définies dans d'autres modules
+// (comme core.js, studies.js, automation.js, skills.js, settings.js, etc.).
+// Il ne contient aucune logique de jeu complexe, seulement la "colle" entre l'interface et le backend.
+
+// Dépendances (modif 30/05) :
+// Importations depuis './core.js':
+//   - bonsPoints, totalClicks, ascensionPoints, ascensionCount, totalPAEarned,
+//     prestigePoints, prestigeCount, studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints,
+//     studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels, secretSkillClicks,
+//     currentPurchaseMultiplier, ascensionUnlocked, prestigeUnlocked,
+//     disableAscensionWarning, firstAscensionPerformed, disablePrestigeWarning,
+//     multiPurchaseOptionUnlocked, maxPurchaseOptionUnlocked, automationCategoryUnlocked,
+//     autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive,
+//     elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked, skillsButtonUnlocked,
+//     settingsButtonUnlocked, ascensionMenuButtonUnlocked, prestigeMenuButtonUnlocked,
+//     questsUnlocked, achievementsButtonUnlocked, nombreLicences, nombreMaster1,
+//     nombreMaster2, nombreDoctorat, nombrePostDoctorat, newSettingsUnlocked,
+//     skillEffects, totalBonsPointsParSeconde, nombreProfesseur
+//   - saveGameState, checkUnlockConditions, applyAllSkillEffects, calculateTotalBPS, softResetGame,
+//     superSoftResetGame, hardResetGame, performPurchase, formatNumber
+// Importations depuis './studies.js':
+//   - performStudyPurchase
+// Importations depuis './automation.js':
+//   - runAutomation, toggleAutomation
+// Importations depuis './skills.js':
+//   - purchaseSkill
+// Importations depuis './ascension.js':
+//   - calculatePAGained, performAscension
+// Importations depuis './prestige.js':
+//   - calculatePPGained, performPrestige, performPrestigePurchase
+// Importations depuis './settings.js':
+//   - toggleTheme, toggleOfflineProgress, toggleMinimizeResources, openStats
+// Importations depuis './quests.js':
+//   - checkQuests, claimQuestReward
+// Importations depuis './achievements.js':
+//   - checkAchievements, showAchievementTooltip, hideAchievementTooltip, toggleAchievementTooltip
+// Importations depuis './ui.js':
+//   - updateDisplay, showNotification, updateButtonStates, updateSectionVisibility,
+//     updateAutomationButtonStates, updateSettingsButtonStates, renderSkillsMenu,
+//     renderQuests, renderAchievements, openTab, closeStatsModal, updateStatsDisplay,
+//     updateAscensionUI, updateAscensionButtonStates, updatePrestigeUI, updatePrestigeButtonStates,
+//     renderPrestigePurchases, updateQuestsUI
+//
+// Éléments DOM Clés (référencés par ID, définis dans index.html) :
+// Les références aux éléments DOM sont obtenues directement via document.getElementById dans ce module,
+// ou elles peuvent être passées en tant qu'arguments aux fonctions d'UI si ui.js les expose.
+// Pour la clarté, certaines sont listées ici à titre indicatif. (modif 30/05)
+/*
+const studiesTitleButton = document.getElementById('studiesTitleButton');
+const acheterEleveButton = document.getElementById('acheterEleveButton');
+const acheterClasseButton = document.getElementById('acheterClasseButton');
+const acheterImageButton = document.getElementById('acheterImageButton');
+const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
+const acheterEcoleButton = document.getElementById('acheterEcoleButton');
+const acheterLyceeButton = document.getElementById('acheterLyceeButton');
+const acheterCollegeButton = document.getElementById('acheterCollegeButton');
+const acheterLicenceButton = document.getElementById('acheterLicenceButton');
+const acheterMaster1Button = document.getElementById('acheterMaster1Button');
+const acheterMaster2Button = document.getElementById('acheterMaster2Button');
+const acheterDoctoratButton = document.getElementById('acheterDoctoratButton');
+const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
+
+const themeToggleButton = document.getElementById('themeToggleButton');
+const resetProgressionButton = document.getElementById('resetProgressionButton');
+const offlineProgressToggle = document.getElementById('offlineProgressToggle');
+const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
+const statsButton = document.getElementById('statsButton');
+const statsModal = document.getElementById('statsModal'); // The modal container itself
+
+const ascensionTitleButton = document.getElementById('ascensionTitleButton');
+const confirmAscensionYesBtn = document.getElementById('confirmAscensionYes');
+const confirmAscensionNoBtn = document.getElementById('confirmAscensionNo');
+
+const prestigeTitleButton = document.getElementById('prestigeTitleButton');
+const confirmPrestigeYesBtn = document.getElementById('confirmPrestigeYes');
+const confirmPrestigeNoBtn = document.getElementById('confirmPrestigeNo');
+const disablePrestigeWarningCheckbox = document.getElementById('disablePrestigeWarningCheckbox');
+
+const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton');
+const unlockmaxPurchaseButton = document.getElementById('unlockmaxPurchaseButton');
+const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
+const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton');
+
+const autoEleveBtn = document.getElementById('autoEleveBtn');
+const autoClasseBtn = document = document.getElementById('autoClasseBtn');
+const autoImageBtn = document.getElementById('autoImageBtn');
+const autoProfesseurBtn = document.getElementById('autoProfesseurBtn');
+
+const multiplierButtonsContainer = document.getElementById('multiplierButtonsContainer'); // Parent for delegation
+const studiesSkillsGrid = document.getElementById('studiesSkillsGrid'); // Parent for delegation
+const ascensionSkillsGrid = document.getElementById('ascensionSkillsGrid'); // Parent for delegation
+const prestigeSkillsGrid = document.getElementById('prestigeSkillsGrid'); // Parent for delegation
+
+const resetSkillsButton = document.getElementById('resetSkillsButton');
+const buyAllSkillsButton = document.getElementById('buyAllSkillsButton');
+
+const studiesTabBtn = document.getElementById('studiesTabBtn');
+const automationTabBtn = document.getElementById('automationTabBtn');
+const skillsTabBtn = document.getElementById('skillsTabBtn');
+const settingsTabBtn = document.getElementById('settingsTabBtn');
+const ascensionTabBtn = document.getElementById('ascensionTabBtn');
+const prestigeTabBtn = document.getElementById('prestigeTabBtn');
+const questsTabBtn = document.getElementById('questsTabBtn');
+const achievementsTabBtn = document.getElementById('achievementsTabBtn');
+
+const studiesMainContainer = document.getElementById('studiesMainContainer');
+const automationMainContainer = document.getElementById('automationMainContainer');
+const skillsContainer = document.getElementById('skillsContainer');
+const settingsContainer = document.getElementById('settingsContainer');
+const ascensionMenuContainer = document.getElementById('ascensionMenuContainer');
+const prestigeMenuContainer = document.getElementById('prestigeMenuContainer');
+const questsContainer = document.getElementById('questsContainer');
+const achievementsContainer = document.getElementById('achievementsContainer');
+
+const achievementTooltip = document.getElementById('achievementTooltip');
+const achievementsGrid = document.getElementById('achievementsGrid');
+
+const paGainedDisplay = document.getElementById('paGainedDisplay');
+const ascensionModalTitle = document.getElementById('ascensionModalTitle');
+const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning');
+const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning');
+const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox');
+const confirmAscensionModal = document.getElementById('confirmAscensionModal');
+const confirmPrestigeModal = document.getElementById('confirmPrestigeModal');
+const prestigeWarningText = document.getElementById('prestigeWarningText');
+const prestigePointsGainedDisplay = document.getElementById('prestigePointsGainedDisplay'); // Assumed new element for prestige points display
+*/
+
+// Logique Générale :
+// Ce fichier initialise tous les écouteurs d'événements une fois que le DOM est complètement chargé
+// et que toutes les variables globales nécessaires sont initialisées.
+
+// --- Récupération des éléments DOM (Assumés globaux ou passés) ---
+// Ces variables sont supposées être déjà définies et accessibles globalement,
+// par exemple via le fichier ui.js qui les récupère avec document.getElementById.
+// Pour la clarté, certaines sont listées ici à titre indicatif.
+/*
+const studiesTitleButton = document.getElementById('studiesTitleButton');
+const acheterEleveButton = document.getElementById('acheterEleveButton');
+const acheterClasseButton = document.getElementById('acheterClasseButton');
+const acheterImageButton = document.getElementById('acheterImageButton');
+const acheterProfesseurButton = document.getElementById('acheterProfesseurButton');
+const acheterEcoleButton = document.getElementById('acheterEcoleButton');
+const acheterLyceeButton = document.getElementById('acheterLyceeButton');
+const acheterCollegeButton = document.getElementById('acheterCollegeButton');
+const acheterLicenceButton = document.getElementById('acheterLicenceButton');
+const acheterMaster1Button = document.getElementById('acheterMaster1Button');
+const acheterMaster2Button = document.getElementById('acheterMaster2Button');
+const acheterDoctoratButton = document.getElementById('acheterDoctoratButton');
+const acheterPostDoctoratButton = document.getElementById('acheterPostDoctoratButton');
+
+const themeToggleButton = document.getElementById('themeToggleButton');
+const resetProgressionButton = document.getElementById('resetProgressionButton');
+const offlineProgressToggle = document.getElementById('offlineProgressToggle');
+const toggleMinimalistResourcesButton = document.getElementById('toggleMinimalistResources');
+const statsButton = document.getElementById('statsButton');
+const statsModal = document.getElementById('statsModal'); // The modal container itself
+
+const ascensionTitleButton = document.getElementById('ascensionTitleButton');
+const confirmAscensionYesBtn = document.getElementById('confirmAscensionYes');
+const confirmAscensionNoBtn = document.getElementById('confirmAscensionNo');
+
+const prestigeTitleButton = document.getElementById('prestigeTitleButton');
+const confirmPrestigeYesBtn = document.getElementById('confirmPrestigeYes');
+const confirmPrestigeNoBtn = document.getElementById('confirmPrestigeNo');
+const disablePrestigeWarningCheckbox = document.getElementById('disablePrestigeWarningCheckbox');
+
+const unlockMultiPurchaseButton = document.getElementById('unlockMultiPurchaseButton');
+const unlockmaxPurchaseButton = document.getElementById('unlockmaxPurchaseButton');
+const unlockNewSettingsButton = document.getElementById('unlockNewSettingsButton');
+const unlockAutomationCategoryButton = document.getElementById('unlockAutomationCategoryButton');
+
+const autoEleveBtn = document.getElementById('autoEleveBtn');
+const autoClasseBtn = document.getElementById('autoClasseBtn');
+const autoImageBtn = document.getElementById('autoImageBtn');
+const autoProfesseurBtn = document.getElementById('autoProfesseurBtn');
+
+const multiplierButtonsContainer = document.getElementById('multiplierButtonsContainer'); // Parent for delegation
+const studiesSkillsGrid = document.getElementById('studiesSkillsGrid'); // Parent for delegation
+const ascensionSkillsGrid = document.getElementById('ascensionSkillsGrid'); // Parent for delegation
+const prestigeSkillsGrid = document.getElementById('prestigeSkillsGrid'); // Parent for delegation
+
+const resetSkillsButton = document.getElementById('resetSkillsButton');
+const buyAllSkillsButton = document.getElementById('buyAllSkillsButton');
+
+const studiesTabBtn = document.getElementById('studiesTabBtn');
+const automationTabBtn = document.getElementById('automationTabBtn');
+const skillsTabBtn = document.getElementById('skillsTabBtn');
+const settingsTabBtn = document.getElementById('settingsTabBtn');
+const ascensionTabBtn = document.getElementById('ascensionTabBtn');
+const prestigeTabBtn = document.getElementById('prestigeTabBtn');
+const questsTabBtn = document.getElementById('questsTabBtn');
+const achievementsTabBtn = document.getElementById('achievementsTabBtn');
+
+const studiesMainContainer = document.getElementById('studiesMainContainer');
+const automationMainContainer = document.getElementById('automationMainContainer');
+const skillsContainer = document.getElementById('skillsContainer');
+const settingsContainer = document.getElementById('settingsContainer');
+const ascensionMenuContainer = document.getElementById('ascensionMenuContainer');
+const prestigeMenuContainer = document.getElementById('prestigeMenuContainer');
+const questsContainer = document.getElementById('questsContainer');
+const achievementsContainer = document.getElementById('achievementsContainer');
+
+const achievementTooltip = document.getElementById('achievementTooltip');
+const achievementsGrid = document.getElementById('achievementsGrid');
+
+const paGainedDisplay = document.getElementById('paGainedDisplay');
+const ascensionModalTitle = document.getElementById('ascensionModalTitle');
+const firstAscensionWarningDiv = document.getElementById('firstAscensionWarning');
+const subsequentAscensionWarningDiv = document.getElementById('subsequentAscensionWarning');
+const disableAscensionWarningCheckboxAscension = document.getElementById('disableAscensionWarningCheckbox');
+const confirmAscensionModal = document.getElementById('confirmAscensionModal');
+const confirmPrestigeModal = document.getElementById('confirmPrestigeModal');
+const prestigeWarningText = document.getElementById('prestigeWarningText');
+const prestigePointsGainedDisplay = document.getElementById('prestigePointsGainedDisplay'); // Assumed new element for prestige points display
+*/
+
+// ------------------ Fiche Mémo : studies.js ----------------------------
+//
+// Description : Ce fichier encapsule toute la logique spécifique aux achats et à la production
+// liés aux études dans le jeu. Il gère les calculs de production de Bons Points
+// par les Élèves et les Classes, la logique d'achat pour les Élèves, Classes,
+// Images et Professeurs, ainsi que la gestion du clic principal "Étudier sagement".
+// Il interagit avec les données du jeu, l'état global et les fonctions d'interface
+// définies dans d'autres modules.
+//
+// Objectif : Centraliser les mécanismes de progression liés aux études, en assurant
+// les calculs de production, la gestion des coûts, et l'interaction avec l'interface
+// utilisateur et l'état global du jeu.
+//
+// ------------------ Dépendances (Imports) ------------------
+//
+// Importations des variables d'état et fonctions globales depuis core.js:
+//   - bonsPoints: La monnaie principale du jeu.
+//   - images: La ressource "Images" utilisée pour acheter des Professeurs.
+//   - nombreEleves: Le nombre actuel d'Élèves possédés.
+//   - nombreClasses: Le nombre actuel de Classes possédées.
+//   - nombreProfesseur: Le nombre actuel de Professeurs possédés.
+//   - totalBonsPointsParSeconde: La production totale de BP/s, utilisée pour le bonus de clic.
+//   - totalClicks: Le compteur total des clics sur le bouton "Étudier".
+//   - skillEffects: L'objet contenant tous les multiplicateurs et bonus des compétences.
+//   - currentPurchaseMultiplier: Le multiplicateur d'achat sélectionné (x1, x10, x100, max).
+//   - checkUnlockConditions: Fonction pour vérifier les conditions de déverrouillage.
+//   - saveGameState: Fonction pour sauvegarder l'état du jeu.
+//   - applyAllSkillEffects: Fonction pour réappliquer tous les effets de compétences et bonus.
+//   - calculateTotalBPS: Fonction pour recalculer la production totale de BP/s.
+//   - studiesSkillPoints: Points de compétence d'études.
+//   - ascensionSkillPoints: Points de compétence d'ascension (mis à jour lors de l'achat de Professeur).
+//   - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat: Quantités des achats de prestige affectant la production d'études.
+//   - prestigeCount, prestigePoints: Compteurs et monnaie de prestige affectant la production.
+//   - elevesUnlocked, classesUnlocked, imagesUnlocked, ProfesseurUnlocked: Flags de déverrouillage des options d'achat d'études.
+//   - formatNumber: Fonction utilitaire pour formater les nombres. (modif 30/05)
+//
+// Importations des données de prestige depuis data.js:
+//   - prestigePurchasesData: Données des achats de prestige (pour les prérequis).
+//
+// Importations des fonctions d'UI depuis ui.js:
+//   - updateDisplay: Fonction pour rafraîchir l'affichage global de l'interface. (modif 30/05)
+//   - showNotification: Fonction pour afficher des notifications à l'utilisateur. (modif 30/05)
+//
+// ------------------ Variables Clés Définies et Exportées ------------------
+//
+// export let bonsPointsParSecondeEleves;    // Production de BP/s générée spécifiquement par les Élèves.
+// export let bonsPointsParSecondeClasses;   // Production de BP/s générée spécifiquement par les Classes.
+//
+// ------------------ Fonctions Clés Définies et Exportées ------------------
+//
+// export function calculateNextEleveCost(count)
+//   // Calcule le coût du prochain Élève.
+//
+// export function calculateNextClasseCost(count)
+//   // Calcule le coût de la prochaine Classe.
+//
+// export function calculateNextImageCost(count)
+//   // Calcule le coût de la prochaine Image.
+//
+// export function calculateNextProfessorCost(count)
+//   // Calcule le coût du prochain Professeur.
+//
+// export function elevesBpsPerItem
+//   // Valeur de base de BP/s par Élève.
+//
+// export function classesBpsPerItem
+//   // Valeur de base de BP/s par Classe.
+//
+// export function calculateStudiesBPS()
+//   // Calcule la production de Bons Points par seconde générée spécifiquement par les élèves et les classes.
+//   // Prend en compte les multiplicateurs des Professeurs (Licences, compétences) et les boosts de classe
+//   // (Master I, Master II, compétences).
+//   // Les résultats sont stockés dans bonsPointsParSecondeEleves et bonsPointsParSecondeClasses.
+//
+// export function handleStudyClick()
+//   // Gère la logique du clic sur le bouton "Étudier sagement".
+//   // Incrémente le compteur de clics (totalClicks).
+//   // Calcule un bonus de BP basé sur la production totale (totalBonsPointsParSeconde) et les skillEffects.
+//   // Ajoute les BP gagnés à bonsPoints.
+//   // Vérifie les déverrouillages, met à jour les états des boutons d'études et sauvegarde le jeu.
+//
+// export function performStudyPurchase(itemType, quantityRequested, isAutomated = false)
+//   // Exécute la logique d'achat pour les Élèves, Classes, Images et Professeurs.
+//   // - itemType: Le type d'objet à acheter ('eleve', 'classe', 'image', 'Professeur').
+//   // - quantityRequested: La quantité à acheter (Decimal, nombre, ou 'max').
+//   // - isAutomated: Booléen indiquant si l'achat est automatisé (affecte les notifications).
+//   // Détermine la ressource nécessaire, calcule le coût total en fonction de la quantité demandée
+//   // (y compris l'achat "max").
+//   // Si l'achat est possible, déduit la ressource, incrémente le compteur d'objets,
+//   // met à jour les points de compétence d'Ascension (pour les Professeurs),
+//   // applique les effets de compétences, met à jour l'interface et sauvegarde le jeu.
+//   // Affiche une notification si l'achat n'est pas automatisé.
+//
+// export function updateStudiesButtonStates(domElements)
+//   // Met à jour l'état visuel (texte, classes CSS 'can-afford'/'cannot-afford')
+//   // des boutons d'achat liés aux études (Élève, Classe, Image, Professeur).
+//   // Met également à jour l'affichage du bonus de BP par clic.
+//   // - domElements: Un objet contenant les références aux éléments DOM nécessaires
+//   //   (ex: { acheterEleveButton, acheterClasseButton, ... }).
+//
+// export function updateStudiesSectionVisibility(domElements)
+//   // Contrôle la visibilité des sections d'achat spécifiques aux études
+//   // en fonction des flags de déverrouillage (elevesUnlocked, classesUnlocked, etc.).
+//   // - domElements: Un objet contenant les références aux éléments DOM nécessaires
+//   //   (ex: { achatEleveSection, achatClasseSection, ... }).
+//
+// ---------------------------------------------------------------------
+
+/**
+
+    automation.js
+
+    ------------------ Fiche Mémo : automation.js -----------------------------
+
+    Description : Ce fichier gère toute la logique et les fonctionnalités liées à l'automatisation
+
+    des achats dans le jeu. Il permet d'activer ou de désactiver l'automatisation pour
+
+    les Élèves, Classes, Images et Professeurs, de calculer les coûts associés à ces automatisations,
+
+    et de déclencher les achats automatiques à chaque tick de jeu.
+
+    Dépendances :
+
+        core.js : Fournit l'accès aux variables d'état globales (ascensionPoints, autoEleveActive,
+
+    autoClasseActive, autoImageActive, autoProfesseurActive), à la fonction d'achat générique (performPurchase),
+
+    et à la fonction de formatage des nombres (formatNumber).
+
+        ui.js : Fournit les fonctions de notification (showNotification) (modif 30/05) et de mise à jour
+
+    de l'interface utilisateur spécifique à l'automatisation (updateAutomationButtonStates), aux fonctions de sauvegarde (saveGameState) (modif 30/05),
+
+    de mise à jour de l'affichage global (updateDisplay) (modif 30/05)
+
+    Variables Clés (utilisées par automation.js, mais définies et gérées ailleurs) :
+
+        ascensionPoints : Monnaie utilisée pour acheter les automatisations.
+
+        autoEleveActive, autoClasseActive, autoImageActive, autoProfesseurActive : Flags booléens
+
+    indiquant si une automatisation spécifique est active.
+
+        skillEffects : Objet contenant les effets cumulés des compétences, notamment les réductions de coût.
+
+    Fonctions Clés Définies et Exportées :
+
+        calculateAutomationCost(baseCost) : Calcule le coût d'une automatisation en tenant compte des réductions de coût.
+
+        runAutomation() : Exécute les achats pour toutes les automatisations actives.
+
+        toggleAutomation(itemType, baseCost) : Active ou désactive une automatisation spécifique,
+
+    gère le coût en Points d'Ascension et les notifications.
+
+    Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+
+    Ce module n'accède pas directement aux éléments DOM via document.getElementById.
+
+    Il s'attend à ce que les fonctions d'UI qui le consomment (comme updateAutomationButtonStates)
+
+    reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
+
+    (par exemple, si ui.js les expose globalement après les avoir récupérés).
+
+    Logique Générale :
+
+    Ce module centralise la gestion des automatisations, permettant une séparation claire
+
+    des préoccupations par rapport à la logique d'achat de base ou aux mises à jour de l'interface.
+
+    Il est appelé par events.js pour les interactions utilisateur et par la boucle de jeu
+
+    principale (core.js) pour l'exécution périodique des automatisations.
+    */
+
+
+
+
+
+
+/**
+ * skills.js
+ *
+ * ------------------ Fiche Mémo : skills.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées aux compétences
+ * (Skills) du jeu. Il permet l'achat de compétences dans différentes catégories (Études, Ascension, Prestige),
+ * gère les points de compétence requis, applique les effets des compétences, et met à jour
+ * l'interface utilisateur du menu des compétences.
+ *
+ * Dépendances :
+ * - core.js : Fournit l'accès aux variables d'état globales (studiesSkillPoints, ascensionSkillPoints,
+ * prestigeSkillPoints, skillEffects, studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels,
+ *  saveGameState, checkUnlockConditions, applyAllSkillEffects, formatNumber
+ * totalClicks, nombreProfesseur, prestigeCount).
+ * - data.js : Contient les définitions des compétences (skillsData) incluant leurs coûts,
+ * effets, et conditions de déverrouillage.
+ * - ui.js : Pour la mise à jour de l'interface utilisateur spécifique aux compétences 
+ * (updateSkillsUI, renderSkillsMenu) et générale (updateDisplay), et (
+ * showNotification)
+ *
+ * Variables Clés (utilisées par skills.js, mais définies et gérées ailleurs) :
+ * - studiesSkillPoints, ascensionSkillPoints, prestigeSkillPoints : Monnaies utilisées pour acheter les compétences.
+ * - skillEffects : Objet accumulant tous les bonus actifs des compétences achetées.
+ * - studiesSkillLevels, ascensionSkillLevels, prestigeSkillLevels : Objets pour suivre les niveaux des compétences achetées.
+ * - totalClicks, nombreProfesseur, prestigeCount : Utilisés pour vérifier les conditions de déverrouillage des compétences.
+ *
+ * Fonctions Clés Définies et Exportées :
+ * - purchaseSkill(skillId, skillType) : Gère la logique d'achat d'une compétence,
+ * vérifie les coûts, déduit les points, marque la compétence comme achetée et applique ses effets.
+ * - updateSkillsUI(domElements) : Met à jour l'état (texte, classes CSS, visibilité)
+ * des éléments de l'interface utilisateur du menu des compétences.
+ * - renderSkillsMenu(domElements) : Construit ou met à jour dynamiquement la structure HTML
+ * du menu des compétences en fonction des compétences débloquées et achetées.
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+ * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateSkillsUI` et `renderSkillsMenu`)
+ * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
+ * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
+ *
+ * Logique Générale :
+ * Ce module est le centre de la progression par compétences. Il interagit avec les données
+ * du jeu pour déterminer la disponibilité des compétences et avec l'état global pour
+ * appliquer leurs bonus. Il est appelé par `events.js` pour les interactions utilisateur
+ * et par la boucle de jeu principale pour les mises à jour visuelles.
+ */
+
+
+
+
+
+/**
+ * ascension.js
+ *
+ * ------------------ Fiche Mémo : ascension.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées au mécanisme
+ * d'Ascension dans le jeu. L'Ascension est un "soft reset" qui réinitialise une partie de la
+ * progression du joueur (ressources, bâtiments, etc.) en échange de Points d'Ascension (PA).
+ * L'Ascension se débloque après avoir acquis au moins 5 Professeurs. Le nombre de PA gagnés
+ * dépend du total des Bons Points (BP) accumulés au cours de la partie actuelle. Le coût
+ * de l'Ascension n'augmente pas.
+ *
+ * Dépendances :
+ * - core.js : Fournit l'accès aux variables d'état globales (bonsPointsTotal, ascensionCount,
+ * ascensionPoints, totalPAEarned, saveGameState,
+ * checkUnlockConditions, softResetGame, applyAllSkillEffects, ascensionUnlocked, nombreProfesseur),
+ * et la fonction de formatage des nombres (formatNumber).
+ * - data.js : Contient les définitions des seuils pour gagner des PA (ASCENSION_POINT_THRESHOLD) et les coûts initiaux (initialCosts). (modif 30/05)
+ * - ui.js : Fournit la fonction de notification (showNotification) et (updateDisplay) et est responsable
+ * d'appeler les fonctions de mise à jour de l'interface utilisateur spécifiques à l'Ascension
+ * (updateAscensionUI, updateAscensionButtonStates) en leur passant les éléments DOM.
+ *
+ * Variables Clés (utilisées par ascension.js, mais définies et gérées ailleurs) :
+ * - bonsPointsTotal : Total cumulé de Bons Points gagnés sur la partie actuelle, utilisé pour calculer les PA.
+ * - ascensionCount : Nombre de fois que le joueur a effectué une Ascension.
+ * - ascensionPoints : Monnaie d'Ascension actuelle du joueur.
+ * - totalPAEarned : Total cumulé de Points d'Ascension gagnés sur toutes les Ascensions.
+ * - ascensionUnlocked : Flag booléen indiquant si le menu d'Ascension est débloqué.
+ * - nombreProfesseur : Le nombre actuel de Professeurs possédés.
+ *
+ * Fonctions Clés Définies et Exportées :
+ * - calculatePAGained() : Calcule le nombre de Points d'Ascension que le joueur
+ * gagnerait s'il effectuait une Ascension maintenant, basé sur bonsPointsTotal. (modif 30/05)
+ * - performAscension() : Exécute le processus d'Ascension, réinitialise le jeu (sauf les PA et bonus),
+ * ajoute les PA gagnés et déclenche les mises à jour nécessaires. L'Ascension nécessite au moins 5 Professeurs.
+ * - calculateNextEcoleCost(count) : Calcule le coût de la prochaine École. (modif 30/05)
+ * - calculateNextLyceeCost(count) : Calcule le coût du prochain Lycée. (modif 30/05)
+ * - calculateNextCollegeCost(count) : Calcule le coût du prochain Collège. (modif 30/05)
+ * - updateAscensionUI(domElements) : Met à jour l'affichage des informations d'Ascension
+ * dans l'interface utilisateur.
+ * - updateAscensionButtonStates(domElements) : Met à jour l'état (texte, classes CSS)
+ * du bouton d'Ascension en fonction de la possibilité d'ascender (au moins 5 Professeurs et PA potentiels > 0).
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+ * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateAscensionUI` et
+ * `updateAscensionButtonStates`) reçoivent les références DOM nécessaires ou que les éléments
+ * soient globalement accessibles (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
+ *
+ * Logique Générale :
+ * Ce module gère le mécanisme de "soft reset" via l'Ascension. Il calcule les récompenses en PA
+ * en fonction de la progression, vérifie la condition du nombre de Professeurs, réinitialise l'état
+ * du jeu et met à jour l'interface utilisateur pour refléter les changements.
+ */
+
+
+
+
+
+
+ *
+ * ------------------ Fiche Mémo : prestige.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées au mécanisme
+ * de Prestige dans le jeu. Le Prestige est la réinitialisation la plus profonde du jeu,
+ * permettant de gagner des Points de Prestige (PP) en échange d'une réinitialisation
+ * de la plupart des progrès, y compris les Points d'Ascension. Les PP peuvent être
+ * utilisés pour acheter des améliorations permanentes et des bonus qui affectent
+ * les couches de jeu précédentes.
+ *
+ * Dépendances :
+ * - core.js : Fournit l'accès aux variables d'état globales (totalPAEarned, prestigeCount,
+ * prestigePoints, nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat,
+ * nombrePostDoctorat, saveGameState, checkUnlockConditions, resetGameVariables, applyAllSkillEffects, prestigeUnlocked).
+ * - data.js : Contient les définitions des seuils pour gagner des PP (PRESTIGE_POINT_THRESHOLD)
+ * et les données des achats de prestige (prestigePurchasesData), incluant leurs coûts et effets.
+ * - ui.js : Pour les fonctions : showNotification,  updateDisplay, et la mise à jour
+ * de l'interface utilisateur spécifique au Prestige (updatePrestigeUI, updatePrestigeButtonStates,
+ * renderPrestigePurchases).
+ *
+ * Variables Clés (utilisées par prestige.js, mais définies et gérées ailleurs) :
+ * - totalPAEarned : Total cumulé de Points d'Ascension gagnés, utilisé pour calculer les PP.
+ * - prestigeCount : Nombre de fois que le joueur a effectué un Prestige.
+ * - prestigePoints : Monnaie de Prestige actuelle du joueur.
+ * - nombreLicences, nombreMaster1, nombreMaster2, nombreDoctorat, nombrePostDoctorat :
+ * Compteurs des achats de prestige.
+ * - prestigeUnlocked : Flag booléen indiquant si le menu de Prestige est débloqué.
+ *
+ * Fonctions Clés Définies et Exportées :
+ * - calculatePPGained() : Calcule le nombre de Points de Prestige que le joueur
+ * gagnerait s'il effectuait un Prestige maintenant, basé sur totalPAEarned. (modif 30/05)
+ * - getPrestigeBonusMultiplier(type, currentPrestigeCount, currentPrestigePoints) : Calcule les multiplicateurs de prestige. (modif 30/05)
+ * - calculateLicenceCost(count) : Calcule le coût de la prochaine Licence. (modif 30/05)
+ * - calculateMaster1Cost(count) : Calcule le coût du prochain Master 1. (modif 30/05)
+ * - calculateMaster2Cost(count) : Calcule le coût du prochain Master 2. (modif 30/05)
+ * - calculateDoctoratCost(count) : Calcule le coût du prochain Doctorat. (modif 30/05)
+ * - calculatePostDoctoratCost(count) : Calcule le coût du prochain Post-Doctorat. (modif 30/05)
+ * - performPrestige() : Exécute le processus de Prestige, réinitialise le jeu (plus profondément
+ * que l'Ascension), ajoute les PP gagnés et déclenche les mises à jour nécessaires.
+ * - performPrestigePurchase(purchaseId) : Gère la logique d'achat pour les améliorations de prestige,
+ * vérifie les coûts, déduit les points et met à jour les compteurs d'achats.
+ * - updatePrestigeUI(domElements) : Met à jour l'affichage des informations de Prestige
+ * dans l'interface utilisateur.
+ * - updatePrestigeButtonStates(domElements) : Met à jour l'état (texte, classes CSS)
+ * du bouton de Prestige en fonction de la possibilité de prestiger.
+ * - renderPrestigePurchases(domElements) : Construit ou met à jour dynamiquement la structure HTML
+ * des achats de prestige dans le menu.
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+ * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updatePrestigeUI`,
+ * `updatePrestigeButtonStates`, et `renderPrestigePurchases`) reçoivent les références DOM nécessaires
+ * ou que les éléments soient globalement accessibles (par exemple, si `ui.js` les expose globalement
+ * après les avoir récupérés).
+ *
+ * Logique Générale :
+ * Ce module est la couche de progression la plus élevée. Il assure que le Prestige est
+ * un jalon significatif, offrant des récompenses permanentes qui facilitent la progression
+ * dans les boucles de jeu précédentes. Il est appelé par `events.js` pour l'interaction
+ * utilisateur et par la boucle de jeu pour les mises à jour visuelles.
+ */
+
+
+
+----------------  Fiche Mémo : settings.js -----------------------------
+// Description : Ce fichier gère la logique des différentes options de paramètres du jeu.
+// Il est responsable de la modification de l'état du jeu concernant le thème,
+// la progression hors ligne, l'affichage minimaliste des ressources, et l'ouverture
+// de la modale des statistiques.
+// Les écouteurs d'événements pour ces actions sont définis dans events.js,
+// qui appellera les fonctions exportées de ce module.
+
+// Dépendances :
+// - core.js : Pour accéder et modifier les variables d'état du jeu (isDayTheme,
+//             offlineProgressEnabled, minimizeResourcesActive, themeOptionUnlocked,
+//             images), pour appeler saveGameState.
+// - ui.js : Pour appeler updateDisplay (modif 30/05), showNotification (modif 30/05), updateSectionVisibility (modif 30/05), updateSettingsButtonStates (modif 30/05), openStatsModal (modif 30/05) et closeStatsModal (modif 30/05) (bien que closeStatsModal
+//          soit gérée par l'événement de clic sur la modale elle-même dans events.js).
+
+// Fonctions Clés Définies et Exportées :
+// - toggleTheme() : Bascule entre le thème jour et nuit, gère le déverrouillage de l'option.
+// - toggleOfflineProgress(isChecked) : Active ou désactive la progression hors ligne.
+// - toggleMinimizeResources() : Active ou désactive l'affichage minimaliste des ressources.
+// - openStats() : Ouvre la modale des statistiques.
+
+// --- Imports des modules nécessaires ---
+
+
+
+
+   **
+ * quests.js
+ *
+ * ------------------ Fiche Mémo : quests.js -----------------------------
+ * Description : Ce fichier gère toute la logique et les fonctionnalités liées aux quêtes
+ * (Quests) du jeu. Il permet de définir les quêtes, de vérifier leurs conditions de complétion,
+ * de distribuer les récompenses une fois les quêtes terminées, et de mettre à jour
+ * l'interface utilisateur du journal des quêtes.
+ *
+ * Dépendances :
+ * - core.js : Fournit l'accès aux variables d'état globales (bonsPoints, images, nombreEleves,
+ * nombreClasses, nombreProfesseur, totalClicks, totalPAEarned, prestigeCount,
+ * saveGameState, applyAllSkillEffects, completedQuests), (modif 30/05)
+ * - data.js : Contient les définitions des quêtes (questsData) incluant leurs conditions
+ * de complétion et leurs récompenses.
+ * - ui.js : Pour les fonctions de formatage des nombres (formatNumber) et la mise à jour
+ * de l'interface utilisateur spécifique aux quêtes (updateQuestsUI, renderQuests),et les fonctions `showNotification`, `updateDisplay`. (modif 30/05)
+ *
+ * Variables Clés (utilisées par quests.js, mais définies et gérées ailleurs) :
+ * - bonsPoints, images, nombreEleves, nombreClasses, nombreProfesseur, totalClicks,
+ * totalPAEarned, prestigeCount : Variables d'état du jeu utilisées pour vérifier les conditions des quêtes.
+ * - completedQuests : Objet pour suivre les quêtes déjà complétées par leur ID (défini dans core.js). (modif 30/05)
+ * - questsData : Tableau des définitions de toutes les quêtes (défini dans data.js). (modif 30/05)
+ *
+ * Variables Clés Définies et Exportées : (modif 30/05)
+ * - paMultiplierFromQuests : Multiplicateur de gain de PA cumulé provenant des récompenses de quêtes. (modif 30/05)
+ *
+ * Fonctions Clés Définies et Exportées :
+ * - updateQuestProgress() : Vérifie les conditions de toutes les quêtes non complétées et
+ * marque celles qui sont terminées comme "complétées" ou "réclamables". (modif 30/05)
+ * - claimQuestReward(questId) : Gère la logique de réclamation d'une récompense de quête,
+ * ajoute les récompenses au joueur et marque la quête comme réclamée.
+ * - updateQuestsUI(domElements) : Met à jour l'affichage des informations générales des quêtes
+ * dans l'interface utilisateur.
+ * - renderQuests(domElements) : Construit ou met à jour dynamiquement la structure HTML
+ * du journal des quêtes en fonction de leur état (non commencée, en cours, complétée, réclamée).
+ *
+ * Éléments DOM Clés (référencés par ID, définis dans index.html et gérés via ui.js) :
+ * Ce module n'accède pas directement aux éléments DOM via `document.getElementById`.
+ * Il s'attend à ce que les fonctions d'UI qui le consomment (comme `updateQuestsUI` et `renderQuests`)
+ * reçoivent les références DOM nécessaires ou que les éléments soient globalement accessibles
+ * (par exemple, si `ui.js` les expose globalement après les avoir récupérés).
+ *
+ * Logique Générale :
+ * Ce module est essentiel pour guider la progression du joueur et offrir des objectifs
+ * à court et moyen terme. Il interagit avec les données du jeu pour déterminer la
+ * complétion des quêtes et avec l'état global pour appliquer les récompenses.
+ * Il est appelé par la boucle de jeu principale (`core.js`) pour la vérification périodique
+ * et par `events.js` pour les interactions utilisateur (réclamation de récompenses).
+ */
+
+
+
+
+
+
+
 // ------------------ Fiche Mémo : achievements.js ----------------------------
 //
 // Description : Ce fichier est dédié à la gestion complète du système de succès (Achievements)

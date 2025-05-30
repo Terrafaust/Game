@@ -1,68 +1,226 @@
 <!-- Fiche Mémo : index.html
-Description : Ce fichier est le point d'entrée principal de l'application web.
-Il définit la structure HTML globale du jeu, inclut les feuilles de style CSS,
-les bibliothèques externes (comme break_infinity.min.js), et charge tous
-les fichiers JavaScript modulaires qui contiennent la logique du jeu.
-Il ne contient aucune logique JavaScript active, seulement les balises <script>
-pour charger les autres fichiers.
+//
+// Description : Ce fichier est le point d'entrée principal de l'application web.
+// Il définit la structure HTML globale du jeu, inclut les feuilles de style CSS,
+// les bibliothèques externes (comme break_infinity.min.js), et charge tous
+// les fichiers JavaScript modulaires qui contiennent la logique du jeu.
+// Il ne contient aucune logique JavaScript active, servant uniquement de conteneur
+// pour les éléments DOM et les inclusions de scripts.
+//
+// Objectif : Structurer l'interface utilisateur et orchestrer le chargement de tous
+// les composants JavaScript et CSS nécessaires au fonctionnement du jeu,
+// en fournissant la fondation sur laquelle la logique du jeu est construite.
+//
+// ------------------ Dépendances (Inclusions de Fichiers) ------------------
+//
+// - style.css : Fournit les styles visuels pour l'interface du jeu.
+//   Impact : Indispensable pour l'apparence générale, les thèmes et les modes jour/nuit.
+//
+// - break_infinity.min.js : Bibliothèque JavaScript pour la gestion des grands nombres.
+//   Impact : Doit être chargé en premier car il expose une variable globale `Decimal`
+//             utilisée par tous les autres scripts JavaScript pour les calculs numériques.
+//
+// - core.js : Fonctions principales du jeu, gestion de l'état global, sauvegarde/chargement,
+//             et la boucle de jeu.
+//   Impact : Contient la fonction `initializeGame()` appelée au chargement de la page.
+//
+// - data.js : Données statiques du jeu (coûts, multiplicateurs, définitions des compétences,
+//             quêtes, succès, etc.).
+//   Impact : Fournit les données utilisées par tous les modules de logique.
+//
+// - ui.js : Gestion de l'interface utilisateur, mise à jour de l'affichage des ressources,
+//           états des boutons, visibilité des sections.
+//   Impact : Manipule la visibilité des éléments DOM définis ici (ex: `display: none;`).
+//             Interagit avec les éléments de sélection de thème et de mode jour/nuit.
+//
+// - studies.js : Logique spécifique aux achats et à la production liés aux études
+//                (Élèves, Classes, Images, Professeurs).
+//   Impact : Référence et met à jour les éléments DOM des sections d'achat d'études.
+//
+// - automation.js : Logique de l'automatisation des achats.
+//   Impact : Référence et met à jour les éléments DOM de la section d'automatisation.
+//
+// - skills.js : Logique de l'arbre de compétences (achat, réinitialisation, application des effets).
+//   Impact : Référence et met à jour les éléments DOM de l'arbre de compétences.
+//
+// - ascension.js : Logique du mécanisme d'ascension (calcul des PA, achats d'Ascension, réinitialisation douce).
+//   Impact : Référence et met à jour les éléments DOM de la section d'ascension.
+//
+// - prestige.js : Logique du mécanisme de prestige (calcul des PP, achats de Prestige, réinitialisation super douce).
+//   Impact : Référence et met à jour les éléments DOM de la section de prestige.
+//
+// - settings.js : Logique des paramètres du jeu (thème, progression hors ligne, minimisation des ressources).
+//   Impact : Interagit directement avec les éléments DOM de la section paramètres,
+//             notamment le `<select id="themeSelector">` et les boutons de mode jour/nuit
+//             (`dayModeButton`, `nightModeButton`) pour appliquer les classes CSS au `<body>`.
+//
+// - quests.js : Logique du système de quêtes (définition, suivi de progression, récompenses).
+//   Impact : Référence et met à jour les éléments DOM de la section des quêtes.
+//
+// - achievements.js : Logique du système de succès (définition, vérification des conditions,
+//                     récompenses, infobulles).
+//   Impact : Référence et met à jour les éléments DOM de la section des succès et de l'infobulle.
+//
+// - events.js : Gestion centralisée de tous les écouteurs d'événements DOM (clics sur les boutons,
+//               changements d'état, etc.).
+//   Impact : Attache les gestionnaires d'événements à la plupart des éléments DOM interactifs
+//             définis dans ce fichier.
+//
+// ------------------ Variables Clés (JavaScript) ------------------
+//
+// Aucune variable JavaScript clé globale n'est définie ou gérée directement dans ce fichier.
+// Il sert uniquement de conteneur pour les éléments DOM et les inclusions de scripts.
+//
+// ------------------ Fonctions Clés (JavaScript) ------------------
+//
+// Aucune fonction JavaScript n'est définie ou exécutée directement dans ce fichier,
+// à l'exception du chargement des scripts externes et de l'appel à `initializeGame()`
+// de `core.js` via `window.onload`.
+//
+// ------------------ Éléments DOM Clés (par ID) ------------------
+//
+// - `<body>` : L'élément racine du contenu. Les classes de thème et de mode (`normal-theme`,
+//               `neon-sci-fi-theme`, `day-mode`, `night-mode`, etc.) sont appliquées ici
+//               par `settings.js` et `core.js` pour contrôler l'apparence via `style.css`.
+//
+// - `<div id="side-menu">` : Menu de navigation latéral.
+//   - Boutons de navigation : `studiesTabBtn`, `automationTabBtn`, `skillsTabBtn`,
+//     `ascensionTabBtn`, `prestigeTabBtn`, `settingsTabBtn`, `questsTabBtn`,
+//     `achievementsTabBtn`, `statsButton`.
+//     Impact : Leur visibilité est gérée par `ui.js`. Leurs styles sont définis dans `style.css`.
+//
+// - `<div id="main-content">` : Conteneur principal pour le contenu dynamique des sections.
+//
+// - `<div class="container">` : Conteneur de base pour l'affichage des ressources principales
+//                                et le bouton de clic "Études".
+//   - Affichage des ressources : `bonsPoints`, `totalBpsInline`, `imagesCount`,
+//     `nombreProfesseur`, `ascensionBonusValue`, `ascensionPointsCount`,
+//     `totalPAEarnedSpanInline`, `ascensionCountSpan`, `prestigePointsCount`,
+//     `prestigeCountSpan`.
+//     Impact : Mis à jour par `ui.js`. Les classes de couleur (ex: `bons-points-color`)
+//              sont définies dans `style.css`.
+//   - Titre cliquable des études : `studiesTitleButton`, `clickBonsPointsDisplay`.
+//     Impact : Cliquable pour la production de BP, géré par `events.js` et `studies.js`.
+//
+// - `<div id="studiesMainContainer">` : Section dédiée aux achats et à la production des études.
+//   - Sélecteur de multiplicateur d'achat : `purchaseMultiplierSelection` (conteneur),
+//     `multiplierButtonsContainer` (pour délégation d'événements), `setMultiplierX1`,
+//     `setMultiplierX10`, `setMultiplierX100`, `setMultiplierXmax`.
+//     Impact : Géré par `ui.js` et `events.js`.
+//   - Sections d'achat spécifiques : `achatEleveSection`, `achatClasseSection`,
+//     `achatProfesseurSection`, `achatImageSection`.
+//     - Boutons d'achat : `acheterEleveButton`, `acheterClasseButton`, `acheterProfesseurButton`,
+//       `acheterImageButton`.
+//       Impact : Gérés par `studies.js` et `events.js`. Leurs styles (`can-afford`, `cannot-afford`)
+//                sont définis dans `style.css`.
+//     - Affichage des quantités/productions : `nombreEleves`, `elevesBpsPerItem`, `nombreClasses`,
+//       `classesBpsPerItem`, `buyProfesseur`.
+//       Impact : Mis à jour par `ui.js` et `studies.js`.
+//
+// - `<div id="automationMainContainer">` : Section pour les options d'automatisation.
+//   - Boutons d'automatisation : `autoEleveBtn`, `autoClasseBtn`, `autoImageBtn`, `autoProfesseurBtn`.
+//     Impact : Gérés par `automation.js` et `events.js`. Leurs styles (`automation-active`)
+//              sont définis dans `style.css`.
+//
+// - `<div id="skillsContainer">` : Section pour l'arbre de compétences.
+//   - Boutons d'action : `resetSkillsButton`, `buyAllSkillsButton`.
+//     Impact : Gérés par `skills.js` et `events.js`.
+//   - Panneaux de compétences : `studiesPanel`, `ascensionPanel`, `prestigePanel`.
+//     - Affichage des points : `studiesSkillsPointsCount`, `ascensionSkillsPointsCount`, `prestigeSkillsPointsCount`.
+//     - Grilles de compétences : `studiesSkillsGrid`, `ascensionSkillsGrid`, `prestigeSkillsGrid`.
+//       Impact : Le contenu est généré dynamiquement par `skills.js` et `ui.js`. Les styles
+//                des boîtes de compétences (`locked`, `unlocked`, `max-level`) sont dans `style.css`.
+//
+// - `<div id="settingsContainer">` : Section pour les paramètres du jeu.
+//   - Sélection du thème : `themeSelector` (select).
+//     Impact : La valeur sélectionnée est lue par `settings.js` pour appliquer la classe de thème au `<body>`.
+//   - Mode Jour/Nuit : `dayModeButton`, `nightModeButton`.
+//     Impact : Les clics sont gérés par `settings.js` pour appliquer les classes de mode au `<body>`.
+//   - Boutons de réinitialisation : `resetProgressionButton`.
+//     Impact : Géré par `core.js` et `events.js`.
+//   - Paramètres divers : `offlineProgressToggle` (checkbox), `toggleMinimalistResources` (bouton), `statsButton` (bouton).
+//     Impact : Gérés par `settings.js` et `events.js`.
+//
+// - `<div id="ascensionMenuContainer">` : Section pour le mécanisme d'ascension.
+//   - Titre cliquable d'ascension : `ascensionTitleButton`.
+//     Impact : Géré par `ascension.js` et `events.js`.
+//   - Affichage des PA : `ascensionMenuPACount`.
+//   - Boutons d'achat d'ascension : `acheterEcoleButton`, `acheterLyceeButton`, `acheterCollegeButton`.
+//     - Affichage des coûts : `coutEcole`.
+//     - Affichage des quantités/multiplicateurs : `nombreEcoles`, `ecoleMultiplier`, `nombreLyceesDisplay`,
+//       `lyceeMultiplierDisplay`, `nombreCollegesDisplay`, `collegeMultiplierDisplay`.
+//     Impact : Gérés par `ascension.js` et `events.js`.
+//   - Boutons de déverrouillage : `unlockMultiPurchaseButton`, `unlockmaxPurchaseButton`,
+//     `unlockNewSettingsButton`, `unlockAutomationCategoryButton`.
+//     Impact : Gérés par `core.js` et `events.js`.
+//
+// - `<div id="prestigeMenuContainer">` : Section pour le mécanisme de prestige.
+//   - Titre cliquable de prestige : `prestigeTitleButton`.
+//     Impact : Géré par `prestige.js` et `events.js`.
+//   - Affichage des PP : `prestigeMenuPPCount`.
+//   - Boutons d'achat de prestige : `acheterLicenceButton`, `acheterMaster1Button`,
+//     `acheterMaster2Button`, `acheterDoctoratButton`, `acheterPostDoctoratButton`.
+//     - Affichage des quantités/boosts : `nombreLicences`, `licenceBoost`, `nombreMaster1`,
+//       `master1Boost`, `nombreMaster2`, `master2Boost`, `nombreDoctorat`, `doctoratBoost`,
+//       `doctoratMinClasses`, `nombrePostDoctorat`, `postDoctoratBoost`.
+//     Impact : Gérés par `prestige.js` et `events.js`.
+//
+// - `<div id="questsContainer">` : Section pour les quêtes.
+//   - Conteneurs des listes de quêtes : `questsList` (actives), `completedQuestsList` (terminées).
+//     Impact : Le contenu est généré dynamiquement par `quests.js` et `ui.js`.
+//
+// - `<div id="achievementsContainer">` : Section pour les succès.
+//   - Grille des succès : `achievementsGrid`.
+//     Impact : Le contenu est généré dynamiquement par `achievements.js` et `ui.js`.
+//   - Infobulle des succès : `achievementTooltip`.
+//     Impact : Gérée par `achievements.js` et `events.js`.
+//
+// - `<footer id="page-footer">` : Pied de page.
+//
+// - `<div id="notifications-container">` : Conteneur pour les notifications pop-up.
+//   Impact : Les notifications sont ajoutées dynamiquement par `ui.js`.
+//
+// - `<div id="minimalistResources">` : Panneau d'affichage minimaliste des ressources.
+//   - Affichage des ressources : `miniBonsPoints`, `miniImages`, `miniProfesseur`,
+//     `miniAscensionPoints`, `miniAscensionCount`, `miniPrestigePoints`, `miniPrestigeCount`.
+//     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
+//
+// - Modales de confirmation : `confirmResetModal`, `confirmAscensionModal`, `confirmPrestigeModal`.
+//   - Contenu des modales : `modal-content`.
+//   - Boutons de confirmation : `confirmResetYes`, `confirmResetNo`, `confirmAscensionYes`,
+//     `confirmAscensionNo`, `confirmPrestigeYes`, `confirmPrestigeNo`.
+//     Impact : Leur visibilité est gérée par `ui.js`. Les actions sont gérées par `events.js`.
+//   - Éléments spécifiques à l'ascension : `ascensionModalTitle`, `firstAscensionWarning`,
+//     `subsequentAscensionWarning`, `paGainedDisplay`, `disableAscensionWarningCheckbox`.
+//   - Éléments spécifiques au prestige : `prestigeWarningText`, `disablePrestigeWarningCheckbox`.
+//
+// - `<div id="statsModal">` : Modale des statistiques.
+//   - Bouton de fermeture : `close-button`.
+//   - Catégories de statistiques : `stats-category` (avec `h3` et `p`).
+//     - Affichage des statistiques : `statsCurrentBPS`, `statsSkillBonus`, `statsAscensionBonus`,
+//       `statsPrestigeBPSBonus`, `statsAchievementBPSBonus`, `statsAllBPSMultiplier`,
+//       `statsBonsPoints`, `statsImages`, `statsProfesseur`, `statsProfMultiplier`,
+//       `statsAscensionPoints`, `statsPrestigePoints`, `statsEleveCostReduction`, etc.
+//     Impact : Sa visibilité est gérée par `ui.js` et `settings.js`. Les valeurs sont mises à jour par `ui.js`.
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - Ordre des scripts : L'ordre d'inclusion des balises `<script type="module">` est crucial
+//   en raison des dépendances entre les modules JavaScript. `break_infinity.min.js` doit être
+//   chargé globalement avant tous les modules. Ensuite, les modules sont chargés dans un ordre
+//   qui garantit que leurs dépendances sont déjà disponibles.
+//
+// - Classes CSS dynamiques : De nombreux éléments ont des styles `display: none;` ou des classes
+//   (comme `active`, `unlocked`, `can-afford`, `cannot-afford`, `normal-theme`, `day-mode`)
+//   qui sont manipulés dynamiquement par les scripts JavaScript (principalement `ui.js`, `core.js`, `settings.js`)
+//   pour contrôler leur visibilité et leur apparence.
+//
+// - Bonnes pratiques : Le code HTML est structuré de manière sémantique, avec des IDs clairs
+//   pour faciliter la manipulation par JavaScript et des commentaires pour la lisibilité.
+//   Les styles inline ont été minimisés au profit de classes CSS gérées par `style.css`.
+//
+// ---------------------------------------------------------------------
 
-Dépendances :
-- style.css : Fournit les styles visuels pour l'interface du jeu.
-- break_infinity.min.js : Bibliothèque JavaScript pour la gestion des grands nombres (doit être chargé en premier).
-- core.js : Fonctions principales du jeu, gestion de l'état global, sauvegarde/chargement, et la boucle de jeu.
-- data.js : Données statiques du jeu (coûts, multiplicateurs, définitions des compétences, quêtes, succès, etc.).
-- ui.js : Gestion de l'interface utilisateur, mise à jour de l'affichage des ressources, états des boutons, visibilité des sections.
-- studies.js : Logique spécifique aux achats et à la production liés aux études (Élèves, Classes, Images, Professeurs).
-- automation.js : Logique de l'automatisation des achats.
-- skills.js : Logique de l'arbre de compétences (achat, réinitialisation, application des effets).
-- ascension.js : Logique du mécanisme d'ascension (calcul des PA, achats d'Ascension, réinitialisation douce).
-- prestige.js : Logique du mécanisme de prestige (calcul des PP, achats de Prestige, réinitialisation super douce).
-- settings.js : Logique des paramètres du jeu (thème, progression hors ligne, minimisation des ressources).
-- quests.js : Logique du système de quêtes (définition, suivi de progression, récompenses).
-- achievements.js : Logique du système de succès (définition, vérification des conditions, récompenses, infobulles).
-- events.js : Gestion centralisée de tous les écouteurs d'événements DOM (clics sur les boutons, changements d'état, etc.).
-
-Variables Clés : Aucune variable JavaScript clé globale n'est définie
-ou gérée directement dans ce fichier. Il sert uniquement de conteneur
-pour les éléments DOM et les inclusions de scripts.
-
-Fonctions Clés : Aucune fonction JavaScript n'est définie ou exécutée
-directement dans ce fichier, à l'exception du chargement des scripts externes.
-
-Éléments DOM Clés :
-- <div id="side-menu"> : Contient les boutons de navigation entre les différentes sections du jeu.
-- <div id="main-content"> : Conteneur principal pour le contenu dynamique des différentes sections (études, automatisation, etc.).
-- <div class="container"> : Affiche les ressources principales et le bouton de clic.
-- <div id="studiesMainContainer"> : Section dédiée aux achats et à la production des études.
-- <div id="automationMainContainer"> : Section pour les options d'automatisation.
-- <div id="skillsContainer"> : Section pour l'arbre de compétences.
-- <div id="ascensionMenuContainer"> : Section pour le mécanisme d'ascension.
-- <div id="prestigeMenuContainer"> : Section pour le mécanisme de prestige.
-- <div id="questsContainer"> : Section pour les quêtes.
-- <div id="achievementsContainer"> : Section pour les succès.
-- <div id="settingsContainer"> : Section pour les paramètres du jeu.
-- <div id="notifications-container"> : Conteneur pour les notifications pop-up.
-- <div id="minimalistResources"> : Affichage compact des ressources (optionnel).
-- Modales (#confirmResetModal, #confirmAscensionModal, #confirmPrestigeModal, #statsModal) :
-  Fenêtres pop-up pour les confirmations ou l'affichage de statistiques.
-
-Événements Gérés : Ce fichier ne gère pas directement les événements.
-Il fournit les éléments DOM auxquels les gestionnaires d'événements
-(définis principalement dans events.js et d'autres modules) s'attachent.
-
-Logique Générale : Le rôle principal de index.html est de structurer
-l'interface utilisateur et d'orchestrer le chargement de tous les composants
-JavaScript et CSS nécessaires au fonctionnement du jeu. Il sert de fondation
-sur laquelle la logique du jeu est construite par les fichiers JavaScript modulaires.
-
-Notes Spécifiques :
-- L'ordre d'inclusion des scripts JavaScript est important en raison des dépendances
-  entre les modules. `break_infinity.min.js` doit être chargé en premier car il expose une variable globale.
-  Ensuite, les modules doivent être chargés dans un ordre qui respecte leurs dépendances (e.g., `core.js` avant `ui.js`, `data.js` avant tout module qui utilise ses données, etc.).
-  Les modules `type="module"` gèrent leurs dépendances via les instructions `import`.
-- Les styles `display: none;` sur certains conteneurs sont gérés dynamiquement par les fonctions
-  JavaScript (principalement `updateSectionVisibility` dans `ui.js`) pour afficher ou masquer les sections du jeu.
--->
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -82,10 +240,8 @@ Notes Spécifiques :
             <button id="studiesTabBtn">Études</button>
             <button id="automationTabBtn" style="display: none;">Automatisation</button>
             <button id="skillsTabBtn" style="display: none;">Compétences</button>
-            <button id="ascensionTabBtn" style="display: none; background-color: #007BFF; color: white;">Menu
-                Ascension</button>
-            <button id="prestigeTabBtn" style="display: none; background-color: #FF0000; color: white;">Menu
-                Prestige</button>
+            <button id="ascensionTabBtn" style="display: none;">Menu Ascension</button>
+            <button id="prestigeTabBtn" style="display: none;">Menu Prestige</button>
             <button id="settingsTabBtn" style="display: none;">Paramètres</button>
             <button id="questsTabBtn" style="display: none;">Quêtes</button>
             <button id="achievementsTabBtn" style="display: none;">Succès</button>
@@ -123,7 +279,8 @@ Notes Spécifiques :
                 <h1 id="studiesTitleButton">Études (<span id="clickBonsPointsDisplay">+0 BP</span>)</h1>
             </div>
 
-            <div id="studiesMainContainer" style="display: flex;"> <div class="header-row">
+            <div id="studiesMainContainer" style="display: flex;">
+                <div class="header-row">
                     <div id="purchaseMultiplierSelection" class="achat-section" style="display: none;">
                         <h3>Qté Achat</h3>
                         <div id="multiplierButtonsContainer">
@@ -188,10 +345,8 @@ Notes Spécifiques :
                 <div class="header-row">
                     <h1>Arbre de Compétences</h1>
                     <div class="skill-header-buttons">
-                        <button id="resetSkillsButton"
-                            style="background-color: #f44336; color: white;">Réinitialiser</button>
-                        <button id="buyAllSkillsButton" style="background-color: #4CAF50; color: white;">Tout
-                            acheter</button>
+                        <button id="resetSkillsButton">Réinitialiser</button>
+                        <button id="buyAllSkillsButton">Tout acheter</button>
                     </div>
                 </div>
 
@@ -216,12 +371,25 @@ Notes Spécifiques :
 
             <div id="settingsContainer" style="display: none;">
                 <h1>Paramètres</h1>
-                <div class="achat-section">
-                    <button id="themeToggleButton">Débloquer option Thème (10 I)</button>
+                <div class="achat-section" id="themeSelectionSetting">
+                    <h3>Sélection du Thème</h3>
+                    <select id="themeSelector">
+                        <option value="normal-theme">Normal</option>
+                        <option value="neon-sci-fi-theme">Neon Sci-Fi</option>
+                        <option value="steampunk-theme">Steampunk</option>
+                        <option value="retro-theme">Rétro</option>
+                        <option value="pink-theme">Pink</option>
+                        <option value="black-gold-theme">Black & Gold</option>
+                        <option value="rgb-theme">RGB</option>
+                    </select>
+                </div>
+                <div class="achat-section" id="dayNightModeSetting">
+                    <h3>Mode Jour/Nuit</h3>
+                    <button id="dayModeButton" class="multiplier-button active">Jour</button>
+                    <button id="nightModeButton" class="multiplier-button">Nuit</button>
                 </div>
                 <div class="achat-section">
-                    <button id="resetProgressionButton" style="background-color: #FF4500; color: white;">Réinitialiser la
-                        Progression (10 I)</button>
+                    <button id="resetProgressionButton">Réinitialiser la Progression (10 I)</button>
                 </div>
                 <div class="achat-section" id="offlineProgressSetting" style="display: none;">
                     <label for="offlineProgressToggle">Activer progression hors ligne :</label>
@@ -236,9 +404,7 @@ Notes Spécifiques :
             </div>
 
             <div id="ascensionMenuContainer" style="display: none;">
-                <h1 id="ascensionTitleButton"
-                    style="cursor: pointer; padding: 15px 30px; font-size: 1.2em; background-color: #007BFF; color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease, transform 0.1s ease;">
-                    Ascension !</h1>
+                <h1 id="ascensionTitleButton">Ascension !</h1>
                 <p>Points d'Ascension disponibles : <span id="ascensionMenuPACount"
                         class="ascension-points-color">0</span>
                 </p>
@@ -286,9 +452,7 @@ Notes Spécifiques :
             </div>
 
             <div id="prestigeMenuContainer" style="display: none;">
-                <h1 id="prestigeTitleButton"
-                    style="cursor: pointer; padding: 15px 30px; font-size: 1.2em; background-color: #FF0000; color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); transition: background-color 0.3s ease, transform 0.1s ease;">
-                    Prestige !</h1>
+                <h1 id="prestigeTitleButton">Prestige !</h1>
                 <p>Points de Prestige disponibles : <span id="prestigeMenuPPCount"
                         class="prestige-points-color">0</span>
                 </p>
@@ -378,8 +542,8 @@ Notes Spécifiques :
             <h3 class="warning-color">Réinitialiser la progression ?</h3>
             <p>Cela réinitialisera tout votre jeu et coûtera 10 images. Êtes-vous sûr ?</p>
             <div class="modal-buttons">
-                <button id="confirmResetYes" class="can-afford">Oui</button>
-                <button id="confirmResetNo" class="cannot-afford">Non</button>
+                <button id="confirmResetYes">Oui</button>
+                <button id="confirmResetNo">Non</button>
             </div>
         </div>
     </div>
@@ -415,8 +579,8 @@ Notes Spécifiques :
             <p id="subsequentAscensionWarning" style="display: none;">Vous êtes sur le point d'Ascensionner ! Cela
                 réinitialisera votre progression actuelle mais vous rapportera des Points d'Ascension. </p>
             <div class="modal-buttons">
-                <button id="confirmAscensionYes" class="can-afford">Oui</button>
-                <button id="confirmAscensionNo" class="cannot-afford">Non</button>
+                <button id="confirmAscensionYes">Oui</button>
+                <button id="confirmAscensionNo">Non</button>
             </div>
         </div>
     </div>
@@ -431,8 +595,8 @@ Notes Spécifiques :
                     Prestiges</label>
             </div>
             <div class="modal-buttons">
-                <button id="confirmPrestigeYes" class="can-afford">Oui</button>
-                <button id="confirmPrestigeNo" class="cannot-afford">Non</button>
+                <button id="confirmPrestigeYes">Oui</button>
+                <button id="confirmPrestigeNo">Non</button>
             </div>
         </div>
     </div>
@@ -510,22 +674,6 @@ Notes Spécifiques :
                         id="statsTotalPAEarned">0</span></p>
                 <p>Prestiges effectués: <span class="prestige-points-color stat-value"
                         id="statsPrestigeCount">0</span></p>
-            </div>
-
-            <div class="stats-category">
-                <h3>Compétences</h3>
-                <p>Points de compétence Études: <span class="images-color stat-value"
-                        id="statsStudiesSkillPoints">0</span></p>
-                <p>Points de compétence Ascension: <span class="ascension-points-color stat-value"
-                        id="statsAscensionSkillPoints">0</span></p>
-                <p>Points de compétence Prestige: <span class="prestige-points-color stat-value"
-                        id="statsPrestigeSkillPoints">0</span></p>
-                <p>Compétences Études débloquées: <span class="info-color stat-value"
-                        id="statsStudiesSkillsUnlockedCount">0</span></p>
-                <p>Compétences Ascension débloquées: <span class="info-color stat-value"
-                        id="statsAscensionSkillsUnlockedCount">0</span></p>
-                <p>Compétences Prestige débloquées: <span class="info-color stat-value"
-                        id="statsPrestigeSkillsUnlockedCount">0</span></p>
             </div>
 
             <div class="stats-category">

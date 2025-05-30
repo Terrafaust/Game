@@ -1,10 +1,1330 @@
+/*
+// ------------------ Fiche Mémo : style.css ----------------------------
+//
+// Description : Ce fichier CSS est le cœur de la présentation visuelle du jeu.
+// Il définit l'apparence de tous les éléments HTML, y compris la mise en page générale,
+// les couleurs, la typographie, les transitions, et les styles spécifiques pour les
+// différents composants de l'interface utilisateur (menus, boutons, modales, sections de jeu, etc.).
+// Il inclut également des styles pour les différents thèmes et assure la réactivité de l'interface.
+//
+// Objectif : Fournir une couche de présentation cohérente et réactive pour le jeu,
+// permettant une personnalisation visuelle via des thèmes et des modes jour/nuit.
+//
+// ------------------ Variables CSS Clés Définies et Utilisées ------------------
+// Ces variables sont définies au niveau de `:root` ou sur le `body` avec des classes
+// spécifiques pour les thèmes et modes. Elles sont utilisées partout dans le CSS
+// pour assurer la cohérence visuelle et faciliter les changements de thème/mode.
+//
+// Variables de couleurs générales :
+// --main-bg-color: Couleur de fond principale du corps du document.
+// --text-color: Couleur de texte par défaut.
+// --container-bg-color: Couleur de fond des conteneurs principaux (sections de jeu, modales).
+// --border-color: Couleur des bordures générales.
+// --box-shadow-light, --box-shadow-medium, --box-shadow-dark: Couleurs pour les ombres portées, variant en intensité.
+//
+// Variables spécifiques aux éléments de l'interface :
+// --side-menu-bg-color: Couleur de fond du menu latéral.
+// --side-menu-border-color: Couleur de bordure du menu latéral.
+// --achat-section-bg-color: Couleur de fond des sections d'achat.
+// --achat-section-border-color: Couleur de bordure des sections d'achat.
+// --button-bg-color: Couleur de fond des boutons.
+// --button-text-color: Couleur du texte des boutons.
+// --button-border-color: Couleur de bordure des boutons.
+// --button-hover-bg-color: Couleur de fond des boutons au survol.
+// --button-can-afford-border: Couleur de bordure des boutons si l'achat est possible.
+// --button-cannot-afford-border: Couleur de bordure des boutons si l'achat n'est pas possible.
+// --notification-bg-color: Couleur de fond des notifications.
+// --notification-text-color: Couleur du texte des notifications.
+// --modal-bg-color: Couleur de fond des modales.
+// --modal-border-color: Couleur de bordure des modales.
+// --modal-shadow-color: Couleur de l'ombre des modales.
+// --footer-bg-color: Couleur de fond du pied de page.
+// --footer-text-color: Couleur du texte du pied de page.
+// --footer-border-color: Couleur de bordure du pied de page.
+// --skill-panel-bg-color: Couleur de fond des panneaux de compétences.
+// --skill-panel-border-color: Couleur de bordure des panneaux de compétences.
+// --skill-tier-bg-color: Couleur de fond des niveaux de compétences.
+// --skill-tier-border-color: Couleur de bordure des niveaux de compétences.
+// --skill-box-locked-bg: Couleur de fond d'une compétence verrouillée.
+// --skill-box-locked-border: Couleur de bordure d'une compétence verrouillée.
+// --skill-box-locked-text: Couleur du texte d'une compétence verrouillée.
+// --skill-box-unlocked-bg: Couleur de fond d'une compétence débloquée.
+// --skill-box-unlocked-border: Couleur de bordure d'une compétence débloquée.
+// --skill-box-unlocked-text: Couleur du texte d'une compétence débloquée.
+// --skill-box-max-level-bg: Couleur de fond d'une compétence au niveau max.
+// --skill-box-max-level-border: Couleur de bordure d'une compétence au niveau max.
+// --skill-box-max-level-text: Couleur du texte d'une compétence au niveau max.
+// --achievement-item-bg: Couleur de fond d'un élément de succès.
+// --achievement-item-border: Couleur de bordure d'un élément de succès.
+// --achievement-item-text: Couleur du texte d'un élément de succès.
+// --achievement-item-desc-text: Couleur de la description d'un élément de succès.
+// --achievement-unlocked-bg: Couleur de fond d'un succès débloqué.
+// --achievement-unlocked-border: Couleur de bordure d'un succès débloqué.
+// --achievement-tooltip-bg: Couleur de fond des infobulles de succès.
+// --achievement-tooltip-text: Couleur du texte des infobulles de succès.
+// --quest-item-bg: Couleur de fond d'un élément de quête.
+// --quest-item-border: Couleur de bordure d'un élément de quête.
+// --quest-item-text: Couleur du texte d'un élément de quête.
+// --quest-item-desc-text: Couleur de la description d'un élément de quête.
+// --quest-item-completed-bg: Couleur de fond d'une quête complétée.
+// --quest-item-completed-border: Couleur de bordure d'une quête complétée.
+// --minimalist-resource-bg: Couleur de fond du panneau de ressources minimaliste.
+// --minimalist-resource-text: Couleur du texte du panneau de ressources minimaliste.
+// --minimalist-resource-border: Couleur de bordure du panneau de ressources minimaliste.
+//
+// Variables de couleurs de ressources (utilisées pour le texte des ressources et les titres) :
+// --bons-points-color: Couleur pour les Bons Points.
+// --images-color: Couleur pour les Images.
+// --eleves-color: Couleur pour les Élèves.
+// --professeur-color: Couleur pour les Professeurs.
+// --ascension-points-color: Couleur pour les Points d'Ascension.
+// --prestige-points-color: Couleur pour les Points de Prestige.
+// --warning-color: Couleur pour les avertissements (ex: titres de modales de réinitialisation).
+// --info-color: Couleur pour les informations (ex: titres de sections).
+//
+// Variables de dégradés pour les boutons :
+// --button-gradient-start: Couleur de début du dégradé de bouton.
+// --button-gradient-end: Couleur de fin du dégradé de bouton.
+// --button-hover-gradient-start: Couleur de début du dégradé de bouton au survol.
+// --button-hover-gradient-end: Couleur de fin du dégradé de bouton au survol.
+// --button-active-gradient-start: Couleur de début du dégradé de bouton actif.
+// --button-active-gradient-end: Couleur de fin du dégradé de bouton actif.
+//
+// Variables pour les animations RGB (spécifiques au thème RGB) :
+// --rgb-color-start, --rgb-color-middle, --rgb-color-end: Couleurs utilisées dans les animations RGB.
+//
+// ------------------ Classes/Sélecteurs Clés et Leur But ------------------
+//
+// body: Style général du corps, gestion de la police, du flexbox principal, des couleurs de fond et de texte par défaut.
+// body.normal-theme.day-mode: Définit les variables CSS pour le thème "Normal" en mode "Jour".
+// body.normal-theme.night-mode: Définit les variables CSS pour le thème "Normal" en mode "Nuit".
+// body.neon-sci-fi-theme.day-mode: Définit les variables CSS pour le thème "Neon-sci-fi" en mode "Jour".
+// body.neon-sci-fi-theme.night-mode: Définit les variables CSS pour le thème "Neon-sci-fi" en mode "Nuit".
+// body.steampunk-theme.day-mode: Définit les variables CSS pour le thème "Steampunk" en mode "Jour".
+// body.steampunk-theme.night-mode: Définit les variables CSS pour le thème "Steampunk" en mode "Nuit".
+// body.retro-theme.day-mode: Définit les variables CSS pour le thème "Rétro" en mode "Jour".
+// body.retro-theme.night-mode: Définit les variables CSS pour le thème "Rétro" en mode "Nuit".
+// body.pink-theme.day-mode: Définit les variables CSS pour le thème "Pink" en mode "Jour".
+// body.pink-theme.night-mode: Définit les variables CSS pour le thème "Pink" en mode "Nuit".
+// body.black-gold-theme.day-mode: Définit les variables CSS pour le thème "Black and Gold" en mode "Jour".
+// body.black-gold-theme.night-mode: Définit les variables CSS pour le thème "Black and Gold" en mode "Nuit".
+// body.rgb-theme.day-mode: Définit les variables CSS pour le thème "RGB" en mode "Jour".
+// body.rgb-theme.night-mode: Définit les variables CSS pour le thème "RGB" en mode "Nuit".
+//
+// .main-game-wrapper: Conteneur principal flexible pour la mise en page (menu latéral + contenu principal).
+// #side-menu: Menu de navigation latéral, incluant les boutons de section.
+// .achat-section: Styles pour les blocs d'achat d'unités/améliorations.
+// #main-content: Conteneur principal du contenu de jeu (sections dynamiques).
+// .container: Style de base pour les conteneurs centrés (ex: écran d'accueil).
+// button: Styles généraux des boutons (dégradés, bordures, ombres, transitions).
+// button.can-afford: Styles spécifiques pour les boutons d'achat si le coût est abordable.
+// button.cannot-afford: Styles spécifiques pour les boutons d'achat si le coût n'est pas abordable.
+// button.automation-active: Style pour les boutons d'automatisation actifs.
+// .ressources: Conteneur pour l'affichage des ressources.
+// .resource-group: Groupe individuel de ressources (nom, quantité, production).
+// .production-inline: Texte de production par seconde affiché à côté des ressources.
+// .bons-points-color, .images-color, etc.: Classes pour appliquer les couleurs spécifiques aux ressources.
+// #notifications-container: Conteneur des notifications flottantes.
+// .notification-item: Style d'une notification individuelle.
+// #confirmResetModal, #confirmAscensionModal, etc.: Sélecteurs pour les modales de confirmation.
+// .modal-content: Contenu stylisé des modales.
+// #skillsContainer, #settingsContainer, etc.: Conteneurs des différentes sections du jeu, cachés par défaut.
+// .skill-panel: Panneau regroupant les compétences d'un type (études, ascension, prestige).
+// .skill-tier: Regroupement de compétences par niveau/palier.
+// .skill-box: Boîte individuelle représentant une compétence.
+// .skill-box.locked, .skill-box.unlocked, .skill-box.max-level: États visuels des compétences.
+// .skill-box .tooltip-text: Infobulle détaillée d'une compétence.
+// .skill-box.secret-skill: Style pour les compétences secrètes.
+// #ascensionMenuContainer .achat-section: Styles spécifiques pour les sections d'achat dans le menu d'ascension.
+// .multiplier-button: Boutons de sélection du multiplicateur d'achat (x1, x10, etc.).
+// .multiplier-button.active: État actif d'un bouton multiplicateur.
+// #achievementsGrid: Grille d'affichage des succès.
+// .achievement-item: Boîte individuelle représentant un succès.
+// .achievement-item.unlocked: État visuel d'un succès débloqué.
+// .achievement-tooltip: Infobulle détaillée d'un succès (survol/clic).
+// #page-footer: Pied de page du jeu.
+// .quest-item: Boîte individuelle représentant une quête.
+// .quest-item.completed: État visuel d'une quête complétée.
+// #side-menu .bottom-buttons: Conteneur des boutons de bas de menu (sauvegarde, reset, stats).
+// #studiesMainContainer .header-row h1: Titre cliquable de la section Études.
+// #studiesMainContainer #purchaseMultiplierSelection: Sélecteur de multiplicateur spécifique aux études.
+// .studies-sections-wrapper, .studies-section-group: Conteneurs pour organiser les sections d'études.
+// #minimalistResources: Panneau d'affichage minimaliste des ressources.
+// #statsModal .stats-category: Catégories de statistiques dans la modale des statistiques.
+//
+// ------------------ Impact sur d'Autres Documents (Dépendances/Interactions) ------------------
+//
+// - index.html : Ce fichier CSS est directement lié via `<link rel="stylesheet" href="style.css">`.
+//   Il fournit la structure visuelle à tous les éléments définis dans `index.html`.
+//
+// - core.js :
+//   - `core.js` (et potentiellement `settings.js`) ajoutent/suppriment des classes (`.normal-theme.day-mode`, `.normal-theme.night-mode`, etc.)
+//     au `<body>` de `index.html` pour basculer entre les thèmes et les modes jour/nuit.
+//   - `core.js` met à jour les valeurs affichées des ressources et des coûts, et `style.css`
+//     applique les couleurs et styles correspondants via les classes `.bons-points-color`, etc.
+//   - `core.js` gère l'état `can-afford`/`cannot-afford` des boutons, et `style.css` applique les bordures
+//     correspondantes (`--button-can-afford-border`, `--button-cannot-afford-border`).
+//   - `core.js` gère l'activation/désactivation des automatisations, et `style.css` applique le style
+//     `.automation-active`.
+//   - `core.js` déclenche les notifications, dont l'apparence est définie par `.notification-item` et l'animation `fadeInOutSmooth`.
+//   - `core.js` gère l'ouverture/fermeture des modales, et `style.css` définit leur apparence (`.modal-content`).
+//   - `core.js` gère l'affichage des sections du jeu (`#skillsContainer`, etc.) via `display: none/flex`.
+//
+// - ui.js :
+//   - `ui.js` est fortement lié à `style.css` car il est responsable de la manipulation du DOM
+//     pour afficher les éléments et appliquer les classes qui sont stylisées ici.
+//   - `ui.js` met à jour les classes des éléments (ex: `.unlocked`, `.completed`, `.active`)
+//     en fonction de l'état du jeu, et `style.css` fournit les styles visuels pour ces états.
+//   - `ui.js` gère l'affichage des infobulles (`.skill-box .tooltip-text`, `.achievement-tooltip`)
+//     en manipulant leur `visibility` et `opacity`.
+//
+// - data.js :
+//   - `data.js` définit les données du jeu, mais `style.css` ne dépend pas directement de lui.
+//   - Les couleurs et styles définis dans `style.css` sont appliqués aux éléments qui affichent
+//     les données chargées depuis `data.js` (ex: noms de compétences, descriptions de succès).
+//
+// - settings.js :
+//   - `settings.js` contient la logique pour changer le thème et le mode (jour/nuit).
+//   - Il interagit directement avec `style.css` en ajoutant ou supprimant les classes CSS
+//     (`normal-theme`, `neon-sci-fi-theme`, `day-mode`, `night-mode`) sur l'élément `<body>`
+//     afin d'appliquer les variables CSS correspondantes définies dans ce fichier.
+//
+// - achievements.js, quests.js, skills.js, ascension.js, prestige.js, automation.js, studies.js :
+//   - Ces fichiers JavaScript manipulent le DOM pour créer et mettre à jour les éléments
+//     qui sont ensuite stylisés par `style.css`.
+//   - Par exemple, `achievements.js` crée les `.achievement-item` et leur applique la classe `.unlocked`
+//     lorsqu'un succès est débloqué, ce qui déclenche les styles définis ici.
+//
+// ------------------ Notes Spécifiques ------------------
+//
+// - Thèmes et Modes : Le système de thèmes et de modes est géré par des variables CSS
+//   (`--variable-name`) définies dans des blocs de règles ciblés par des classes sur le `<body>`.
+//   Par exemple, `body.normal-theme.day-mode` définit les couleurs pour le thème normal en mode jour.
+//   Cela permet une flexibilité maximale pour créer de nouvelles combinaisons thème/mode.
+//
+// - Réactivité : Utilisation intensive de `flexbox` (`display: flex`, `flex-wrap`) et de
+//   propriétés fluides (`width: 100%`, `flex: 1 1 auto`, `min-width`) ainsi que des media queries
+//   (`@media (max-width: 768px)`) pour assurer une adaptation optimale à différentes tailles d'écran
+//   (mobile, tablette, desktop).
+//
+// - Animations/Transitions : Des transitions CSS (`transition: property duration ease`) sont appliquées
+//   à de nombreux éléments pour des changements visuels doux (ex: couleurs de fond, bordures, ombres).
+//   Des animations `@keyframes` spécifiques sont utilisées pour des effets plus complexes, comme
+//   l'animation néon des boutons pour le thème "Neon-sci-fi" et l'animation RGB pour le thème "RGB".
+//
+// - Infobulles : Les infobulles pour les compétences et les succès (`.tooltip-text`, `.achievement-tooltip`)
+//   sont positionnées de manière absolue et gérées par l'opacité et la visibilité pour apparaître
+//   fluidement au survol ou au clic.
+//
+// - Structure des Variables : Chaque thème et mode (ex: `body.normal-theme.night-mode`) redéfinit
+//   un ensemble complet de variables CSS. Cela garantit que chaque combinaison thème/mode est
+//   autonome en termes de styles, simplifiant la gestion et la modification des apparences.
+//
+// ---------------------------------------------------------------------
+ */
+
+/* ==========================================================================
+   Variables CSS pour les Thèmes et Modes (modif 30/05 - Thème et style)
+   ========================================================================== */
+
+/* Variables par défaut (Thème Normal / Mode Jour) */
+:root,
+body.normal-theme.day-mode { /* (modif 30/05 - Thème et style) */
+    --main-bg-color: #f0f2f5;
+    --text-color: #333;
+    --container-bg-color: #ffffff;
+    --border-color: #e0e0e0;
+    --box-shadow-light: rgba(0, 0, 0, 0.1);
+    --box-shadow-medium: rgba(0, 0, 0, 0.1);
+    --box-shadow-dark: rgba(0, 0, 0, 0.3);
+    --side-menu-bg-color: #ffffff;
+    --side-menu-border-color: #e0e0e0;
+    --achat-section-bg-color: #f9f9f9;
+    --achat-section-border-color: #eee;
+    --button-bg-color: white;
+    --button-text-color: #333;
+    --button-border-color: #ccc;
+    --button-hover-bg-color: #f0f0f0;
+    --button-can-afford-border: #4CAF50; /* Vert uni */
+    --button-cannot-afford-border: #FF4500; /* Rouge uni */
+    --notification-bg-color: #333;
+    --notification-text-color: white;
+    --modal-bg-color: #ffffff;
+    --modal-border-color: #e0e0e0;
+    --modal-shadow-color: rgba(0, 0, 0, 0.3);
+    --footer-bg-color: #e9e9e9;
+    --footer-text-color: #777;
+    --footer-border-color: #ddd;
+    --skill-panel-bg-color: #f9f9f9;
+    --skill-panel-border-color: #e0e0e0;
+    --skill-tier-bg-color: #f2f2f2;
+    --skill-tier-border-color: #ccc;
+    --skill-box-locked-bg: #e0e0e0;
+    --skill-box-locked-border: #a0a0a0;
+    --skill-box-locked-text: #666;
+    --skill-box-unlocked-bg: #D4EDDA;
+    --skill-box-unlocked-border: #28A745;
+    --skill-box-unlocked-text: #218838;
+    --skill-box-max-level-bg: #A2D9CE;
+    --skill-box-max-level-border: #1A5229;
+    --skill-box-max-level-text: #0A3D1A;
+    --achievement-item-bg: #f9f9f9;
+    --achievement-item-border: #ddd;
+    --achievement-item-text: #333;
+    --achievement-item-desc-text: #666;
+    --achievement-unlocked-bg: #e8f5e9;
+    --achievement-unlocked-border: #4CAF50;
+    --achievement-tooltip-bg: #555;
+    --achievement-tooltip-text: #fff;
+    --quest-item-bg: #f9f9f9;
+    --quest-item-border: #eee;
+    --quest-item-text: #333;
+    --quest-item-desc-text: #666;
+    --quest-item-completed-bg: #D4EDDA;
+    --quest-item-completed-border: #4CAF50;
+    --minimalist-resource-bg: #3b3b3b;
+    --minimalist-resource-text: #f0f0f0;
+    --minimalist-resource-border: #555;
+
+    /* Couleurs des ressources */
+    --bons-points-color: #4CAF50;
+    --images-color: #8A2BE2;
+    --eleves-color: #333;
+    --professeur-color: #333;
+    --ascension-points-color: #007BFF;
+    --prestige-points-color: #FF0000;
+    --warning-color: #FF4500;
+    --info-color: #007BFF;
+
+    /* Dégradés de boutons */
+    --button-gradient-start: #f8f8f8;
+    --button-gradient-end: #e0e0e0;
+    --button-hover-gradient-start: #e0e0e0;
+    --button-hover-gradient-end: #d0d0d0;
+    --button-active-gradient-start: #d0d0d0;
+    --button-active-gradient-end: #c0c0c0;
+
+    /* Animations RGB */
+    --rgb-color-start: #FF0000;
+    --rgb-color-middle: #00FF00;
+    --rgb-color-end: #0000FF;
+}
+
+/* Thème Normal / Mode Nuit (anciennement dark-theme) (modif 30/05 - Thème et style) */
+body.normal-theme.night-mode {
+    --main-bg-color: #2c2c2c;
+    --text-color: #f0f0f0;
+    --container-bg-color: #3a3a3a;
+    --border-color: #555;
+    --box-shadow-light: rgba(0, 0, 0, 0.3);
+    --box-shadow-medium: rgba(0, 0, 0, 0.3);
+    --box-shadow-dark: rgba(0, 0, 0, 0.5);
+    --side-menu-bg-color: #3a3a3a;
+    --side-menu-border-color: #555;
+    --achat-section-bg-color: #3a3a3a;
+    --achat-section-border-color: #555;
+    --button-bg-color: #4a4a4a;
+    --button-text-color: #f0f0f0;
+    --button-border-color: #777;
+    --button-hover-bg-color: #5a5a5a;
+    --button-can-afford-border: #76FF03;
+    --button-cannot-afford-border: #FF4500;
+    --notification-bg-color: #555;
+    --notification-text-color: white;
+    --modal-bg-color: #3a3a3a;
+    --modal-border-color: #555;
+    --modal-shadow-color: rgba(0, 0, 0, 0.5);
+    --footer-bg-color: #252525;
+    --footer-text-color: #aaa;
+    --footer-border-color: #444;
+    --skill-panel-bg-color: #3a3a3a;
+    --skill-panel-border-color: #555;
+    --skill-tier-bg-color: #333;
+    --skill-tier-border-color: #666;
+    --skill-box-locked-bg: #404040;
+    --skill-box-locked-border: #707070;
+    --skill-box-locked-text: #aaa;
+    --skill-box-unlocked-bg: #2e7d32;
+    --skill-box-unlocked-border: #76FF03;
+    --skill-box-unlocked-text: #e8f5e9;
+    --skill-box-max-level-bg: #1A5229;
+    --skill-box-max-level-border: #76FF03;
+    --skill-box-max-level-text: #e8f5e9;
+    --achievement-item-bg: #424242;
+    --achievement-item-border: #555;
+    --achievement-item-text: #eee;
+    --achievement-item-desc-text: #ccc;
+    --achievement-unlocked-bg: #2e7d32;
+    --achievement-unlocked-border: #76FF03;
+    --achievement-tooltip-bg: #3a3a3a;
+    --achievement-tooltip-text: #fff;
+    --quest-item-bg: #424242;
+    --quest-item-border: #555;
+    --quest-item-text: #eee;
+    --quest-item-desc-text: #ccc;
+    --quest-item-completed-bg: #2e7d32;
+    --quest-item-completed-border: #76FF03;
+    --minimalist-resource-bg: #3b3b3b;
+    --minimalist-resource-text: #f0f0f0;
+    --minimalist-resource-border: #555;
+
+    /* Couleurs des ressources en thème nuit */
+    --bons-points-color: #76FF03;
+    --images-color: #DA70D6;
+    --eleves-color: #f0f0f0;
+    --professeur-color: #f0f0f0;
+    --ascension-points-color: #00BFFF;
+    --prestige-points-color: #FF0000;
+    --warning-color: #FF4500;
+    --info-color: #1E90FF;
+
+    /* Dégradés de boutons thème nuit */
+    --button-gradient-start: #5a5a5a;
+    --button-gradient-end: #4a4a4a;
+    --button-hover-gradient-start: #6a6a6a;
+    --button-hover-gradient-end: #5a5a5a;
+    --button-active-gradient-start: #4a4a4a;
+    --button-active-gradient-end: #3a3a3a;
+}
+
+/* Thème Neon-sci-fi / Mode Jour (modif 30/05 - Thème et style) */
+body.neon-sci-fi-theme.day-mode {
+    --main-bg-color: #1a1a2e;
+    --text-color: #00e6e6;
+    --container-bg-color: #0f0f1a;
+    --border-color: #00e6e6;
+    --box-shadow-light: rgba(0, 230, 230, 0.2);
+    --box-shadow-medium: rgba(0, 230, 230, 0.4);
+    --box-shadow-dark: rgba(0, 230, 230, 0.6);
+    --side-menu-bg-color: #0f0f1a;
+    --side-menu-border-color: #00e6e6;
+    --achat-section-bg-color: #1a1a2e;
+    --achat-section-border-color: #00e6e6;
+    --button-bg-color: #00b3b3;
+    --button-text-color: #0f0f1a;
+    --button-border-color: #00e6e6;
+    --button-hover-bg-color: #00cccc;
+    --button-can-afford-border: #00ff00;
+    --button-cannot-afford-border: #ff00ff;
+    --notification-bg-color: #00e6e6;
+    --notification-text-color: #1a1a2e;
+    --modal-bg-color: #0f0f1a;
+    --modal-border-color: #00e6e6;
+    --modal-shadow-color: rgba(0, 230, 230, 0.5);
+    --footer-bg-color: #0a0a14;
+    --footer-text-color: #00e6e6;
+    --footer-border-color: #00e6e6;
+    --skill-panel-bg-color: #0f0f1a;
+    --skill-panel-border-color: #00e6e6;
+    --skill-tier-bg-color: #1a1a2e;
+    --skill-tier-border-color: #00e6e6;
+    --skill-box-locked-bg: #0a0a14;
+    --skill-box-locked-border: #009999;
+    --skill-box-locked-text: #006666;
+    --skill-box-unlocked-bg: #00e6e6;
+    --skill-box-unlocked-border: #00ff00;
+    --skill-box-unlocked-text: #1a1a2e;
+    --skill-box-max-level-bg: #00b3b3;
+    --skill-box-max-level-border: #00cc00;
+    --skill-box-max-level-text: #0f0f1a;
+    --achievement-item-bg: #0f0f1a;
+    --achievement-item-border: #00e6e6;
+    --achievement-item-text: #00e6e6;
+    --achievement-item-desc-text: #009999;
+    --achievement-unlocked-bg: #00ff00;
+    --achievement-unlocked-border: #00cc00;
+    --achievement-tooltip-bg: #0a0a14;
+    --achievement-tooltip-text: #00e6e6;
+    --quest-item-bg: #0f0f1a;
+    --quest-item-border: #00e6e6;
+    --quest-item-text: #00e6e6;
+    --quest-item-desc-text: #009999;
+    --quest-item-completed-bg: #00ff00;
+    --quest-item-completed-border: #00cc00;
+    --minimalist-resource-bg: #0a0a14;
+    --minimalist-resource-text: #00e6e6;
+    --minimalist-resource-border: #00e6e6;
+
+    /* Couleurs des ressources en thème Neon-sci-fi */
+    --bons-points-color: #00ff00;
+    --images-color: #ff00ff;
+    --eleves-color: #00e6e6;
+    --professeur-color: #00e6e6;
+    --ascension-points-color: #00ffff;
+    --prestige-points-color: #ff0000;
+    --warning-color: #ffcc00;
+    --info-color: #00ffff;
+
+    /* Dégradés de boutons thème Neon-sci-fi */
+    --button-gradient-start: #00b3b3;
+    --button-gradient-end: #00e6e6;
+    --button-hover-gradient-start: #00cccc;
+    --button-hover-gradient-end: #00ffff;
+    --button-active-gradient-start: #009999;
+    --button-active-gradient-end: #00b3b3;
+}
+
+/* Thème Neon-sci-fi / Mode Nuit (modif 30/05 - Thème et style) */
+body.neon-sci-fi-theme.night-mode {
+    --main-bg-color: #0a0a14;
+    --text-color: #00ffff;
+    --container-bg-color: #05050a;
+    --border-color: #00ffff;
+    --box-shadow-light: rgba(0, 255, 255, 0.2);
+    --box-shadow-medium: rgba(0, 255, 255, 0.4);
+    --box-shadow-dark: rgba(0, 255, 255, 0.6);
+    --side-menu-bg-color: #05050a;
+    --side-menu-border-color: #00ffff;
+    --achat-section-bg-color: #0a0a14;
+    --achat-section-border-color: #00ffff;
+    --button-bg-color: #008888;
+    --button-text-color: #05050a;
+    --button-border-color: #00ffff;
+    --button-hover-bg-color: #00aaaa;
+    --button-can-afford-border: #00ff00;
+    --button-cannot-afford-border: #ff00ff;
+    --notification-bg-color: #00ffff;
+    --notification-text-color: #0a0a14;
+    --modal-bg-color: #05050a;
+    --modal-border-color: #00ffff;
+    --modal-shadow-color: rgba(0, 255, 255, 0.5);
+    --footer-bg-color: #000000;
+    --footer-text-color: #00ffff;
+    --footer-border-color: #00ffff;
+    --skill-panel-bg-color: #05050a;
+    --skill-panel-border-color: #00ffff;
+    --skill-tier-bg-color: #0a0a14;
+    --skill-tier-border-color: #00ffff;
+    --skill-box-locked-bg: #000000;
+    --skill-box-locked-border: #006666;
+    --skill-box-locked-text: #009999;
+    --skill-box-unlocked-bg: #00ffff;
+    --skill-box-unlocked-border: #00cc00;
+    --skill-box-unlocked-text: #0a0a14;
+    --skill-box-max-level-bg: #00b3b3;
+    --skill-box-max-level-border: #009999;
+    --skill-box-max-level-text: #05050a;
+    --achievement-item-bg: #05050a;
+    --achievement-item-border: #00ffff;
+    --achievement-item-text: #00ffff;
+    --achievement-item-desc-text: #00cccc;
+    --achievement-unlocked-bg: #00cc00;
+    --achievement-unlocked-border: #00ff00;
+    --achievement-tooltip-bg: #000000;
+    --achievement-tooltip-text: #00ffff;
+    --quest-item-bg: #05050a;
+    --quest-item-border: #00ffff;
+    --quest-item-text: #00ffff;
+    --quest-item-desc-text: #00cccc;
+    --quest-item-completed-bg: #00cc00;
+    --quest-item-completed-border: #00ff00;
+    --minimalist-resource-bg: #000000;
+    --minimalist-resource-text: #00ffff;
+    --minimalist-resource-border: #00ffff;
+
+    /* Couleurs des ressources en thème Neon-sci-fi Nuit */
+    --bons-points-color: #00ff00;
+    --images-color: #ff00ff;
+    --eleves-color: #00ffff;
+    --professeur-color: #00ffff;
+    --ascension-points-color: #00ffff;
+    --prestige-points-color: #ff0000;
+    --warning-color: #ffcc00;
+    --info-color: #00ffff;
+
+    /* Dégradés de boutons thème Neon-sci-fi Nuit */
+    --button-gradient-start: #008888;
+    --button-gradient-end: #00b3b3;
+    --button-hover-gradient-start: #00aaaa;
+    --button-hover-gradient-end: #00cccc;
+    --button-active-gradient-start: #006666;
+    --button-active-gradient-end: #008888;
+}
+
+/* Thème Steampunk / Mode Jour (modif 30/05 - Thème et style) */
+body.steampunk-theme.day-mode {
+    --main-bg-color: #3a2e2a;
+    --text-color: #d4a76c;
+    --container-bg-color: #2a221f;
+    --border-color: #8b4513;
+    --box-shadow-light: rgba(0, 0, 0, 0.3);
+    --box-shadow-medium: rgba(0, 0, 0, 0.5);
+    --box-shadow-dark: rgba(0, 0, 0, 0.7);
+    --side-menu-bg-color: #2a221f;
+    --side-menu-border-color: #8b4513;
+    --achat-section-bg-color: #3a2e2a;
+    --achat-section-border-color: #8b4513;
+    --button-bg-color: #5e4a3e;
+    --button-text-color: #d4a76c;
+    --button-border-color: #8b4513;
+    --button-hover-bg-color: #6e5a4e;
+    --button-can-afford-border: #4CAF50; /* Green for can-afford */
+    --button-cannot-afford-border: #FF4500; /* Red for cannot-afford */
+    --notification-bg-color: #d4a76c;
+    --notification-text-color: #2a221f;
+    --modal-bg-color: #2a221f;
+    --modal-border-color: #8b4513;
+    --modal-shadow-color: rgba(0, 0, 0, 0.7);
+    --footer-bg-color: #1f1a18;
+    --footer-text-color: #d4a76c;
+    --footer-border-color: #8b4513;
+    --skill-panel-bg-color: #2a221f;
+    --skill-panel-border-color: #8b4513;
+    --skill-tier-bg-color: #3a2e2a;
+    --skill-tier-border-color: #8b4513;
+    --skill-box-locked-bg: #4e403a;
+    --skill-box-locked-border: #9b5a23;
+    --skill-box-locked-text: #a0a0a0;
+    --skill-box-unlocked-bg: #8b4513;
+    --skill-box-unlocked-border: #d4a76c;
+    --skill-box-unlocked-text: #fff;
+    --skill-box-max-level-bg: #6e3a1f;
+    --skill-box-max-level-border: #a06e3e;
+    --skill-box-max-level-text: #fff;
+    --achievement-item-bg: #2a221f;
+    --achievement-item-border: #8b4513;
+    --achievement-item-text: #d4a76c;
+    --achievement-item-desc-text: #a0a0a0;
+    --achievement-unlocked-bg: #8b4513;
+    --achievement-unlocked-border: #d4a76c;
+    --achievement-tooltip-bg: #1f1a18;
+    --achievement-tooltip-text: #d4a76c;
+    --quest-item-bg: #2a221f;
+    --quest-item-border: #8b4513;
+    --quest-item-text: #d4a76c;
+    --quest-item-desc-text: #a0a0a0;
+    --quest-item-completed-bg: #8b4513;
+    --quest-item-completed-border: #d4a76c;
+    --minimalist-resource-bg: #1f1a18;
+    --minimalist-resource-text: #d4a76c;
+    --minimalist-resource-border: #8b4513;
+
+    /* Couleurs des ressources en thème Steampunk */
+    --bons-points-color: #d4a76c;
+    --images-color: #c0c0c0;
+    --eleves-color: #a0a0a0;
+    --professeur-color: #a0a0a0;
+    --ascension-points-color: #b8860b;
+    --prestige-points-color: #a52a2a;
+    --warning-color: #ff8c00;
+    --info-color: #b8860b;
+
+    /* Dégradés de boutons thème Steampunk */
+    --button-gradient-start: #6e5a4e;
+    --button-gradient-end: #5e4a3e;
+    --button-hover-gradient-start: #7e6a5e;
+    --button-hover-gradient-end: #6e5a4e;
+    --button-active-gradient-start: #5e4a3e;
+    --button-active-gradient-end: #4e3a2e;
+}
+
+/* Thème Steampunk / Mode Nuit (modif 30/05 - Thème et style) */
+body.steampunk-theme.night-mode {
+    --main-bg-color: #2a221f;
+    --text-color: #a0a0a0;
+    --container-bg-color: #1f1a18;
+    --border-color: #6e3a1f;
+    --box-shadow-light: rgba(0, 0, 0, 0.4);
+    --box-shadow-medium: rgba(0, 0, 0, 0.6);
+    --box-shadow-dark: rgba(0, 0, 0, 0.8);
+    --side-menu-bg-color: #1f1a18;
+    --side-menu-border-color: #6e3a1f;
+    --achat-section-bg-color: #2a221f;
+    --achat-section-border-color: #6e3a1f;
+    --button-bg-color: #4e3a2e;
+    --button-text-color: #a0a0a0;
+    --button-border-color: #6e3a1f;
+    --button-hover-bg-color: #5e4a3e;
+    --button-can-afford-border: #28a745; /* Darker green for can-afford */
+    --button-cannot-afford-border: #cc3300; /* Darker red for cannot-afford */
+    --notification-bg-color: #a0a0a0;
+    --notification-text-color: #1f1a18;
+    --modal-bg-color: #1f1a18;
+    --modal-border-color: #6e3a1f;
+    --modal-shadow-color: rgba(0, 0, 0, 0.8);
+    --footer-bg-color: #1a1513;
+    --footer-text-color: #a0a0a0;
+    --footer-border-color: #6e3a1f;
+    --skill-panel-bg-color: #1f1a18;
+    --skill-panel-border-color: #6e3a1f;
+    --skill-tier-bg-color: #2a221f;
+    --skill-tier-border-color: #6e3a1f;
+    --skill-box-locked-bg: #3a2e2a;
+    --skill-box-locked-border: #7b4a23;
+    --skill-box-locked-text: #808080;
+    --skill-box-unlocked-bg: #6e3a1f;
+    --skill-box-unlocked-border: #a06e3e;
+    --skill-box-unlocked-text: #fff;
+    --skill-box-max-level-bg: #5e2a1f;
+    --skill-box-max-level-border: #8b4513;
+    --skill-box-max-level-text: #fff;
+    --achievement-item-bg: #1f1a18;
+    --achievement-item-border: #6e3a1f;
+    --achievement-item-text: #a0a0a0;
+    --achievement-item-desc-text: #808080;
+    --achievement-unlocked-bg: #6e3a1f;
+    --achievement-unlocked-border: #a06e3e;
+    --achievement-tooltip-bg: #1a1513;
+    --achievement-tooltip-text: #a0a0a0;
+    --quest-item-bg: #1f1a18;
+    --quest-item-border: #6e3a1f;
+    --quest-item-text: #a0a0a0;
+    --quest-item-desc-text: #808080;
+    --quest-item-completed-bg: #6e3a1f;
+    --quest-item-completed-border: #a06e3e;
+    --minimalist-resource-bg: #1a1513;
+    --minimalist-resource-text: #a0a0a0;
+    --minimalist-resource-border: #6e3a1f;
+
+    /* Couleurs des ressources en thème Steampunk Nuit */
+    --bons-points-color: #a0a0a0;
+    --images-color: #808080;
+    --eleves-color: #606060;
+    --professeur-color: #606060;
+    --ascension-points-color: #8b4513;
+    --prestige-points-color: #800000;
+    --warning-color: #cc6600;
+    --info-color: #8b4513;
+
+    /* Dégradés de boutons thème Steampunk Nuit */
+    --button-gradient-start: #5e4a3e;
+    --button-gradient-end: #4e3a2e;
+    --button-hover-gradient-start: #6e5a4e;
+    --button-hover-gradient-end: #5e4a3e;
+    --button-active-gradient-start: #3a2e2a;
+    --button-active-gradient-end: #2a221f;
+}
+
+/* Thème Rétro / Mode Jour (modif 30/05 - Thème et style) */
+body.retro-theme.day-mode {
+    --main-bg-color: #222222;
+    --text-color: #00ff00;
+    --container-bg-color: #1a1a1a;
+    --border-color: #00ff00;
+    --box-shadow-light: rgba(0, 255, 0, 0.2);
+    --box-shadow-medium: rgba(0, 255, 0, 0.4);
+    --box-shadow-dark: rgba(0, 255, 0, 0.6);
+    --side-menu-bg-color: #1a1a1a;
+    --side-menu-border-color: #00ff00;
+    --achat-section-bg-color: #222222;
+    --achat-section-border-color: #00ff00;
+    --button-bg-color: #008800;
+    --button-text-color: #00ff00;
+    --button-border-color: #00ff00;
+    --button-hover-bg-color: #00aa00;
+    --button-can-afford-border: #00cc00;
+    --button-cannot-afford-border: #ff0000;
+    --notification-bg-color: #00ff00;
+    --notification-text-color: #222222;
+    --modal-bg-color: #1a1a1a;
+    --modal-border-color: #00ff00;
+    --modal-shadow-color: rgba(0, 255, 0, 0.6);
+    --footer-bg-color: #111111;
+    --footer-text-color: #00ff00;
+    --footer-border-color: #00ff00;
+    --skill-panel-bg-color: #1a1a1a;
+    --skill-panel-border-color: #00ff00;
+    --skill-tier-bg-color: #222222;
+    --skill-tier-border-color: #00ff00;
+    --skill-box-locked-bg: #333333;
+    --skill-box-locked-border: #006600;
+    --skill-box-locked-text: #009900;
+    --skill-box-unlocked-bg: #00cc00;
+    --skill-box-unlocked-border: #00ff00;
+    --skill-box-unlocked-text: #1a1a1a;
+    --skill-box-max-level-bg: #009900;
+    --skill-box-max-level-border: #00cc00;
+    --skill-box-max-level-text: #1a1a1a;
+    --achievement-item-bg: #1a1a1a;
+    --achievement-item-border: #00ff00;
+    --achievement-item-text: #00ff00;
+    --achievement-item-desc-text: #00cc00;
+    --achievement-unlocked-bg: #00cc00;
+    --achievement-unlocked-border: #00ff00;
+    --achievement-tooltip-bg: #111111;
+    --achievement-tooltip-text: #00ff00;
+    --quest-item-bg: #1a1a1a;
+    --quest-item-border: #00ff00;
+    --quest-item-text: #00ff00;
+    --quest-item-desc-text: #00cc00;
+    --quest-item-completed-bg: #00cc00;
+    --quest-item-completed-border: #00ff00;
+    --minimalist-resource-bg: #111111;
+    --minimalist-resource-text: #00ff00;
+    --minimalist-resource-border: #00ff00;
+
+    /* Couleurs des ressources en thème Rétro */
+    --bons-points-color: #00ff00;
+    --images-color: #ffff00;
+    --eleves-color: #00ff00;
+    --professeur-color: #00ff00;
+    --ascension-points-color: #00ffff;
+    --prestige-points-color: #ff0000;
+    --warning-color: #ffcc00;
+    --info-color: #00ffff;
+
+    /* Dégradés de boutons thème Rétro */
+    --button-gradient-start: #00aa00;
+    --button-gradient-end: #008800;
+    --button-hover-gradient-start: #00cc00;
+    --button-hover-gradient-end: #00aa00;
+    --button-active-gradient-start: #006600;
+    --button-active-gradient-end: #004400;
+}
+
+/* Thème Rétro / Mode Nuit (modif 30/05 - Thème et style) */
+body.retro-theme.night-mode {
+    --main-bg-color: #1a1a1a;
+    --text-color: #00cc00;
+    --container-bg-color: #111111;
+    --border-color: #00cc00;
+    --box-shadow-light: rgba(0, 204, 0, 0.2);
+    --box-shadow-medium: rgba(0, 204, 0, 0.4);
+    --box-shadow-dark: rgba(0, 204, 0, 0.6);
+    --side-menu-bg-color: #111111;
+    --side-menu-border-color: #00cc00;
+    --achat-section-bg-color: #1a1a1a;
+    --achat-section-border-color: #00cc00;
+    --button-bg-color: #006600;
+    --button-text-color: #00cc00;
+    --button-border-color: #00cc00;
+    --button-hover-bg-color: #008800;
+    --button-can-afford-border: #009900;
+    --button-cannot-afford-border: #cc0000;
+    --notification-bg-color: #00cc00;
+    --notification-text-color: #1a1a1a;
+    --modal-bg-color: #111111;
+    --modal-border-color: #00cc00;
+    --modal-shadow-color: rgba(0, 204, 0, 0.6);
+    --footer-bg-color: #0a0a0a;
+    --footer-text-color: #00cc00;
+    --footer-border-color: #00cc00;
+    --skill-panel-bg-color: #111111;
+    --skill-panel-border-color: #00cc00;
+    --skill-tier-bg-color: #1a1a1a;
+    --skill-tier-border-color: #00cc00;
+    --skill-box-locked-bg: #222222;
+    --skill-box-locked-border: #004400;
+    --skill-box-locked-text: #006600;
+    --skill-box-unlocked-bg: #009900;
+    --skill-box-unlocked-border: #00cc00;
+    --skill-box-unlocked-text: #111111;
+    --skill-box-max-level-bg: #007700;
+    --skill-box-max-level-border: #009900;
+    --skill-box-max-level-text: #111111;
+    --achievement-item-bg: #111111;
+    --achievement-item-border: #00cc00;
+    --achievement-item-text: #00cc00;
+    --achievement-item-desc-text: #009900;
+    --achievement-unlocked-bg: #009900;
+    --achievement-unlocked-border: #00cc00;
+    --achievement-tooltip-bg: #0a0a0a;
+    --achievement-tooltip-text: #00cc00;
+    --quest-item-bg: #111111;
+    --quest-item-border: #00cc00;
+    --quest-item-text: #00cc00;
+    --quest-item-desc-text: #009900;
+    --quest-item-completed-bg: #009900;
+    --quest-item-completed-border: #00cc00;
+    --minimalist-resource-bg: #0a0a0a;
+    --minimalist-resource-text: #00cc00;
+    --minimalist-resource-border: #00cc00;
+
+    /* Couleurs des ressources en thème Rétro Nuit */
+    --bons-points-color: #00cc00;
+    --images-color: #cccc00;
+    --eleves-color: #00cc00;
+    --professeur-color: #00cc00;
+    --ascension-points-color: #00aaaa;
+    --prestige-points-color: #cc0000;
+    --warning-color: #cc9900;
+    --info-color: #00aaaa;
+
+    /* Dégradés de boutons thème Rétro Nuit */
+    --button-gradient-start: #008800;
+    --button-gradient-end: #006600;
+    --button-hover-gradient-start: #00aa00;
+    --button-hover-gradient-end: #008800;
+    --button-active-gradient-start: #004400;
+    --button-active-gradient-end: #002200;
+}
+
+/* Thème Pink / Mode Jour (modif 30/05 - Thème et style) */
+body.pink-theme.day-mode {
+    --main-bg-color: #ffe0f0;
+    --text-color: #880e4f;
+    --container-bg-color: #ffffff;
+    --border-color: #f8bbd0;
+    --box-shadow-light: rgba(255, 192, 203, 0.2);
+    --box-shadow-medium: rgba(255, 192, 203, 0.4);
+    --box-shadow-dark: rgba(255, 192, 203, 0.6);
+    --side-menu-bg-color: #fce4ec;
+    --side-menu-border-color: #f8bbd0;
+    --achat-section-bg-color: #fffafa;
+    --achat-section-border-color: #f8bbd0;
+    --button-bg-color: #ff80ab;
+    --button-text-color: #ffffff;
+    --button-border-color: #f48fb1;
+    --button-hover-bg-color: #ff4081;
+    --button-can-afford-border: #4CAF50; /* Green for can-afford */
+    --button-cannot-afford-border: #FF4500; /* Red for cannot-afford */
+    --notification-bg-color: #ff80ab;
+    --notification-text-color: #ffffff;
+    --modal-bg-color: #ffffff;
+    --modal-border-color: #f8bbd0;
+    --modal-shadow-color: rgba(255, 192, 203, 0.6);
+    --footer-bg-color: #fce4ec;
+    --footer-text-color: #880e4f;
+    --footer-border-color: #f8bbd0;
+    --skill-panel-bg-color: #fce4ec;
+    --skill-panel-border-color: #f8bbd0;
+    --skill-tier-bg-color: #fffafa;
+    --skill-tier-border-color: #f8bbd0;
+    --skill-box-locked-bg: #f8bbd0;
+    --skill-box-locked-border: #e91e63;
+    --skill-box-locked-text: #c2185b;
+    --skill-box-unlocked-bg: #ff80ab;
+    --skill-box-unlocked-border: #e91e63;
+    --skill-box-unlocked-text: #ffffff;
+    --skill-box-max-level-bg: #e91e63;
+    --skill-box-max-level-border: #c2185b;
+    --skill-box-max-level-text: #ffffff;
+    --achievement-item-bg: #fce4ec;
+    --achievement-item-border: #f8bbd0;
+    --achievement-item-text: #880e4f;
+    --achievement-item-desc-text: #c2185b;
+    --achievement-unlocked-bg: #ff80ab;
+    --achievement-unlocked-border: #e91e63;
+    --achievement-tooltip-bg: #c2185b;
+    --achievement-tooltip-text: #ffffff;
+    --quest-item-bg: #fce4ec;
+    --quest-item-border: #f8bbd0;
+    --quest-item-text: #880e4f;
+    --quest-item-desc-text: #c2185b;
+    --quest-item-completed-bg: #ff80ab;
+    --quest-item-completed-border: #e91e63;
+    --minimalist-resource-bg: #c2185b;
+    --minimalist-resource-text: #ffffff;
+    --minimalist-resource-border: #e91e63;
+
+    /* Couleurs des ressources en thème Pink */
+    --bons-points-color: #e91e63;
+    --images-color: #ffc107;
+    --eleves-color: #880e4f;
+    --professeur-color: #880e4f;
+    --ascension-points-color: #9c27b0;
+    --prestige-points-color: #d81b60;
+    --warning-color: #ff9800;
+    --info-color: #9c27b0;
+
+    /* Dégradés de boutons thème Pink */
+    --button-gradient-start: #ff80ab;
+    --button-gradient-end: #ff4081;
+    --button-hover-gradient-start: #ff4081;
+    --button-hover-gradient-end: #e91e63;
+    --button-active-gradient-start: #e91e63;
+    --button-active-gradient-end: #c2185b;
+}
+
+/* Thème Pink / Mode Nuit (modif 30/05 - Thème et style) */
+body.pink-theme.night-mode {
+    --main-bg-color: #c2185b;
+    --text-color: #f8bbd0;
+    --container-bg-color: #880e4f;
+    --border-color: #f48fb1;
+    --box-shadow-light: rgba(136, 14, 79, 0.2);
+    --box-shadow-medium: rgba(136, 14, 79, 0.4);
+    --box-shadow-dark: rgba(136, 14, 79, 0.6);
+    --side-menu-bg-color: #880e4f;
+    --side-menu-border-color: #f48fb1;
+    --achat-section-bg-color: #c2185b;
+    --achat-section-border-color: #f48fb1;
+    --button-bg-color: #d81b60;
+    --button-text-color: #ffffff;
+    --button-border-color: #f48fb1;
+    --button-hover-bg-color: #e91e63;
+    --button-can-afford-border: #28a745; /* Darker green for can-afford */
+    --button-cannot-afford-border: #cc3300; /* Darker red for cannot-afford */
+    --notification-bg-color: #d81b60;
+    --notification-text-color: #ffffff;
+    --modal-bg-color: #880e4f;
+    --modal-border-color: #f48fb1;
+    --modal-shadow-color: rgba(136, 14, 79, 0.6);
+    --footer-bg-color: #6a0d3d;
+    --footer-text-color: #f8bbd0;
+    --footer-border-color: #f48fb1;
+    --skill-panel-bg-color: #880e4f;
+    --skill-panel-border-color: #f48fb1;
+    --skill-tier-bg-color: #c2185b;
+    --skill-tier-border-color: #f48fb1;
+    --skill-box-locked-bg: #e91e63;
+    --skill-box-locked-border: #a00037;
+    --skill-box-locked-text: #f8bbd0;
+    --skill-box-unlocked-bg: #d81b60;
+    --skill-box-unlocked-border: #f48fb1;
+    --skill-box-unlocked-text: #ffffff;
+    --skill-box-max-level-bg: #a00037;
+    --skill-box-max-level-border: #c2185b;
+    --skill-box-max-level-text: #ffffff;
+    --achievement-item-bg: #880e4f;
+    --achievement-item-border: #f48fb1;
+    --achievement-item-text: #f8bbd0;
+    --achievement-item-desc-text: #ff80ab;
+    --achievement-unlocked-bg: #d81b60;
+    --achievement-unlocked-border: #f48fb1;
+    --achievement-tooltip-bg: #6a0d3d;
+    --achievement-tooltip-text: #f8bbd0;
+    --quest-item-bg: #880e4f;
+    --quest-item-border: #f48fb1;
+    --quest-item-text: #f8bbd0;
+    --quest-item-desc-text: #ff80ab;
+    --quest-item-completed-bg: #d81b60;
+    --quest-item-completed-border: #f48fb1;
+    --minimalist-resource-bg: #6a0d3d;
+    --minimalist-resource-text: #f8bbd0;
+    --minimalist-resource-border: #f48fb1;
+
+    /* Couleurs des ressources en thème Pink Nuit */
+    --bons-points-color: #f48fb1;
+    --images-color: #ffc107;
+    --eleves-color: #f8bbd0;
+    --professeur-color: #f8bbd0;
+    --ascension-points-color: #ba68c8;
+    --prestige-points-color: #ef5350;
+    --warning-color: #ffb74d;
+    --info-color: #ba68c8;
+
+    /* Dégradés de boutons thème Pink Nuit */
+    --button-gradient-start: #d81b60;
+    --button-gradient-end: #c2185b;
+    --button-hover-gradient-start: #e91e63;
+    --button-hover-gradient-end: #d81b60;
+    --button-active-gradient-start: #a00037;
+    --button-active-gradient-end: #880e4f;
+}
+
+/* Thème Black and Gold / Mode Jour (modif 30/05 - Thème et style) */
+body.black-gold-theme.day-mode {
+    --main-bg-color: #1a1a1a;
+    --text-color: #ffd700;
+    --container-bg-color: #0f0f0f;
+    --border-color: #b8860b;
+    --box-shadow-light: rgba(255, 215, 0, 0.1);
+    --box-shadow-medium: rgba(255, 215, 0, 0.3);
+    --box-shadow-dark: rgba(255, 215, 0, 0.5);
+    --side-menu-bg-color: #0f0f0f;
+    --side-menu-border-color: #b8860b;
+    --achat-section-bg-color: #1a1a1a;
+    --achat-section-border-color: #b8860b;
+    --button-bg-color: #333333;
+    --button-text-color: #ffd700;
+    --button-border-color: #b8860b;
+    --button-hover-bg-color: #444444;
+    --button-can-afford-border: #4CAF50; /* Green for can-afford */
+    --button-cannot-afford-border: #FF4500; /* Red for cannot-afford */
+    --notification-bg-color: #ffd700;
+    --notification-text-color: #1a1a1a;
+    --modal-bg-color: #0f0f0f;
+    --modal-border-color: #b8860b;
+    --modal-shadow-color: rgba(255, 215, 0, 0.5);
+    --footer-bg-color: #0a0a0a;
+    --footer-text-color: #ffd700;
+    --footer-border-color: #b8860b;
+    --skill-panel-bg-color: #0f0f0f;
+    --skill-panel-border-color: #b8860b;
+    --skill-tier-bg-color: #1a1a1a;
+    --skill-tier-border-color: #b8860b;
+    --skill-box-locked-bg: #2a2a2a;
+    --skill-box-locked-border: #8b4513;
+    --skill-box-locked-text: #a0a0a0;
+    --skill-box-unlocked-bg: #b8860b;
+    --skill-box-unlocked-border: #ffd700;
+    --skill-box-unlocked-text: #1a1a1a;
+    --skill-box-max-level-bg: #8b4513;
+    --skill-box-max-level-border: #ffd700;
+    --skill-box-max-level-text: #1a1a1a;
+    --achievement-item-bg: #0f0f0f;
+    --achievement-item-border: #b8860b;
+    --achievement-item-text: #ffd700;
+    --achievement-item-desc-text: #a0a0a0;
+    --achievement-unlocked-bg: #b8860b;
+    --achievement-unlocked-border: #ffd700;
+    --achievement-tooltip-bg: #0a0a0a;
+    --achievement-tooltip-text: #ffd700;
+    --quest-item-bg: #0f0f0f;
+    --quest-item-border: #b8860b;
+    --quest-item-text: #ffd700;
+    --quest-item-desc-text: #a0a0a0;
+    --quest-item-completed-bg: #b8860b;
+    --quest-item-completed-border: #ffd700;
+    --minimalist-resource-bg: #0a0a0a;
+    --minimalist-resource-text: #ffd700;
+    --minimalist-resource-border: #b8860b;
+
+    /* Couleurs des ressources en thème Black and Gold */
+    --bons-points-color: #ffd700;
+    --images-color: #c0c0c0;
+    --eleves-color: #ffd700;
+    --professeur-color: #ffd700;
+    --ascension-points-color: #ffeb3b;
+    --prestige-points-color: #ffc107;
+    --warning-color: #ff9800;
+    --info-color: #ffeb3b;
+
+    /* Dégradés de boutons thème Black and Gold */
+    --button-gradient-start: #444444;
+    --button-gradient-end: #333333;
+    --button-hover-gradient-start: #555555;
+    --button-hover-gradient-end: #444444;
+    --button-active-gradient-start: #333333;
+    --button-active-gradient-end: #222222;
+}
+
+/* Thème Black and Gold / Mode Nuit (modif 30/05 - Thème et style) */
+body.black-gold-theme.night-mode {
+    --main-bg-color: #0f0f0f;
+    --text-color: #c0c0c0;
+    --container-bg-color: #0a0a0a;
+    --border-color: #8b4513;
+    --box-shadow-light: rgba(184, 134, 11, 0.2);
+    --box-shadow-medium: rgba(184, 134, 11, 0.4);
+    --box-shadow-dark: rgba(184, 134, 11, 0.6);
+    --side-menu-bg-color: #0a0a0a;
+    --side-menu-border-color: #8b4513;
+    --achat-section-bg-color: #0f0f0f;
+    --achat-section-border-color: #8b4513;
+    --button-bg-color: #222222;
+    --button-text-color: #c0c0c0;
+    --button-border-color: #8b4513;
+    --button-hover-bg-color: #333333;
+    --button-can-afford-border: #28a745; /* Darker green for can-afford */
+    --button-cannot-afford-border: #cc3300; /* Darker red for cannot-afford */
+    --notification-bg-color: #c0c0c0;
+    --notification-text-color: #0f0f0f;
+    --modal-bg-color: #0a0a0a;
+    --modal-border-color: #8b4513;
+    --modal-shadow-color: rgba(184, 134, 11, 0.6);
+    --footer-bg-color: #000000;
+    --footer-text-color: #c0c0c0;
+    --footer-border-color: #8b4513;
+    --skill-panel-bg-color: #0a0a0a;
+    --skill-panel-border-color: #8b4513;
+    --skill-tier-bg-color: #0f0f0f;
+    --skill-tier-border-color: #8b4513;
+    --skill-box-locked-bg: #1a1a1a;
+    --skill-box-locked-border: #6a3a1f;
+    --skill-box-locked-text: #808080;
+    --skill-box-unlocked-bg: #8b4513;
+    --skill-box-unlocked-border: #c0c0c0;
+    --skill-box-unlocked-text: #0f0f0f;
+    --skill-box-max-level-bg: #6a3a1f;
+    --skill-box-max-level-border: #8b4513;
+    --skill-box-max-level-text: #0f0f0f;
+    --achievement-item-bg: #0a0a0a;
+    --achievement-item-border: #8b4513;
+    --achievement-item-text: #c0c0c0;
+    --achievement-item-desc-text: #808080;
+    --achievement-unlocked-bg: #8b4513;
+    --achievement-unlocked-border: #c0c0c0;
+    --achievement-tooltip-bg: #000000;
+    --achievement-tooltip-text: #c0c0c0;
+    --quest-item-bg: #0a0a0a;
+    --quest-item-border: #8b4513;
+    --quest-item-text: #c0c0c0;
+    --quest-item-desc-text: #808080;
+    --quest-item-completed-bg: #8b4513;
+    --quest-item-completed-border: #c0c0c0;
+    --minimalist-resource-bg: #000000;
+    --minimalist-resource-text: #c0c0c0;
+    --minimalist-resource-border: #8b4513;
+
+    /* Couleurs des ressources en thème Black and Gold Nuit */
+    --bons-points-color: #c0c0c0;
+    --images-color: #909090;
+    --eleves-color: #c0c0c0;
+    --professeur-color: #c0c0c0;
+    --ascension-points-color: #b8860b;
+    --prestige-points-color: #a52a2a;
+    --warning-color: #cc9900;
+    --info-color: #b8860b;
+
+    /* Dégradés de boutons thème Black and Gold Nuit */
+    --button-gradient-start: #333333;
+    --button-gradient-end: #222222;
+    --button-hover-gradient-start: #444444;
+    --button-hover-gradient-end: #333333;
+    --button-active-gradient-start: #111111;
+    --button-active-gradient-end: #000000;
+}
+
+/* Thème RGB / Mode Jour (modif 30/05 - Thème et style) */
+body.rgb-theme.day-mode {
+    /* Les couleurs de base sont définies dans les animations */
+    --main-bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --container-bg-color: #222222;
+    --border-color: #ffffff;
+    --box-shadow-light: rgba(255, 0, 0, 0.2);
+    --box-shadow-medium: rgba(0, 255, 0, 0.2);
+    --box-shadow-dark: rgba(0, 0, 255, 0.2);
+    --side-menu-bg-color: #222222;
+    --side-menu-border-color: #ffffff;
+    --achat-section-bg-color: #1a1a1a;
+    --achat-section-border-color: #ffffff;
+    --button-bg-color: #333333;
+    --button-text-color: #ffffff;
+    --button-border-color: #ffffff;
+    --button-hover-bg-color: #444444;
+    --button-can-afford-border: #00ff00;
+    --button-cannot-afford-border: #ff0000;
+    --notification-bg-color: #ffffff;
+    --notification-text-color: #1a1a1a;
+    --modal-bg-color: #222222;
+    --modal-border-color: #ffffff;
+    --modal-shadow-color: rgba(255, 255, 255, 0.5);
+    --footer-bg-color: #111111;
+    --footer-text-color: #ffffff;
+    --footer-border-color: #ffffff;
+    --skill-panel-bg-color: #222222;
+    --skill-panel-border-color: #ffffff;
+    --skill-tier-bg-color: #1a1a1a;
+    --skill-tier-border-color: #ffffff;
+    --skill-box-locked-bg: #333333;
+    --skill-box-locked-border: #555555;
+    --skill-box-locked-text: #aaaaaa;
+    --skill-box-unlocked-bg: #444444;
+    --skill-box-unlocked-border: #ffffff;
+    --skill-box-unlocked-text: #ffffff;
+    --skill-box-max-level-bg: #555555;
+    --skill-box-max-level-border: #ffffff;
+    --skill-box-max-level-text: #ffffff;
+    --achievement-item-bg: #222222;
+    --achievement-item-border: #ffffff;
+    --achievement-item-text: #ffffff;
+    --achievement-item-desc-text: #aaaaaa;
+    --achievement-unlocked-bg: #444444;
+    --achievement-unlocked-border: #ffffff;
+    --achievement-tooltip-bg: #111111;
+    --achievement-tooltip-text: #ffffff;
+    --quest-item-bg: #222222;
+    --quest-item-border: #ffffff;
+    --quest-item-text: #ffffff;
+    --quest-item-desc-text: #aaaaaa;
+    --quest-item-completed-bg: #444444;
+    --quest-item-completed-border: #ffffff;
+    --minimalist-resource-bg: #111111;
+    --minimalist-resource-text: #ffffff;
+    --minimalist-resource-border: #ffffff;
+
+    /* Couleurs des ressources en thème RGB (elles seront animées) */
+    --bons-points-color: #FF0000;
+    --images-color: #00FF00;
+    --eleves-color: #0000FF;
+    --professeur-color: #FF00FF;
+    --ascension-points-color: #FFFF00;
+    --prestige-points-color: #00FFFF;
+    --warning-color: #FF8800;
+    --info-color: #0088FF;
+
+    /* Dégradés de boutons thème RGB */
+    --button-gradient-start: #333333;
+    --button-gradient-end: #222222;
+    --button-hover-gradient-start: #444444;
+    --button-hover-gradient-end: #333333;
+    --button-active-gradient-start: #222222;
+    --button-active-gradient-end: #111111;
+}
+
+/* Thème RGB / Mode Nuit (modif 30/05 - Thème et style) */
+body.rgb-theme.night-mode {
+    /* Pour le thème RGB, le mode nuit sera très similaire au mode jour car il est déjà sombre et animé. */
+    --main-bg-color: #0a0a0a;
+    --text-color: #e0e0e0;
+    --container-bg-color: #1a1a1a;
+    --border-color: #e0e0e0;
+    --box-shadow-light: rgba(200, 0, 0, 0.2);
+    --box-shadow-medium: rgba(0, 200, 0, 0.2);
+    --box-shadow-dark: rgba(0, 0, 200, 0.2);
+    --side-menu-bg-color: #1a1a1a;
+    --side-menu-border-color: #e0e0e0;
+    --achat-section-bg-color: #0a0a0a;
+    --achat-section-border-color: #e0e0e0;
+    --button-bg-color: #222222;
+    --button-text-color: #e0e0e0;
+    --button-border-color: #e0e0e0;
+    --button-hover-bg-color: #333333;
+    --button-can-afford-border: #00cc00;
+    --button-cannot-afford-border: #cc0000;
+    --notification-bg-color: #e0e0e0;
+    --notification-text-color: #0a0a0a;
+    --modal-bg-color: #1a1a1a;
+    --modal-border-color: #e0e0e0;
+    --modal-shadow-color: rgba(200, 200, 200, 0.5);
+    --footer-bg-color: #000000;
+    --footer-text-color: #e0e0e0;
+    --footer-border-color: #e0e0e0;
+    --skill-panel-bg-color: #1a1a1a;
+    --skill-panel-border-color: #e0e0e0;
+    --skill-tier-bg-color: #0a0a0a;
+    --skill-tier-border-color: #e0e0e0;
+    --skill-box-locked-bg: #222222;
+    --skill-box-locked-border: #444444;
+    --skill-box-locked-text: #999999;
+    --skill-box-unlocked-bg: #333333;
+    --skill-box-unlocked-border: #e0e0e0;
+    --skill-box-unlocked-text: #e0e0e0;
+    --skill-box-max-level-bg: #444444;
+    --skill-box-max-level-border: #e0e0e0;
+    --skill-box-max-level-text: #e0e0e0;
+    --achievement-item-bg: #1a1a1a;
+    --achievement-item-border: #e0e0e0;
+    --achievement-item-text: #e0e0e0;
+    --achievement-item-desc-text: #999999;
+    --achievement-unlocked-bg: #333333;
+    --achievement-unlocked-border: #e0e0e0;
+    --achievement-tooltip-bg: #000000;
+    --achievement-tooltip-text: #e0e0e0;
+    --quest-item-bg: #1a1a1a;
+    --quest-item-border: #e0e0e0;
+    --quest-item-text: #e0e0e0;
+    --quest-item-desc-text: #999999;
+    --quest-item-completed-bg: #333333;
+    --quest-item-completed-border: #e0e0e0;
+    --minimalist-resource-bg: #000000;
+    --minimalist-resource-text: #e0e0e0;
+    --minimalist-resource-border: #e0e0e0;
+
+    /* Couleurs des ressources en thème RGB Nuit (elles seront animées) */
+    --bons-points-color: #CC0000;
+    --images-color: #00CC00;
+    --eleves-color: #0000CC;
+    --professeur-color: #CC00CC;
+    --ascension-points-color: #CCCC00;
+    --prestige-points-color: #00CCCC;
+    --warning-color: #CC6600;
+    --info-color: #0066CC;
+
+    /* Dégradés de boutons thème RGB Nuit */
+    --button-gradient-start: #222222;
+    --button-gradient-end: #111111;
+    --button-hover-gradient-start: #333333;
+    --button-hover-gradient-end: #222222;
+    --button-active-gradient-start: #000000;
+    --button-active-gradient-end: #000000;
+}
+
+
+/* ==========================================================================
+   Styles Généraux du Corps et de la Mise en Page
+   ========================================================================== */
+
 body {
     font-family: 'Inter', sans-serif;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    background-color: #f0f2f5;
-    color: #333;
+    background-color: var(--main-bg-color); /* (modif 30/05 - Thème et style) */
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
     margin: 0;
     transition: background-color 0.5s ease, color 0.5s ease;
 }
@@ -13,137 +1333,44 @@ body {
     display: flex;
     flex-grow: 1;
     width: 100%;
+    /* (modif 30/05 - Réactivité) */
+    flex-wrap: wrap;
+    /* Permet le wrapping sur les petits écrans */
 }
 
-/* Styles pour le thème nuit */
-body.dark-theme {
-    background-color: #2c2c2c;
-    color: #f0f0f0;
+/* Styles pour les titres des sections (modif 30/05 - Thème et style) */
+#side-menu h2,
+#skillsContainer h1,
+#settingsContainer h1,
+#ascensionMenuContainer h1,
+#automationMainContainer h1,
+#studiesMainContainer h1,
+#questsContainer h1,
+#achievementsContainer h1,
+.skill-panel h2,
+.skill-tier h3,
+#automationSection h3,
+#activeQuests h3,
+#completedQuests h3,
+.quest-item h4,
+.quest-item p,
+#prestigeMenuContainer h1,
+#statsModal h2,
+#statsModal h3 {
+    color: var(--bons-points-color); /* Utilise la couleur des bons points comme couleur principale des titres */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme #side-menu,
-body.dark-theme .container,
-body.dark-theme #skillsContainer,
-body.dark-theme #settingsContainer,
-body.dark-theme #ascensionMenuContainer,
-body.dark-theme #automationMainContainer,
-body.dark-theme #studiesMainContainer,
-body.dark-theme #questsContainer,
-body.dark-theme #achievementsContainer,
-body.dark-theme .modal-content,
-body.dark-theme .achat-section,
-body.dark-theme .achievement-tooltip,
-body.dark-theme .skill-panel,
-body.dark-theme .skill-tier,
-body.dark-theme .skill-box,
-body.dark-theme #prestigeMenuContainer,
-body.dark-theme #statsModal .modal-content {
-    background-color: #3a3a3a;
-    border-color: #555;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
+/* ==========================================================================
+   Styles du Menu Latéral
+   ========================================================================== */
 
-body.dark-theme .achievement-tooltip::after {
-    /* Tooltip arrow for dark theme */
-    border-color: #3a3a3a transparent transparent transparent;
-}
-
-body.dark-theme #side-menu h2,
-body.dark-theme #skillsContainer h1,
-body.dark-theme #settingsContainer h1,
-body.dark-theme #ascensionMenuContainer h1,
-body.dark-theme #automationMainContainer h1,
-body.dark-theme #studiesMainContainer h1,
-body.dark-theme #questsContainer h1,
-body.dark-theme #achievementsContainer h1,
-body.dark-theme .skill-panel h2,
-body.dark-theme .skill-tier h3,
-body.dark-theme #automationSection h3,
-body.dark-theme #activeQuests h3,
-body.dark-theme #completedQuests h3,
-body.dark-theme .quest-item h4,
-body.dark-theme .quest-item p,
-body.dark-theme #prestigeMenuContainer h1,
-body.dark-theme #statsModal h2,
-body.dark-theme #statsModal h3 {
-    color: #76FF03;
-}
-
-body.dark-theme button {
-    background-color: #4a4a4a;
-    color: #f0f0f0;
-    border-color: #777;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-theme button:hover {
-    background-color: #5a5a5a;
-}
-
-body.dark-theme button.can-afford {
-    border-color: #76FF03;
-}
-
-body.dark-theme button.cannot-afford {
-    border-color: #FF4500;
-}
-
-body.dark-theme .bons-points-color {
-    color: #76FF03;
-}
-
-body.dark-theme .images-color {
-    color: #DA70D6;
-}
-
-body.dark-theme .eleves-color {
-    color: #f0f0f0;
-}
-
-body.dark-theme .Professeur-color {
-    /* Changed to lowercase for consistency */
-    color: #f0f0f0;
-}
-
-body.dark-theme .ascension-points-color {
-    color: #00BFFF;
-    font-weight: bold;
-}
-
-body.dark-theme .prestige-points-color {
-    color: #FF0000;
-    font-weight: bold;
-}
-
-body.dark-theme .warning-color {
-    color: #FF4500;
-    font-weight: bold;
-}
-
-body.dark-theme .info-color {
-    color: #1E90FF;
-    font-weight: bold;
-}
-
-body.dark-theme .achievement-unlocked {
-    background-color: #4CAF50;
-    color: white;
-}
-
-body.dark-theme #page-footer {
-    background-color: #252525;
-    color: #aaa;
-    border-top: 1px solid #444;
-}
-
-
-/* Styles du menu latéral */
 #side-menu {
     width: 250px;
-    background-color: #ffffff;
-    border-right: 1px solid #e0e0e0;
+    background-color: var(--side-menu-bg-color); /* (modif 30/05 - Thème et style) */
+    border-right: 1px solid var(--side-menu-border-color); /* (modif 30/05 - Thème et style) */
     padding: 20px;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 2px 0 8px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -153,20 +1380,48 @@ body.dark-theme #page-footer {
     height: 100vh;
     max-height: 100vh;
     overflow-y: auto;
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-#side-menu h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: #4CAF50;
+@media (max-width: 768px) {
+    #side-menu {
+        width: 100%;
+        height: auto;
+        max-height: none;
+        border-right: none;
+        border-bottom: 1px solid var(--side-menu-border-color); /* (modif 30/05 - Réactivité) */
+        flex-direction: row;
+        /* Menu horizontal sur mobile */
+        justify-content: space-around;
+        padding: 10px;
+        position: relative;
+        /* Ne pas coller en haut sur mobile */
+        overflow-x: auto;
+        /* Permet le défilement horizontal si trop d'éléments */
+        white-space: nowrap;
+        /* Empêche le wrapping des éléments du menu */
+    }
+
+    #side-menu h2 {
+        display: none;
+        /* Cache le titre du menu sur mobile */
+    }
+
+    #side-menu button {
+        flex: 1 1 auto;
+        /* Les boutons prennent l'espace disponible */
+        font-size: 0.8em;
+        padding: 8px 10px;
+    }
 }
 
 .achat-section {
-    border: 1px solid #eee;
+    border: 1px solid var(--achat-section-border-color); /* (modif 30/05 - Thème et style) */
     padding: 10px;
     border-radius: 8px;
-    background-color: #f9f9f9;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background-color: var(--achat-section-bg-color); /* (modif 30/05 - Thème et style) */
+    box-shadow: 0 1px 3px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .achat-section p {
@@ -182,69 +1437,129 @@ body.dark-theme #page-footer {
     font-size: 15px;
 }
 
-/* Styles du contenu principal du jeu */
+/* ==========================================================================
+   Styles du Contenu Principal du Jeu
+   ========================================================================== */
+
 #main-content {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 30px;
+    padding: 30px 20px;
+    /* Ajout de padding horizontal pour la réactivité */
     overflow-y: auto;
     max-height: 100vh;
+    box-sizing: border-box;
+    /* (modif 30/05 - Réactivité) */
 }
 
 .container {
     text-align: center;
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
+    background-color: var(--container-bg-color); /* (modif 30/05 - Thème et style) */
+    border: 1px solid var(--border-color); /* (modif 30/05 - Thème et style) */
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px var(--box-shadow-medium); /* (modif 30/05 - Thème et style) */
     max-width: 90%;
     width: 500px;
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
+
+/* ==========================================================================
+   Styles des Boutons (Général, Achetable, Non-achetable, Automation)
+   ========================================================================== */
 
 button {
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
     margin-top: 10px;
-    background-color: white;
-    color: #333;
-    border: 2px solid #ccc;
+    background: linear-gradient(to bottom, var(--button-gradient-start), var(--button-gradient-end)); /* (modif 30/05 - Thème et style) */
+    color: var(--button-text-color); /* (modif 30/05 - Thème et style) */
+    border: 2px solid var(--button-border-color); /* (modif 30/05 - Thème et style) */
     border-radius: 8px;
-    transition: background-color 0.3s ease, transform 0.1s ease, border-color 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.3s ease, transform 0.1s ease, border-color 0.3s ease, box-shadow 0.3s ease; /* (modif 30/05 - Thème et style) */
+    box-shadow: 0 2px 4px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
 }
 
 button:hover {
-    background-color: #f0f0f0;
+    background: linear-gradient(to bottom, var(--button-hover-gradient-start), var(--button-hover-gradient-end)); /* (modif 30/05 - Thème et style) */
     transform: translateY(-2px);
+    box-shadow: 0 4px 8px var(--box-shadow-medium); /* (modif 30/05 - Amélioration visuelle) */
 }
 
 button:active {
     transform: translateY(0);
+    box-shadow: 0 2px 4px var(--box-shadow-light); /* (modif 30/05 - Amélioration visuelle) */
 }
 
 button.can-afford {
-    border-color: #4CAF50;
+    border-color: var(--button-can-afford-border); /* (modif 30/05 - Thème et style) */
+    border-width: 3px; /* (modif 30/05 - Épaisseur bordure) */
 }
 
 button.cannot-afford {
-    border-color: #FF4500;
+    border-color: var(--button-cannot-afford-border); /* (modif 30/05 - Thème et style) */
     cursor: not-allowed;
     opacity: 0.7;
+    border-width: 3px; /* (modif 30/05 - Épaisseur bordure) */
 }
 
 button.automation-active {
-    background-color: #28a745;
+    background: linear-gradient(to bottom, #28a745, #218838); /* Conserve le vert spécifique pour l'automation active */
     color: white;
     border-color: #218838;
 }
 
 button.automation-active:hover {
-    background-color: #218838;
+    background: linear-gradient(to bottom, #218838, #1e7e34);
 }
+
+/* Animation spécifique pour les boutons du thème Neon-sci-fi (modif 30/05 - Thème et style) */
+body.neon-sci-fi-theme button {
+    animation: neonButtonPulse 2s infinite alternate;
+}
+
+@keyframes neonButtonPulse {
+    0% {
+        box-shadow: 0 0 5px var(--button-border-color), 0 0 10px var(--button-border-color), 0 0 15px var(--button-border-color);
+    }
+    100% {
+        box-shadow: 0 0 10px var(--button-border-color), 0 0 20px var(--button-border-color), 0 0 30px var(--button-border-color);
+    }
+}
+
+/* Animation spécifique pour les boutons du thème RGB (modif 30/05 - Thème et style) */
+body.rgb-theme button {
+    animation: rgbGradientBorder 5s linear infinite;
+    background: linear-gradient(to right, var(--rgb-color-start), var(--rgb-color-middle), var(--rgb-color-end));
+    background-size: 200% 200%;
+}
+
+@keyframes rgbGradientBorder {
+    0% {
+        background-position: 0% 50%;
+        border-color: var(--rgb-color-start);
+    }
+    33% {
+        background-position: 50% 50%;
+        border-color: var(--rgb-color-middle);
+    }
+    66% {
+        background-position: 100% 50%;
+        border-color: var(--rgb-color-end);
+    }
+    100% {
+        background-position: 0% 50%;
+        border-color: var(--rgb-color-start);
+    }
+}
+
+
+/* ==========================================================================
+   Styles des Ressources
+   ========================================================================== */
 
 .ressources {
     display: flex;
@@ -265,10 +1580,85 @@ button.automation-active:hover {
 
 .production-inline {
     font-size: 0.8em;
-    color: #777;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    opacity: 0.8; /* (modif 30/05 - Amélioration visuelle) */
     font-weight: normal;
     margin-left: 5px;
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
+
+/* Couleurs des ressources (modif 30/05 - Thème et style) */
+.bons-points-color {
+    color: var(--bons-points-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+.images-color {
+    color: var(--images-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+.eleves-color {
+    color: var(--eleves-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+.Professeur-color {
+    color: var(--professeur-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+.ascension-points-color {
+    color: var(--ascension-points-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+.prestige-points-color {
+    color: var(--prestige-points-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+.warning-color {
+    color: var(--warning-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+.info-color {
+    color: var(--info-color);
+    font-weight: bold;
+    transition: color 0.5s ease;
+}
+
+/* Animation pour les couleurs des ressources en thème RGB (modif 30/05 - Thème et style) */
+body.rgb-theme .bons-points-color,
+body.rgb-theme .images-color,
+body.rgb-theme .eleves-color,
+body.rgb-theme .Professeur-color,
+body.rgb-theme .ascension-points-color,
+body.rgb-theme .prestige-points-color,
+body.rgb-theme .warning-color,
+body.rgb-theme .info-color {
+    animation: rgbTextColor 5s linear infinite;
+}
+
+@keyframes rgbTextColor {
+    0% { color: var(--rgb-color-start); }
+    33% { color: var(--rgb-color-middle); }
+    66% { color: var(--rgb-color-end); }
+    100% { color: var(--rgb-color-start); }
+}
+
+
+/* ==========================================================================
+   Styles des Notifications
+   ========================================================================== */
 
 #notifications-container {
     position: fixed;
@@ -283,13 +1673,14 @@ button.automation-active:hover {
 }
 
 .notification-item {
-    background-color: #333;
-    color: white;
+    background-color: var(--notification-bg-color); /* (modif 30/05 - Thème et style) */
+    color: var(--notification-text-color); /* (modif 30/05 - Thème et style) */
     padding: 10px 15px;
     border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 10px var(--box-shadow-medium); /* (modif 30/05 - Thème et style) */
     opacity: 0;
     animation: fadeInOutSmooth 5s forwards;
+    transition: background-color 0.5s ease, color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 @keyframes fadeInOutSmooth {
@@ -314,46 +1705,9 @@ button.automation-active:hover {
     }
 }
 
-
-.bons-points-color {
-    color: #4CAF50;
-    font-weight: bold;
-}
-
-.images-color {
-    color: #8A2BE2;
-    font-weight: bold;
-}
-
-.eleves-color {
-    color: #333;
-    font-weight: bold;
-}
-
-.Professeur-color {
-    color: #333;
-    font-weight: bold;
-}
-
-.ascension-points-color {
-    color: #007BFF;
-    font-weight: bold;
-}
-
-.prestige-points-color {
-    color: #FF0000;
-    font-weight: bold;
-}
-
-.warning-color {
-    color: #FF4500;
-    font-weight: bold;
-}
-
-.info-color {
-    color: #007BFF;
-    font-weight: bold;
-}
+/* ==========================================================================
+   Styles des Modales
+   ========================================================================== */
 
 #confirmResetModal,
 #confirmAscensionModal,
@@ -375,20 +1729,21 @@ button.automation-active:hover {
 }
 
 .modal-content {
-    background-color: #ffffff;
+    background-color: var(--modal-bg-color); /* (modif 30/05 - Thème et style) */
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 5px 15px var(--modal-shadow-color); /* (modif 30/05 - Thème et style) */
     text-align: center;
     max-width: 450px;
     width: 90%;
     position: relative;
-    /* For close button */
+    transition: background-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .modal-content h3 {
     margin-top: 0;
-    color: #FF4500;
+    color: var(--warning-color); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .modal-buttons {
@@ -406,11 +1761,13 @@ button.automation-active:hover {
 .modal-checkbox {
     margin-top: 15px;
     font-size: 0.9em;
-    color: #555;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    opacity: 0.8; /* (modif 30/05 - Amélioration visuelle) */
     text-align: left;
     display: flex;
     align-items: center;
     gap: 5px;
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .modal-checkbox input[type="checkbox"] {
@@ -421,8 +1778,13 @@ button.automation-active:hover {
     font-size: 0.9em;
     margin-bottom: 10px;
     font-weight: bold;
-    color: #007BFF;
+    color: var(--ascension-points-color); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
+
+/* ==========================================================================
+   Styles des Sections Principales (Compétences, Paramètres, etc.)
+   ========================================================================== */
 
 #skillsContainer,
 #settingsContainer,
@@ -436,32 +1798,23 @@ button.automation-active:hover {
     max-width: 1200px;
     margin-top: 30px;
     padding: 20px;
-    background-color: #ffffff;
+    background-color: var(--container-bg-color); /* (modif 30/05 - Thème et style) */
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px var(--box-shadow-medium); /* (modif 30/05 - Thème et style) */
     display: none;
     flex-direction: column;
     align-items: center;
+    transition: background-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-#skillsContainer h1,
-#settingsContainer h1,
-#ascensionMenuContainer h1,
-#automationMainContainer h1,
-#studiesMainContainer h1,
-#questsContainer h1,
-#achievementsContainer h1,
-#prestigeMenuContainer h1 {
-    color: #4CAF50;
-    margin-bottom: 20px;
-}
+/* ==========================================================================
+   Styles de l'Arbre de Compétences
+   ========================================================================== */
 
-/* New Skill Tree Styles */
 #skillsContainer .header-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Center the title and buttons */
     width: 100%;
     margin-bottom: 20px;
     position: relative;
@@ -469,9 +1822,7 @@ button.automation-active:hover {
 
 #skillsContainer .header-row h1 {
     margin: 0;
-    /* Remove default margin */
     flex-grow: 1;
-    /* Allow title to take available space */
     text-align: center;
 }
 
@@ -479,9 +1830,7 @@ button.automation-active:hover {
     display: flex;
     gap: 10px;
     position: absolute;
-    /* Position buttons relative to header-row */
     right: 0;
-    /* Align to the right */
 }
 
 #skillsContainer .header-row .skill-header-buttons button {
@@ -496,62 +1845,56 @@ button.automation-active:hover {
     gap: 20px;
     width: 100%;
     flex-wrap: wrap;
-    /* Allow wrapping on smaller screens */
 }
 
 .skill-panel {
     flex: 1;
     min-width: 300px;
-    /* Minimum width for each panel */
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--skill-panel-border-color); /* (modif 30/05 - Thème et style) */
     border-radius: 12px;
-    background-color: #f9f9f9;
-    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.05);
+    background-color: var(--skill-panel-bg-color); /* (modif 30/05 - Thème et style) */
+    box-shadow: 0 1px 5px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
     padding: 15px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-panel h2 {
     margin-top: 0;
     margin-bottom: 15px;
     font-size: 1.5em;
-    color: #007BFF;
+    color: var(--info-color); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-panel .points-display {
     font-size: 1.1em;
     font-weight: bold;
     margin-bottom: 20px;
-    color: #8A2BE2;
+    color: var(--images-color); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-tier {
     width: 100%;
     margin-bottom: 20px;
     padding: 10px;
-    border: 1px dashed #ccc;
+    border: 1px dashed var(--skill-tier-border-color); /* (modif 30/05 - Thème et style) */
     border-radius: 8px;
-    background-color: #f2f2f2;
+    background-color: var(--skill-tier-bg-color); /* (modif 30/05 - Thème et style) */
     text-align: center;
+    transition: background-color 0.5s ease, border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
-
-body.dark-theme .skill-tier {
-    background-color: #333;
-    border-color: #666;
-}
-
 
 .skill-tier h3 {
     margin-top: 0;
     margin-bottom: 10px;
     font-size: 1.1em;
-    color: #555;
-}
-
-body.dark-theme .skill-tier h3 {
-    color: #aaa;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    opacity: 0.8; /* (modif 30/05 - Amélioration visuelle) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-boxes-wrapper {
@@ -581,39 +1924,29 @@ body.dark-theme .skill-tier h3 {
 
 .skill-box:hover {
     transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 15px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
 }
 
 .skill-box.locked {
-    background-color: #e0e0e0;
-    border-color: #a0a0a0;
-    color: #666;
+    background-color: var(--skill-box-locked-bg); /* (modif 30/05 - Thème et style) */
+    border-color: var(--skill-box-locked-border); /* (modif 30/05 - Thème et style) */
+    color: var(--skill-box-locked-text); /* (modif 30/05 - Thème et style) */
     cursor: not-allowed;
+    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-box.unlocked {
-    background-color: #D4EDDA;
-    border-color: #28A745;
-    color: #218838;
-}
-
-body.dark-theme .skill-box.unlocked {
-    background-color: #2e7d32;
-    border-color: #76FF03;
-    color: #e8f5e9;
+    background-color: var(--skill-box-unlocked-bg); /* (modif 30/05 - Thème et style) */
+    border-color: var(--skill-box-unlocked-border); /* (modif 30/05 - Thème et style) */
+    color: var(--skill-box-unlocked-text); /* (modif 30/05 - Thème et style) */
+    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-box.max-level {
-    background-color: #A2D9CE;
-    /* A slightly darker green for maxed skills */
-    border-color: #1A5229;
-    color: #0A3D1A;
-}
-
-body.dark-theme .skill-box.max-level {
-    background-color: #1A5229;
-    border-color: #76FF03;
-    color: #e8f5e9;
+    background-color: var(--skill-box-max-level-bg); /* (modif 30/05 - Thème et style) */
+    border-color: var(--skill-box-max-level-border); /* (modif 30/05 - Thème et style) */
+    color: var(--skill-box-max-level-text); /* (modif 30/05 - Thème et style) */
+    transition: background-color 0.5s ease, border-color 0.5s ease, color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-box .skill-name {
@@ -624,34 +1957,30 @@ body.dark-theme .skill-box.max-level {
 
 .skill-box .skill-level {
     font-size: 0.8em;
-    color: #555;
-}
-
-body.dark-theme .skill-box .skill-level {
-    color: #ccc;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    opacity: 0.7; /* (modif 30/05 - Amélioration visuelle) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 /* Tooltip for skills */
 .skill-box .tooltip-text {
     visibility: hidden;
     width: 250px;
-    background-color: #555;
-    color: #fff;
+    background-color: var(--achievement-tooltip-bg); /* (modif 30/05 - Thème et style) */
+    color: var(--achievement-tooltip-text); /* (modif 30/05 - Thème et style) */
     text-align: center;
     border-radius: 6px;
     padding: 10px;
     position: absolute;
     z-index: 10;
     bottom: 110%;
-    /* Position above the skill box */
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.3s, background-color 0.5s ease, color 0.5s ease; /* (modif 30/05 - Thème et style) */
     font-size: 0.8em;
     line-height: 1.4;
     white-space: normal;
-    /* Allow text to wrap */
 }
 
 .skill-box .tooltip-text::after {
@@ -662,7 +1991,8 @@ body.dark-theme .skill-box .skill-level {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #555 transparent transparent transparent;
+    border-color: var(--achievement-tooltip-bg) transparent transparent transparent; /* (modif 30/05 - Thème et style) */
+    transition: border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 .skill-box:hover .tooltip-text {
@@ -684,17 +2014,19 @@ body.dark-theme .skill-box .skill-level {
 }
 
 .skill-box.secret-skill .tooltip-text {
-    background-color: #333;
-    /* Make tooltip visible for secret skill */
-    color: #fff;
+    background-color: var(--achievement-tooltip-bg); /* (modif 30/05 - Thème et style) */
+    color: var(--achievement-tooltip-text); /* (modif 30/05 - Thème et style) */
 }
 
 .skill-box.secret-skill .tooltip-text::after {
-    border-color: #333 transparent transparent transparent;
+    border-color: var(--achievement-tooltip-bg) transparent transparent transparent; /* (modif 30/05 - Thème et style) */
 }
 
 
-/* Ascension Menu Specific Styles */
+/* ==========================================================================
+   Styles du Menu d'Ascension
+   ========================================================================== */
+
 #ascensionMenuContainer .achat-section {
     display: flex;
     flex-direction: column;
@@ -706,7 +2038,6 @@ body.dark-theme .skill-box .skill-level {
 
 #ascensionMenuContainer .achat-section button {
     margin-top: 0;
-    /* Remove default margin */
     margin-bottom: 10px;
 }
 
@@ -716,155 +2047,118 @@ body.dark-theme .skill-box .skill-level {
 
 .multiplier-button {
     width: 23%;
-    /* Adjusted width for better fit */
     padding: 8px 0;
     font-size: 0.9em;
-    /* Slightly smaller font */
     margin: 0;
-    /* Removed margin to use gap on parent */
     border-radius: 5px;
 }
 
 #purchaseMultiplierSelection>div {
-    /* Parent of multiplier buttons */
     display: flex;
     justify-content: space-around;
     margin-top: 10px;
     gap: 5px;
-    /* Added gap */
 }
 
 .multiplier-button.active {
-    background-color: #4CAF50;
+    background-color: var(--button-can-afford-border); /* Utilise la couleur verte d'achat */
     color: white;
-    border-color: #28A745;
+    border-color: var(--button-can-afford-border);
+    transition: background-color 0.5s ease, border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-/* Styles for Achievements Tab */
+/* ==========================================================================
+   Styles de l'Onglet des Succès
+   ========================================================================== */
+
 #achievementsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    /* Smaller boxes */
     gap: 10px;
-    /* Reduced gap */
     width: 100%;
     padding: 10px;
     max-width: 900px;
-    /* Limit grid width for better appearance */
 }
 
 .achievement-item {
-    border: 1px solid #ddd;
+    border: 1px solid var(--achievement-item-border); /* (modif 30/05 - Thème et style) */
     border-radius: 8px;
     padding: 10px;
-    /* Reduced padding */
-    background-color: #f9f9f9;
+    background-color: var(--achievement-item-bg); /* (modif 30/05 - Thème et style) */
     text-align: center;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s; /* (modif 30/05 - Thème et style) */
     position: relative;
-    /* For tooltip positioning */
     cursor: pointer;
-    /* Indicate clickability */
     height: 80px;
-    /* Fixed height for consistent grid */
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     overflow: hidden;
-    /* Hide overflow text */
 }
 
 .achievement-item h4 {
     margin-top: 0;
     margin-bottom: 5px;
-    color: #333;
+    color: var(--achievement-item-text); /* (modif 30/05 - Thème et style) */
     font-size: 0.9em;
-    /* Smaller font for title */
+    transition: color 0.3s; /* (modif 30/05 - Thème et style) */
 }
 
 .achievement-item p {
     font-size: 0.8em;
-    /* Smaller font for description */
-    color: #666;
+    color: var(--achievement-item-desc-text); /* (modif 30/05 - Thème et style) */
     margin-bottom: 5px;
-    /* Reduced margin */
     display: -webkit-box;
     -webkit-line-clamp: 2;
-    /* Limit description to 2 lines */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     line-clamp: 2;
-    /* Standard property for line clamping */
+    transition: color 0.3s; /* (modif 30/05 - Thème et style) */
 }
 
 .achievement-item .reward {
     font-size: 0.7em;
-    /* Smaller font for reward */
-    color: #4CAF50;
+    color: var(--bons-points-color); /* (modif 30/05 - Thème et style) */
     font-weight: bold;
+    transition: color 0.3s; /* (modif 30/05 - Thème et style) */
 }
 
 .achievement-item.unlocked {
-    background-color: #e8f5e9;
-    border-color: #4CAF50;
+    background-color: var(--achievement-unlocked-bg); /* (modif 30/05 - Thème et style) */
+    border-color: var(--achievement-unlocked-border); /* (modif 30/05 - Thème et style) */
+    transition: background-color 0.5s ease, border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme .achievement-item {
-    background-color: #424242;
-    border-color: #555;
+.achievement-item.unlocked h4,
+.achievement-item.unlocked p,
+.achievement-item.unlocked .reward {
+    color: var(--skill-box-unlocked-text); /* Utilise la couleur du texte des compétences débloquées pour la cohérence */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme .achievement-item h4 {
-    color: #eee;
-}
-
-body.dark-theme .achievement-item p {
-    color: #ccc;
-}
-
-body.dark-theme .achievement-item.unlocked {
-    background-color: #2e7d32;
-    border-color: #76FF03;
-}
-
-body.dark-theme .achievement-item.unlocked h4,
-body.dark-theme .achievement-item.unlocked p,
-body.dark-theme .achievement-item.unlocked .reward {
-    color: #e8f5e9;
-}
-
-/* Achievement Tooltip (for hover and click) */
+/* Infobulle des Succès (pour le survol et le clic) */
 .achievement-tooltip {
     position: fixed;
-    /* Changed to fixed for better positioning */
-    background-color: #555;
-    /* Base background */
-    color: #fff;
+    background-color: var(--achievement-tooltip-bg); /* (modif 30/05 - Thème et style) */
+    color: var(--achievement-tooltip-text); /* (modif 30/05 - Thème et style) */
     text-align: left;
     border-radius: 6px;
     padding: 10px;
     z-index: 100;
     font-size: 0.9em;
     line-height: 1.4;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 10px var(--box-shadow-dark); /* (modif 30/05 - Thème et style) */
     white-space: normal;
-    /* Allow text to wrap */
     max-width: 400px;
-    /* Increased max width for readability */
     pointer-events: none;
-    /* Allow clicks to pass through when not active */
     opacity: 0;
-    transition: opacity 0.2s, transform 0.2s;
+    transition: opacity 0.2s, transform 0.2s, background-color 0.5s ease, color 0.5s ease; /* (modif 30/05 - Thème et style) */
     transform: translate(-50%, -10px);
-    /* Initial position slightly above */
     top: auto;
-    /* Reset top */
     left: 50%;
-    /* Center horizontally */
     bottom: calc(100% + 10px);
-    /* Position above the item */
     visibility: hidden;
 }
 
@@ -872,14 +2166,11 @@ body.dark-theme .achievement-item.unlocked .reward {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    /* Enable clicks when visible */
     transform: translate(-50%, 0);
-    /* Move to final position */
 }
 
 .achievement-tooltip.clicked {
     pointer-events: auto;
-    /* Keep pointer events active when clicked */
 }
 
 .achievement-tooltip::after {
@@ -890,125 +2181,117 @@ body.dark-theme .achievement-item.unlocked .reward {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: #555 transparent transparent transparent;
+    border-color: var(--achievement-tooltip-bg) transparent transparent transparent; /* (modif 30/05 - Thème et style) */
+    transition: border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme .achievement-tooltip {
-    background-color: #3a3a3a;
-    /* Dark theme background */
-}
-
-body.dark-theme .achievement-tooltip::after {
-    border-color: #3a3a3a transparent transparent transparent;
-}
-
+/* ==========================================================================
+   Styles du Pied de Page
+   ========================================================================== */
 
 #page-footer {
     text-align: center;
     padding: 15px;
     font-size: 0.8em;
-    color: #777;
-    background-color: #e9e9e9;
-    border-top: 1px solid #ddd;
+    color: var(--footer-text-color); /* (modif 30/05 - Thème et style) */
+    background-color: var(--footer-bg-color); /* (modif 30/05 - Thème et style) */
+    border-top: 1px solid var(--footer-border-color); /* (modif 30/05 - Thème et style) */
     width: 100%;
     box-sizing: border-box;
+    transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-/* Quests dark mode fix */
-body.dark-theme .quest-item {
-    background-color: #424242;
-    border-color: #555;
+/* ==========================================================================
+   Styles de l'Onglet des Quêtes
+   ========================================================================== */
+
+.quest-item {
+    background-color: var(--quest-item-bg); /* (modif 30/05 - Thème et style) */
+    border: 1px solid var(--quest-item-border); /* (modif 30/05 - Thème et style) */
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme .quest-item p {
-    color: #ccc;
+.quest-item p {
+    color: var(--quest-item-desc-text); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme .quest-item .info-color {
-    color: #00BFFF;
-    /* Ensure info-color is visible in dark mode */
+.quest-item .info-color {
+    color: var(--info-color); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme .quest-item.completed {
-    background-color: #2e7d32;
-    /* Darker green for completed quests in dark mode */
-    border-color: #76FF03;
+.quest-item.completed {
+    background-color: var(--quest-item-completed-bg); /* (modif 30/05 - Thème et style) */
+    border-color: var(--quest-item-completed-border); /* (modif 30/05 - Thème et style) */
+    transition: background-color 0.5s ease, border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-body.dark-theme .quest-item.completed p,
-body.dark-theme .quest-item.completed .info-color {
-    color: #e8f5e9;
+.quest-item.completed p,
+.quest-item.completed .info-color {
+    color: var(--skill-box-unlocked-text); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
-/* Side menu buttons layout for Quests and Achievements */
+/* ==========================================================================
+   Styles des Boutons du Menu Latéral (Bas)
+   ========================================================================== */
+
 #side-menu .bottom-buttons {
     display: flex;
     flex-wrap: wrap;
-    /* Allow wrapping if needed */
     gap: 10px;
-    /* Space between buttons */
     justify-content: center;
     margin-top: auto;
-    /* Push to bottom */
     padding-top: 15px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--side-menu-border-color); /* (modif 30/05 - Thème et style) */
+    transition: border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #side-menu .bottom-buttons button {
     flex: 1 1 calc(50% - 5px);
-    /* Two buttons per row with gap */
     margin: 0;
-    /* Override default button margin */
 }
 
-/* NEW STYLES FOR STUDIES SECTION */
+/* ==========================================================================
+   Styles de la Section Études
+   ========================================================================== */
+
 #studiesMainContainer .header-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Center the title and buttons */
     width: 100%;
     margin-bottom: 20px;
     position: relative;
-    /* For multiplier positioning */
 }
 
 #studiesMainContainer .header-row h1 {
     margin: 0;
-    /* Remove default margin */
     flex-grow: 1;
-    /* Allow title to take available space */
     text-align: center;
     cursor: pointer;
-    /* Indicate it's clickable */
     padding: 10px 20px;
-    /* Make it feel like a button */
-    border: 2px solid #ccc;
+    border: 2px solid var(--button-border-color); /* (modif 30/05 - Thème et style) */
     border-radius: 8px;
-    transition: background-color 0.3s ease, transform 0.1s ease, border-color 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(to bottom, var(--button-gradient-start), var(--button-gradient-end)); /* (modif 30/05 - Thème et style) */
+    color: var(--button-text-color); /* (modif 30/05 - Thème et style) */
+    transition: background 0.3s ease, transform 0.1s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.5s ease; /* (modif 30/05 - Thème et style) */
+    box-shadow: 0 2px 4px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
 }
 
 #studiesMainContainer .header-row h1:hover {
-    background-color: #f0f0f0;
+    background: linear-gradient(to bottom, var(--button-hover-gradient-start), var(--button-hover-gradient-end)); /* (modif 30/05 - Thème et style) */
     transform: translateY(-2px);
 }
 
 #studiesMainContainer .header-row h1:active {
     transform: translateY(0);
 }
-
-body.dark-theme #studiesMainContainer .header-row h1 {
-    background-color: #4a4a4a;
-    color: #f0f0f0;
-    border-color: #777;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-theme #studiesMainContainer .header-row h1:hover {
-    background-color: #5a5a5a;
-}
-
 
 #studiesMainContainer #purchaseMultiplierSelection {
     position: absolute;
@@ -1028,11 +2311,9 @@ body.dark-theme #studiesMainContainer .header-row h1:hover {
 #studiesMainContainer #purchaseMultiplierSelection h3 {
     font-size: 0.8em;
     margin: 0 0 5px 0;
-    color: #555;
-}
-
-body.dark-theme #studiesMainContainer #purchaseMultiplierSelection h3 {
-    color: #f0f0f0;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    opacity: 0.8; /* (modif 30/05 - Amélioration visuelle) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #studiesMainContainer #purchaseMultiplierSelection>div {
@@ -1043,7 +2324,6 @@ body.dark-theme #studiesMainContainer #purchaseMultiplierSelection h3 {
 
 #studiesMainContainer .multiplier-button {
     width: 40px;
-    /* Smaller buttons */
     height: 25px;
     font-size: 0.7em;
     padding: 0;
@@ -1067,35 +2347,36 @@ body.dark-theme #studiesMainContainer #purchaseMultiplierSelection h3 {
 
 .studies-section-group .achat-section {
     flex: 1 1 calc(50% - 10px);
-    /* Two items per row */
     min-width: 250px;
-    /* Ensure they don't get too small */
     box-sizing: border-box;
 }
 
-/* Minimalist Resources Panel */
+/* ==========================================================================
+   Panneau des Ressources Minimalistes
+   ========================================================================== */
+
 #minimalistResources {
     position: fixed;
     top: 10px;
     right: 10px;
-    background-color: #3b3b3b;
-    color: #f0f0f0;
+    background-color: var(--minimalist-resource-bg); /* (modif 30/05 - Thème et style) */
+    color: var(--minimalist-resource-text); /* (modif 30/05 - Thème et style) */
     padding: 8px 12px;
     border-radius: 8px;
     display: none;
     flex-direction: column;
     align-items: flex-end;
-    border: 1px solid #555;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--minimalist-resource-border); /* (modif 30/05 - Thème et style) */
+    box-shadow: 0 2px 8px var(--box-shadow-dark); /* (modif 30/05 - Thème et style) */
     z-index: 1000;
     font-size: 0.9em;
     line-height: 1.3;
+    transition: background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #minimalistResources p {
     margin: 2px 0;
     white-space: nowrap;
-    /* Prevent wrapping */
 }
 
 #minimalistResources .resource-line {
@@ -1109,27 +2390,36 @@ body.dark-theme #studiesMainContainer #purchaseMultiplierSelection h3 {
     font-weight: bold;
 }
 
+/* Couleurs des ressources dans le panneau minimaliste (modif 30/05 - Thème et style) */
 #minimalistResources .bons-points-color {
-    color: #76FF03;
+    color: var(--bons-points-color);
+    transition: color 0.5s ease;
 }
 
 #minimalistResources .images-color {
-    color: #DA70D6;
+    color: var(--images-color);
+    transition: color 0.5s ease;
 }
 
 #minimalistResources .Professeur-color {
-    color: #f0f0f0;
+    color: var(--professeur-color);
+    transition: color 0.5s ease;
 }
 
 #minimalistResources .ascension-points-color {
-    color: #00BFFF;
+    color: var(--ascension-points-color);
+    transition: color 0.5s ease;
 }
 
 #minimalistResources .prestige-points-color {
-    color: #FF0000;
+    color: var(--prestige-points-color);
+    transition: color 0.5s ease;
 }
 
-/* Stats Modal Specific Styles */
+/* ==========================================================================
+   Styles de la Modale des Statistiques
+   ========================================================================== */
+
 #statsModal .modal-content {
     max-width: 800px;
     width: 95%;
@@ -1142,7 +2432,8 @@ body.dark-theme #studiesMainContainer #purchaseMultiplierSelection h3 {
 #statsModal .modal-content h2 {
     text-align: center;
     margin-bottom: 20px;
-    color: #4CAF50;
+    color: var(--bons-points-color); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #statsModal .modal-content .close-button {
@@ -1153,53 +2444,42 @@ body.dark-theme #studiesMainContainer #purchaseMultiplierSelection h3 {
     border: none;
     font-size: 1.5em;
     cursor: pointer;
-    color: #999;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    opacity: 0.6; /* (modif 30/05 - Amélioration visuelle) */
     padding: 5px;
     margin: 0;
-    /* Override button margin */
+    transition: color 0.5s ease, opacity 0.3s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #statsModal .modal-content .close-button:hover {
-    color: #333;
-}
-
-body.dark-theme #statsModal .modal-content .close-button {
-    color: #ccc;
-}
-
-body.dark-theme #statsModal .modal-content .close-button:hover {
-    color: #f0f0f0;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    opacity: 1; /* (modif 30/05 - Amélioration visuelle) */
 }
 
 #statsModal .stats-category {
     margin-bottom: 20px;
-    border: 1px solid #eee;
+    border: 1px solid var(--border-color); /* (modif 30/05 - Thème et style) */
     border-radius: 8px;
     padding: 15px;
-    background-color: #fcfcfc;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-body.dark-theme #statsModal .stats-category {
-    background-color: #3a3a3a;
-    border-color: #555;
+    background-color: var(--achat-section-bg-color); /* Utilise la couleur d'achat-section pour la cohérence */
+    box-shadow: 0 1px 3px var(--box-shadow-light); /* (modif 30/05 - Thème et style) */
+    transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #statsModal .stats-category h3 {
     margin-top: 0;
     margin-bottom: 10px;
-    color: #007BFF;
-    border-bottom: 1px solid #eee;
+    color: var(--info-color); /* (modif 30/05 - Thème et style) */
+    border-bottom: 1px solid var(--border-color); /* (modif 30/05 - Thème et style) */
     padding-bottom: 5px;
-}
-
-body.dark-theme #statsModal .stats-category h3 {
-    border-color: #666;
+    transition: color 0.5s ease, border-color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #statsModal .stats-category p {
     margin: 5px 0;
     font-size: 0.95em;
+    color: var(--text-color); /* (modif 30/05 - Thème et style) */
+    transition: color 0.5s ease; /* (modif 30/05 - Thème et style) */
 }
 
 #statsModal .stats-category .stat-value {
@@ -1207,94 +2487,263 @@ body.dark-theme #statsModal .stats-category h3 {
     margin-left: 5px;
 }
 
+/* Couleurs des stats dans la modale (modif 30/05 - Thème et style) */
 #statsModal .stats-category .bons-points-color {
-    color: #4CAF50;
+    color: var(--bons-points-color);
+    transition: color 0.5s ease;
 }
 
 #statsModal .stats-category .images-color {
-    color: #8A2BE2;
+    color: var(--images-color);
+    transition: color 0.5s ease;
 }
 
-body.dark-theme #statsModal .stats-category .Professeur-color {
-    color: #f0f0f0;
+#statsModal .stats-category .Professeur-color {
+    color: var(--professeur-color);
+    transition: color 0.5s ease;
 }
 
 #statsModal .stats-category .ascension-points-color {
-    color: #007BFF;
+    color: var(--ascension-points-color);
+    transition: color 0.5s ease;
 }
 
 #statsModal .stats-category .prestige-points-color {
-    color: #FF0000;
+    color: var(--prestige-points-color);
+    transition: color 0.5s ease;
 }
 
 #statsModal .stats-category .info-color {
-    color: #007BFF;
+    color: var(--info-color);
+    transition: color 0.5s ease;
 }
 
 #statsModal .stats-category .warning-color {
-    color: #FF4500;
+    color: var(--warning-color);
+    transition: color 0.5s ease;
 }
-// Fiche Mémo : style.css
 
-// Description : Ce fichier CSS est le cœur de la présentation visuelle du jeu.
-// Il définit l'apparence de tous les éléments HTML, y compris la mise en page générale,
-// les couleurs, la typographie, les transitions, et les styles spécifiques pour les
-// différents composants de l'interface utilisateur (menus, boutons, modales, sections de jeu, etc.).
-// Il inclut également des styles pour le thème jour/nuit et assure la réactivité de l'interface.
+/* ==========================================================================
+   Réactivité Générale (modif 30/05 - Réactivité)
+   ========================================================================== */
 
-// Dépendances :
-// - index.html : Ce fichier est chargé par index.html via la balise <link>.
-// Il ne dépend pas directement de fichiers JavaScript pour son fonctionnement,
-// mais ses règles CSS sont appliquées aux éléments DOM définis dans index.html
-// et manipulés par les scripts JavaScript.
+@media (max-width: 1024px) {
+    #side-menu {
+        width: 200px;
+    }
 
-// Variables Clés :
-// Le CSS ne contient pas de "variables" au sens de JavaScript, mais il utilise des sélecteurs
-// (IDs et classes) pour cibler et styliser des éléments spécifiques.
-// Les couleurs et autres propriétés sont définies directement dans les règles.
+    #main-content {
+        padding: 20px 15px;
+    }
 
-// Fonctions Clés :
-// Le CSS n'a pas de "fonctions" au sens de la programmation.
-// Son rôle est d'appliquer des règles de style déclaratives aux éléments HTML.
+    .container {
+        padding: 15px;
+    }
 
-// Éléments DOM Clés (référencés par ID/Classe) :
-// - body: Styles de base pour l'ensemble de la page (police, arrière-plan, couleur de texte, transitions pour le thème).
-// - .main-game-wrapper: Conteneur principal pour la mise en page flexible du jeu.
-// - #side-menu: Menu de navigation latéral.
-// - .container: Conteneur principal pour l'affichage des ressources et le bouton de clic.
-// - button: Styles généraux pour tous les boutons interactifs.
-// - button.can-afford, button.cannot-afford: Styles conditionnels pour les boutons en fonction de l'accessibilité des achats.
-// - button.automation-active: Style pour les boutons d'automatisation actifs.
-// - .ressources, .resource-group, .production-inline: Styles pour l'affichage des ressources principales.
-// - #notifications-container, .notification-item: Conteneur et styles des notifications pop-up.
-// - .bons-points-color, .images-color, .eleves-color, .Professeur-color, .ascension-points-color, .prestige-points-color, .warning-color, .info-color: Classes pour les couleurs spécifiques aux ressources et messages.
-// - #confirmResetModal, #confirmAscensionModal, #confirmSkillResetModal, #achievementDetailModal, #confirmPrestigeModal, #statsModal: Styles pour les modales (fenêtres pop-up).
-// - .modal-content, .modal-buttons, .modal-checkbox: Styles des éléments internes des modales.
-// - #skillsContainer, #settingsContainer, #ascensionMenuContainer, #automationMainContainer, #studiesMainContainer, #questsContainer, #achievementsContainer, #prestigeMenuContainer: Conteneurs des différentes sections du jeu.
-// - .skill-panel, .skill-tier, .skill-boxes-wrapper, .skill-box, .skill-box.locked, .skill-box.unlocked, .skill-box.max-level, .skill-box.secret-skill: Styles pour l'arbre de compétences.
-// - .skill-box .tooltip-text: Styles pour les infobulles des compétences.
-// - #purchaseMultiplierSelection, .multiplier-button, .multiplier-button.active: Styles pour les boutons de sélection de multiplicateur d'achat.
-// - #achievementsGrid, .achievement-item, .achievement-item.unlocked, .achievement-tooltip: Styles pour la grille des succès et leurs infobulles.
-// - #page-footer: Pied de page du jeu.
-// - .quest-item, .quest-item.completed: Styles pour les éléments de quête.
-// - #minimalistResources: Panneau d'affichage minimaliste des ressources.
-// - #statsModal .stats-category: Catégories de statistiques dans la modale des statistiques.
-// - body.dark-theme: Sélecteur clé pour appliquer les styles du thème nuit à l'ensemble de l'application.
+    .skill-box {
+        width: 100px;
+        height: 80px;
+        font-size: 0.8em;
+    }
 
-// Logique Générale :
-// Ce fichier fournit la couche de présentation du jeu.
-// Il utilise des sélecteurs CSS pour cibler des éléments HTML spécifiques et leur appliquer des styles visuels.
-// Les styles sont conçus pour être cohérents et réactifs, s'adaptant à différentes tailles d'écran.
-// Le thème nuit est géré par une classe dark-theme ajoutée dynamiquement au body via JavaScript,
-// permettant une transition visuelle fluide.
+    .skill-box .skill-name {
+        font-size: 0.8em;
+    }
 
-// Notes Spécifiques :
-// - Thème Nuit : La classe dark-theme est ajoutée ou retirée du body par le JavaScript
-// (`settings.js` et `core.js`) pour basculer entre les thèmes.
-// - Réactivité : L'utilisation de flexbox (display: flex, flex-wrap) et de pourcentages
-// (width: 100%, flex: 1 1 calc(50% - 10px)) permet au jeu de s'adapter aux différentes tailles d'écran.
-// - Animations/Transitions : Des transitions CSS sont utilisées pour des effets visuels doux,
-// notamment pour les boutons (transition: background-color, transform, border-color) et les notifications
-// (animation: fadeInOutSmooth).
-// - Infobulles : Les infobulles pour les compétences et les succès sont stylisées pour apparaître
-// au survol ou au clic, offrant des informations supplémentaires sans encombrer l'interface.
+    .skill-box .skill-level {
+        font-size: 0.7em;
+    }
+
+    .achievement-item {
+        height: 70px;
+        padding: 8px;
+    }
+
+    .achievement-item h4 {
+        font-size: 0.8em;
+    }
+
+    .achievement-item p {
+        font-size: 0.7em;
+    }
+
+    .achievement-item .reward {
+        font-size: 0.6em;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-game-wrapper {
+        flex-direction: column;
+    }
+
+    #side-menu {
+        width: 100%;
+        height: auto;
+        flex-direction: row;
+        overflow-x: auto;
+        white-space: nowrap;
+        border-right: none;
+        border-bottom: 1px solid var(--side-menu-border-color);
+        position: relative;
+        padding: 10px;
+    }
+
+    #side-menu h2 {
+        display: none;
+    }
+
+    #side-menu button {
+        flex: 1 1 auto;
+        font-size: 0.8em;
+        padding: 8px 10px;
+        margin: 0 5px;
+    }
+
+    #main-content {
+        padding: 20px 10px;
+    }
+
+    .container {
+        width: 100%;
+        max-width: none;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 15px 10px;
+    }
+
+    .ressources {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .resource-group {
+        min-width: unset;
+        width: 100%;
+        text-align: center;
+    }
+
+    .achat-section {
+        width: 100%;
+        max-width: none;
+    }
+
+    #skillsContainer,
+    #settingsContainer,
+    #ascensionMenuContainer,
+    #automationMainContainer,
+    #studiesMainContainer,
+    #questsContainer,
+    #achievementsContainer,
+    #prestigeMenuContainer {
+        margin-top: 15px;
+        padding: 15px 10px;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    #skillsContainer .header-row .skill-header-buttons {
+        position: static;
+        margin-top: 10px;
+        justify-content: center;
+        width: 100%;
+    }
+
+    #studiesMainContainer #purchaseMultiplierSelection {
+        position: static;
+        transform: none;
+        width: 100%;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    #studiesMainContainer #purchaseMultiplierSelection>div {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    #studiesMainContainer .multiplier-button {
+        width: 60px;
+        height: 30px;
+        font-size: 0.8em;
+    }
+
+    .studies-section-group .achat-section {
+        flex: 1 1 100%;
+    }
+
+    #achievementsGrid {
+        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        gap: 5px;
+        padding: 5px;
+    }
+
+    .achievement-item {
+        height: 60px;
+        padding: 5px;
+        font-size: 0.7em;
+    }
+
+    .achievement-item h4 {
+        font-size: 0.7em;
+    }
+
+    .achievement-item p {
+        font-size: 0.6em;
+        -webkit-line-clamp: 1;
+        line-clamp: 1;
+    }
+
+    .achievement-item .reward {
+        font-size: 0.5em;
+    }
+
+    .achievement-tooltip {
+        max-width: 90%;
+        left: 5%;
+        transform: translateX(0);
+        bottom: auto;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .achievement-tooltip::after {
+        left: 50%;
+        top: auto;
+        bottom: -5px;
+        border-color: transparent transparent var(--achievement-tooltip-bg) transparent;
+    }
+
+    #notifications-container {
+        bottom: 10px;
+        right: 10px;
+        max-height: 200px;
+    }
+
+    .notification-item {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+
+    #statsModal .modal-content {
+        padding: 15px;
+    }
+
+    #statsModal .modal-content h2 {
+        font-size: 1.5em;
+    }
+
+    #statsModal .stats-category {
+        padding: 10px;
+    }
+
+    #statsModal .stats-category h3 {
+        font-size: 1em;
+    }
+
+    #statsModal .stats-category p {
+        font-size: 0.85em;
+    }
+}
