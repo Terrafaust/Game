@@ -119,7 +119,7 @@
 //   Impact : Permet d'afficher les coûts des achats de prestige et leurs bonus.
 //
 // - De './skills.js' :
-//   - Fonction d'action : `buySkill`.
+//   - Fonction d'action : `purchaseSkill`.
 //   Impact : Permet à `ui.js` de déclencher l'achat d'une compétence via `handleSkillClick`.
 //
 // - De './quests.js' : (maj 30/05 Quete)
@@ -244,7 +244,7 @@
 //
 // - `handleSkillClick(panelType, skillId)` :
 //   Description : Fonction de gestionnaire de clic pour les compétences.
-//   Elle appelle la fonction `buySkill` du module `skills.js` pour exécuter la logique d'achat.
+//   Elle appelle la fonction `purchaseSkill` du module `skills.js` pour exécuter la logique d'achat.
 //   - `panelType` (string) : Le type de panneau de compétences.
 //   - `skillId` (string) : L'ID de la compétence cliquée.
 //   Appelée par : `events.js` (via délégation d'événements sur les grilles de compétences).
@@ -469,7 +469,7 @@ import { skillsData, prestigePurchasesData, questsData, achievementsData } from 
 import { calculateNextEcoleCost, calculateNextLyceeCost, calculateNextCollegeCost } from './ascension.js';
 import { getPrestigeBonusMultiplier, calculateLicenceCost, calculateMaster1Cost, calculateMaster2Cost,
          calculateDoctoratCost, calculatePostDoctoratCost } from './prestige.js';
-import { buySkill } from './skills.js'; // Importe la fonction buySkill
+import { purchaseSkill } from './skills.js'; // Importe la fonction purchaseSkill
 import { renderQuests as renderQuestsFromQuestsJS, updateQuestsUI as updateQuestsUIFromQuestsJS } from './quests.js';
 import { getLogs, clearLogs } from './logger.js'; // Importation des fonctions de log (maj 31/05 debug + log)
 
@@ -1312,10 +1312,10 @@ function renderSkillPanel(panelType, gridElement, skillLevels, skillPoints, isPa
 export function handleSkillClick(panelType, skillId) {
     // La logique d'achat et d'application des effets de compétence est dans skills.js.
     // Ce fichier UI.js ne fait que déclencher l'action.
-    if (typeof buySkill === 'function') {
-        buySkill(panelType, skillId);
+    if (typeof purchaseSkill === 'function') {
+        purchaseSkill(panelType, skillId);
     } else {
-        console.error("buySkill function is not defined. Ensure skills.js is loaded.");
+        console.error("purchaseSkill function is not defined. Ensure skills.js is loaded.");
     }
 }
 

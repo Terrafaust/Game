@@ -14,6 +14,7 @@ MonJeuIncremental/
 ├── settings.js # Paramètres du jeu
 ├── quests.js # Logique des quêtes
 ├── achievements.js # Logique des succès
+├── loggerjs # Logs pour débug
 ├── README.md # (Optionnel) Documentation du projet
 └── assets/ # (Optionnel) Dossier pour les images, sons, etc.
 
@@ -1179,7 +1180,7 @@ MonJeuIncremental/
 //   Impact : Permet d'afficher les coûts des achats de prestige et leurs bonus.
 //
 // - De './skills.js' :
-//   - Fonction d'action : `buySkill`.
+//   - Fonction d'action : `purchaseSkill`.
 //   Impact : Permet à `ui.js` de déclencher l'achat d'une compétence via `handleSkillClick`.
 //
 // - De './quests.js' : (maj 30/05 Quete)
@@ -1304,7 +1305,7 @@ MonJeuIncremental/
 //
 // - `handleSkillClick(panelType, skillId)` :
 //   Description : Fonction de gestionnaire de clic pour les compétences.
-//   Elle appelle la fonction `buySkill` du module `skills.js` pour exécuter la logique d'achat.
+//   Elle appelle la fonction `purchaseSkill` du module `skills.js` pour exécuter la logique d'achat.
 //   - `panelType` (string) : Le type de panneau de compétences.
 //   - `skillId` (string) : L'ID de la compétence cliquée.
 //   Appelée par : `events.js` (via délégation d'événements sur les grilles de compétences).
@@ -1497,6 +1498,7 @@ MonJeuIncremental/
 //   `ui.js` ne fait que "lire" l'état et "écrire" sur l'interface.
 //
 // ---------------------------------------------------------------------
+
 
 
 
@@ -2403,5 +2405,49 @@ MonJeuIncremental/
 // 6. Infobulles : `showAchievementTooltip`, `hideAchievementTooltip`, `toggleAchievementTooltip`
 //    gèrent l'affichage dynamique des détails des succès au survol ou au clic, en utilisant
 //    l'élément `#achievementTooltip`.
+//
+// ---------------------------------------------------------------------
+
+
+
+
+
+
+
+
+// ------------------ Fiche Mémo : logger.js ----------------------------
+//
+// Description : Ce fichier gère le système de journalisation (logging) du jeu.
+// Il permet d'enregistrer différents types de messages (erreurs, informations, avertissements)
+// dans le localStorage du navigateur, facilitant ainsi le débogage et le suivi des événements.
+//
+// Objectif : Fournir une interface simple et centralisée pour la journalisation,
+// permettant de capturer des informations importantes sur le comportement du jeu
+// sans interrompre l'expérience utilisateur avec des alertes.
+//
+// ------------------ Fonctions Exportées ------------------
+//
+// export function initLogger()
+//   // Initialise le logger, s'assurant que l'espace de stockage pour les logs existe.
+//
+// export function logError(message, errorObject = null)
+//   // Enregistre un message d'erreur.
+//   // - message: Le message d'erreur (string).
+//   // - errorObject: L'objet d'erreur JavaScript (Error) si disponible.
+//
+// export function logWarning(message)
+//   // Enregistre un message d'avertissement.
+//   // - message: Le message d'avertissement (string).
+//
+// export function logInfo(message)
+//   // Enregistre un message d'information.
+//   // - message: Le message d'information (string).
+//
+// export function getLogs()
+//   // Récupère tous les logs enregistrés.
+//   // Retourne un tableau d'objets log.
+//
+// export function clearLogs()
+//   // Efface tous les logs enregistrés.
 //
 // ---------------------------------------------------------------------
