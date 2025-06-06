@@ -1,8 +1,10 @@
-// modules/market_module/market_data.js (v1.1 - Achievements Unlock)
+// modules/market_module/market_data.js (v1.3 - Initial Visibility Fix)
 
 /**
  * @file market_data.js
  * @description Static data definitions for the Market module.
+ * v1.3: Set 'images' to initially not showInUI and not isUnlocked.
+ * v1.2: Set studySkillPoints.showInUI to false.
  * v1.1: Includes definition for unlocking achievementsTab.
  */
 
@@ -12,16 +14,16 @@ export const staticModuleData = {
             id: 'images',
             name: "Images",
             initialAmount: "0",
-            isUnlocked: true, 
-            showInUI: true,
+            isUnlocked: false, // Initially locked
+            showInUI: false,   // Initially hidden
             hasProductionRate: false 
         },
         studySkillPoints: {
             id: 'studySkillPoints',
             name: "Study Skill Points",
             initialAmount: "0",
-            isUnlocked: true, 
-            showInUI: true,
+            isUnlocked: true,  // Should be unlocked by market module so it can be purchased
+            showInUI: false,   // Study Skill Points should NOT be visible in the main resource bar
             hasProductionRate: false 
         }
     },
@@ -52,19 +54,19 @@ export const staticModuleData = {
     marketUnlocks: {
         settingsTab: {
             id: 'unlockSettingsTab',
-            name: 'Unlock Settings Menu',
+            name: 'Unlock Settings Menu', 
             description: 'Gain access to game settings and customization options.',
             costResource: 'images',
             costAmount: '100', 
-            flagToSet: 'settingsTabUnlocked', // This flag will be checked by settings_ui_manifest
+            flagToSet: 'settingsTabUnlocked', 
         },
-        achievementsTab: { // Definition for unlocking achievements tab
+        achievementsTab: { 
             id: 'unlockAchievementsTab',
-            name: 'Unlock Achievements Menu',
+            name: 'Unlock Achievements Menu', 
             description: 'Track your accomplishments and earn rewards.',
             costResource: 'images',
-            costAmount: '100', // As per roadmap: "e.g., 100 Images"
-            flagToSet: 'achievementsTabUnlocked', // This flag will be checked by achievements_manifest
+            costAmount: '100', 
+            flagToSet: 'achievementsTabUnlocked', 
         }
     },
 
